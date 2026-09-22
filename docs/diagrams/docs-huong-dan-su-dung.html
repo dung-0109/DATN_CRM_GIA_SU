@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hướng dẫn sử dụng - CRM Trung tâm Gia sư</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; color: #1e293b; line-height: 1.65; }
+  .header { background: linear-gradient(135deg, #1e3a8a, #312e81); color: #fff; padding: 40px 24px; text-align: center; }
+  .header h1 { font-size: 30px; margin-bottom: 8px; }
+  .header p { color: #c7d2fe; font-size: 15px; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 28px 20px 60px; }
+  .toc { background: #fff; border-radius: 14px; padding: 22px 28px; box-shadow: 0 2px 10px rgba(0,0,0,.08); margin-bottom: 28px; }
+  .toc h2 { color: #1e3a8a; font-size: 17px; margin-bottom: 10px; }
+  .toc ol { padding-left: 22px; font-size: 14px; }
+  .toc a { color: #1e3a8a; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .section { background: #fff; border-radius: 14px; padding: 26px 30px; box-shadow: 0 2px 10px rgba(0,0,0,.08); margin-bottom: 26px; }
+  .section h2 { color: #1e3a8a; font-size: 20px; border-bottom: 2px solid #e0e7ff; padding-bottom: 10px; margin-bottom: 16px; }
+  .section h3 { color: #3730a3; font-size: 15.5px; margin: 18px 0 8px; }
+  .section p, .section li { font-size: 14px; margin-bottom: 6px; }
+  .section ul, .section ol { padding-left: 22px; }
+  code { background: #eef2ff; color: #3730a3; padding: 2px 7px; border-radius: 5px; font-size: 12.5px; font-family: Consolas, monospace; }
+  .table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13.5px; }
+  .table th { background: #eef2ff; color: #3730a3; text-align: left; padding: 9px 12px; border: 1px solid #e2e8f0; }
+  .table td { padding: 9px 12px; border: 1px solid #e2e8f0; vertical-align: top; }
+  .table tr:nth-child(even) td { background: #f8fafc; }
+  .note { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 0 10px 10px 0; font-size: 13.5px; margin: 12px 0; }
+  .tip { background: #d1fae5; border-left: 4px solid #10b981; padding: 12px 16px; border-radius: 0 10px 10px 0; font-size: 13.5px; margin: 12px 0; }
+  .warn { background: #fee2e2; border-left: 4px solid #ef4444; padding: 12px 16px; border-radius: 0 10px 10px 0; font-size: 13.5px; margin: 12px 0; }
+  .step-list { counter-reset: s; list-style: none; padding-left: 0 !important; }
+  .step-list > li { position: relative; padding-left: 42px; margin-bottom: 12px; }
+  .step-list > li::before { counter-increment: s; content: counter(s); position: absolute; left: 0; top: 2px; width: 28px; height: 28px; border-radius: 50%; background: #e0e7ff; color: #1e3a8a; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+  .role { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; color: #fff; vertical-align: middle; margin-left: 6px; }
+  .role-parent { background: #0ea5e9; }
+  .role-tutor { background: #f59e0b; }
+  .role-staff { background: #6366f1; }
+  .role-system { background: #10b981; }
+  .uc { background: #fef3c7; color: #92400e; }
+  .footer { text-align: center; color: #94a3b8; font-size: 13px; padding: 20px; }
+  .print-hint { text-align: center; font-size: 12.5px; color: #94a3b8; margin-bottom: 10px; }
+  @media print {
+    .header { padding: 24px; }
+    .section, .toc { box-shadow: none; }
+    body { background: #fff; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📘 Hướng dẫn sử dụng hệ thống</h1>
+  <p>CRM Quản lý Trung tâm Gia sư — dành cho Người vận hành, Phụ huynh, Gia sư và Nhân viên</p>
+</div>
+
+<div class="wrap">
+
+<div class="print-hint">💡 Mẹo: mở bằng trình duyệt (Chrome/Edge) → Ctrl+P → "Save as PDF" để xuất bản tài liệu giấy.</div>
+
+<!-- ============ MỤC LỤC ============ -->
+<div class="toc">
+  <h2>Mục lục</h2>
+  <ol>
+    <li><a href="#gioi-thieu">Giới thiệu hệ thống & các vai người dùng</a></li>
+    <li><a href="#bat-dau">Bắt đầu nhanh (2 phút)</a></li>
+    <li><a href="#dang-ky">Đăng ký tài khoản</a></li>
+    <li><a href="#dang-nhap">Đăng nhập & chuyển đổi tài khoản nhanh</a></li>
+    <li><a href="#quen-mat-khau">Quên mật khẩu</a></li>
+    <li><a href="#phu-huynh">Hướng dẫn theo vai — Phụ huynh</a></li>
+    <li><a href="#gia-su">Hướng dẫn theo vai — Gia sư</a></li>
+    <li><a href="#nhan-vien">Hướng dẫn theo vai — Nhân viên (Admin/Sales/Học vụ/Kế toán)</a></li>
+    <li><a href="#quy-trinh">Quy trình vận hành tổng thể</a></li>
+    <li><a href="#tai-khoan-demo">Danh sách tài khoản & mật khẩu mặc định</a></li>
+    <li><a href="#cau-hoi-thuong-gap">Câu hỏi thường gặp (FAQ) & lỗi thường gặp</a></li>
+  </ol>
+</div>
+
+<!-- ============ 1. GIỚI THIỆU ============ -->
+<div class="section" id="gioi-thieu">
+  <h2>1. Giới thiệu hệ thống & các vai người dùng</h2>
+  <p>Hệ thống CRM Trung tâm Gia sư là nền tảng quản lý toàn bộ hoạt động của một trung tâm gia sư: từ khi phụ huynh có nhu cầu tìm gia sư, khớp lớp, theo dõi buổi dạy, điểm danh, thanh toán học phí đến giải quyết khiếu nại.</p>
+
+  <h3>Các vai người dùng (Actor)</h3>
+  <table class="table">
+    <tr><th style="width:22%">Vai</th><th>Vai trò trong hệ thống</th><th style="width:30%">Khu vực sử dụng</th></tr>
+    <tr><td><b>Phụ huynh</b> <span class="role role-parent">CLIENT</span></td><td>Đăng ký tìm gia sư, xác nhận buổi học, báo nghỉ, thanh toán học phí</td><td>Client Portal (<code>/client</code>)</td></tr>
+    <tr><td><b>Gia sư</b> <span class="role role-tutor">TUTOR</span></td><td>Khai hồ sơ & lịch rảnh, ứng tuyển nhận lớp, điểm danh, xem thu nhập</td><td>Tutor Portal (<code>/tutor</code>)</td></tr>
+    <tr><td><b>Nhân viên CRM</b> <span class="role role-staff">CRM</span></td><td>Sales khớp lớp · Học vụ quản lớp & khiếu nại · Kế toán ví tiền & lương · Admin toàn quyền</td><td>CRM Back-office (<code>/admin-crm</code>)</td></tr>
+    <tr><td><b>Hệ thống</b> <span class="role role-system">AUTO</span></td><td>Khớp lớp tự động, kiểm tra trùng giờ, khóa điểm danh 24h, autopay trừ tiền, ghi audit log</td><td>Chạy ngầm (tự động)</td></tr>
+  </table>
+
+  <div class="tip">📌 <b>Nguyên tắc chính:</b> mỗi tài khoản SĐT chỉ đăng ký 1 lần, chọn 1 vai (Phụ huynh <b>hoặc</b> Gia sư). Nhân viên do trung tâm cấp. Có thể đăng nhập nhiều tài khoản và chuyển đổi qua lại bằng nút "Đổi tài khoản nhanh".</div>
+</div>
+
+<!-- ============ 2. BẮT ĐẦU NHANH ============ -->
+<div class="section" id="bat-dau">
+  <h2>2. Bắt đầu nhanh (2 phút)</h2>
+  <table class="table">
+    <tr><th style="width:28%">Bạn là ai?</th><th>Làm ngay 3 bước này</th></tr>
+    <tr><td><b>Phụ huynh</b></td><td>1) Bấm "Phụ huynh: Tìm Gia sư" → 2) Đăng ký (Họ tên, SĐT, mật khẩu) → 3) Đăng nhập → Client Portal → "Đăng ký tìm Gia sư"</td></tr>
+    <tr><td><b>Gia sư</b></td><td>1) Bấm "Gia sư: Đăng ký dạy" → 2) Đăng ký → 3) Đăng nhập → Tutor Portal → khai lịch rảnh → ứng tuyển lớp</td></tr>
+    <tr><td><b>Nhân viên</b></td><td>1) Nhận tài khoản từ trung tâm (mẫu: <code>0123456789 / admin123</code>) → 2) Đăng nhập → 3) Chọn "Nhân viên" → CRM Back-office</td></tr>
+  </table>
+  <div class="note">⚠️ Số điện thoại phải <b>đủ 10 chữ số, bắt đầu bằng số 0, chỉ gồm chữ số</b>. Mật khẩu từ <b>8 đến 15 ký tự</b>. Nếu nhập sai, hệ thống báo "VUI LÒNG NHẬP LẠI".</div>
+</div>
+
+<!-- ============ 3. ĐĂNG KÝ ============ -->
+<div class="section" id="dang-ky">
+  <h2>3. Đăng ký tài khoản</h2>
+  <ol class="step-list">
+    <li>Từ trang chủ, bấm nút <b>"Phụ huynh: Tìm Gia sư"</b> hoặc <b>"Gia sư: Đăng ký dạy"</b> (hoặc nút "Đăng ký" góc phải) → vào trang Đăng ký.</li>
+    <li>Điền <b>Họ và tên</b>, <b>Số điện thoại</b> (10 số, bắt đầu 0), <b>Mật khẩu</b> (8-15 ký tự, có nút 👁 để xem trước khi gõ).</li>
+    <li>Chọn vai: <b>"Phụ huynh học sinh"</b> hoặc <b>"Gia sư dạy học"</b> → bấm <b>"Đăng ký ngay"</b>.</li>
+    <li>Đăng ký thành công → tự quay lại trang <b>Đăng nhập</b> (không cần mã OTP, tài khoản đã kích hoạt ngay).</li>
+  </ol>
+  <div class="tip">✨ Sau khi đăng ký, SĐT + tên của bạn <b>tự xuất hiện trong ô chọn tài khoản</b> ở trang đăng nhập.</div>
+</div>
+
+<!-- ============ 4. ĐĂNG NHẬP ============ -->
+<div class="section" id="dang-nhap">
+  <h2>4. Đăng nhập & chuyển đổi tài khoản nhanh</h2>
+
+  <h3>4.1 Đăng nhập thường</h3>
+  <ol class="step-list">
+    <li>Ô <b>Số điện thoại</b>: có thể <b>gõ trực tiếp</b> hoặc <b>bấm vào để chọn</b> từ danh sách tài khoản đã đăng ký (mỗi dòng hiện: <code>0123456789 (Trần Văn Quyết)</code>). Gõ tên hoặc SĐT để lọc nhanh.</li>
+    <li>Nhập <b>Mật khẩu</b> → bấm <b>"Tiếp tục"</b>.</li>
+    <li>Nếu tài khoản có nhiều vai → màn hình <b>Chọn vai</b> hiện ra; chọn 1 vai để vào portal tương ứng.</li>
+  </ol>
+
+  <h3>4.2 Chuyển đổi tài khoản nhanh (đang dùng hệ thống)</h3>
+  <ol class="step-list">
+    <li>Ở góc trên màn hình (trong bất kỳ portal nào), bấm nút <b>"Đổi tài khoản nhanh"</b>.</li>
+    <li>Chọn (hoặc gõ tìm) tài khoản cần chuyển.</li>
+    <li>Nhập <b>mật khẩu</b> của tài khoản đó để xác thực → bấm <b>"Xác nhận & chuyển"</b> → hệ thống chuyển ngay sang portal tương ứng.</li>
+  </ol>
+  <div class="warn">🔒 Tài khoản phải đúng mật khẩu mới chuyển được. Bạn đang dùng tài khoản nào thì hệ thống báo "Bạn đang dùng tài khoản này rồi".</div>
+</div>
+
+<!-- ============ 5. QUÊN MẬT KHẨU ============ -->
+<div class="section" id="quen-mat-khau">
+  <h2>5. Quên mật khẩu</h2>
+  <ol class="step-list">
+    <li>Ở trang Đăng nhập, bấm link <b>"Quên mật khẩu?"</b>.</li>
+    <li><b>Bước 1:</b> nhập SĐT đã đăng ký → bấm <b>"Gửi mã OTP"</b>.</li>
+    <li><b>Bước 2:</b> nhập mã OTP (bản demo dùng mã cố định <code>123456</code>), nhập <b>mật khẩu mới</b> (8-15 ký tự) + <b>xác nhận</b> → bấm <b>"Đặt lại mật khẩu"</b>.</li>
+    <li>Thành công → tự quay lại trang đăng nhập, dùng mật khẩu mới.</li>
+  </ol>
+  <div class="note">⚠️ Mật khẩu xác nhận phải khớp mật khẩu mới, nếu không hệ thống báo "VUI LÒNG NHẬP LẠI".</div>
+</div>
+
+<!-- ============ 6. PHỤ HUYNH ============ -->
+<div class="section" id="phu-huynh">
+  <h2>6. Hướng dẫn theo vai — Phụ huynh <span class="role role-parent">CLIENT PORTAL</span></h2>
+
+  <h3>6.1 Đăng ký tìm Gia sư <span class="uc">UC-01</span></h3>
+  <ol class="step-list">
+    <li>Trong Client Portal, bấm nút <b>"Đăng ký tìm Gia sư"</b> (hoặc mục "Đăng ký tìm Gia sư dạy kèm").</li>
+    <li>Điền thông tin học sinh: môn học, khối lớp, khu vực/quận, thời gian học mong muốn, yêu cầu riêng (nếu có).</li>
+    <li>Bấm <b>gửi yêu cầu</b> → yêu cầu vào hàng đợi, nhân viên Sales sẽ xử lý khớp gia sư.</li>
+  </ol>
+
+  <h3>6.2 Xác nhận buổi học (điểm danh) <span class="uc">UC-03</span></h3>
+  <ol class="step-list">
+    <li>Sau mỗi buổi dạy, gia sư điểm danh → phụ huynh nhận thông báo.</li>
+    <li>Vào mục <b>Điểm danh / Xác nhận</b> → nhập <b>mã PIN</b> (mặc định <code>1234</code>) để xác nhận buổi học.</li>
+    <li>Buổi đã xác nhận được tính công cho gia sư và trừ học phí tự động từ gói.</li>
+  </ol>
+  <div class="warn">⏰ Điểm danh chỉ xác nhận trong vòng <b>24 giờ</b>; quá hạn phải liên hệ bộ phận Học vụ để xử lý thủ công.</div>
+
+  <h3>6.3 Báo nghỉ học lẻ <span class="uc">UC-04</span></h3>
+  <ol class="step-list">
+    <li>Vào mục <b>"Báo nghỉ"</b> (trang Client Portal).</li>
+    <li>Chọn buổi học cần nghỉ, ghi lý do → gửi. Hệ thống thông báo cho gia sư, buổi đó không tính phí.</li>
+  </ol>
+
+  <h3>6.4 Thanh toán — ví & gói học phí <span class="uc">UC-10</span></h3>
+  <ol class="step-list">
+    <li>Nạp tiền vào ví / mua <b>gói học phí</b>.</li>
+    <li>Mỗi buổi xác nhận → hệ thống <b>tự trừ tiền</b> từ gói.</li>
+    <li>Hết gói → hệ thống nhắc mua mới để tiếp tục học.</li>
+  </ol>
+</div>
+
+<!-- ============ 7. GIA SƯ ============ -->
+<div class="section" id="gia-su">
+  <h2>7. Hướng dẫn theo vai — Gia sư <span class="role role-tutor">TUTOR PORTAL</span></h2>
+
+  <h3>7.1 Khai hồ sơ & lịch rảnh <span class="uc">UC-05</span></h3>
+  <ol class="step-list">
+    <li>Trong Tutor Portal, vào mục khai hồ sơ: chuyên môn (môn dạy, khối lớp), kinh nghiệm, bằng cấp.</li>
+    <li>Khai <b>lịch rảnh trong tuần</b>: đánh dấu ngày + khung giờ rảnh → lưu.</li>
+    <li>Hệ thống tự kiểm tra <b>trùng giờ</b> và báo lỗi nếu lịch chồng chéo.</li>
+  </ol>
+
+  <h3>7.2 Ứng tuyển nhận lớp <span class="uc">UC-06</span></h3>
+  <ol class="step-list">
+    <li>Vào mục <b>"Lớp mới / Ứng tuyển"</b> → xem danh sách lớp phù hợp với môn + khu vực + lịch rảnh.</li>
+    <li>Bấm <b>Ứng tuyển</b> vào lớp mong muốn.</li>
+    <li>Chờ CRM duyệt → được duyệt thì lớp chính thức xuất hiện trong danh sách lớp của bạn.</li>
+  </ol>
+
+  <h3>7.3 Điểm danh buổi dạy <span class="uc">UC-07</span></h3>
+  <ol class="step-list">
+    <li>Trước/sau buổi dạy: vào mục <b>"Điểm danh"</b> → chọn lớp + buổi → bấm điểm danh.</li>
+    <li>Phụ huynh xác nhận bằng PIN → buổi hoàn thành, thu nhập được cộng vào ví.</li>
+  </ol>
+  <div class="warn">⏰ Điểm danh phải thực hiện trong vòng <b>24 giờ</b>, sau đó hệ thống khóa.</div>
+
+  <h3>7.4 Báo nghỉ / dời lịch dạy <span class="uc">UC-08</span></h3>
+  <ol class="step-list">
+    <li>Vào mục <b>"Báo nghỉ"</b> (trang Tutor Portal).</li>
+    <li>Chọn buổi cần nghỉ hoặc dời lịch → ghi lý do → gửi. Hệ thống thông báo cho phụ huynh.</li>
+  </ol>
+
+  <h3>7.5 Xem thu nhập <span class="uc">UC-10</span></h3>
+  <ol class="step-list">
+    <li>Vào mục <b>"Ví / Thu nhập"</b> → xem số buổi đã dạy, số tiền tích lũy theo từng buổi được xác nhận.</li>
+    <li>Khi Kế toán duyệt lương → tiền được thanh toán cho gia sư.</li>
+  </ol>
+</div>
+
+<!-- ============ 8. NHÂN VIÊN ============ -->
+<div class="section" id="nhan-vien">
+  <h2>8. Hướng dẫn theo vai — Nhân viên <span class="role role-staff">CRM BACK-OFFICE</span></h2>
+
+  <h3>8.1 Sales — Khớp gia sư <span class="uc">UC-09</span></h3>
+  <ol class="step-list">
+    <li>Vào CRM → mục <b>"Khớp lớp"</b> (<code>/admin-crm/matching</code>).</li>
+    <li>Xem danh sách yêu cầu mới của phụ huynh (môn, khu vực, yêu cầu).</li>
+    <li>Hệ thống <b>gợi ý danh sách gia sư phù hợp</b> → Sales chọn gia sư / hoặc chỉnh tay.</li>
+    <li>Xác nhận khớp → hệ thống thông báo cho phụ huynh và gia sư.</li>
+  </ol>
+
+  <h3>8.2 Học vụ — Quản lý lớp & khiếu nại <span class="uc">UC-11</span></h3>
+  <ol class="step-list">
+    <li>Vào mục <b>"Khiếu nại / Tranh chấp"</b> (<code>/admin-crm/disputes</code>).</li>
+    <li>Xem danh sách khiếu nại từ phụ huynh/gia sư (buổi dạy, phí, nghỉ học...).</li>
+    <li>Xem chứng cứ, đối chiếu điểm danh → ra quyết định (đồng ý / bác bỏ / bồi hoàn).</li>
+    <li>Cũng xử lý các trường hợp điểm danh bị khóa 24h.</li>
+  </ol>
+
+  <h3>8.3 Kế toán — Ví tiền & lương <span class="uc">UC-10</span></h3>
+  <ol class="step-list">
+    <li>Xem ví của từng phụ huynh: nạp tiền, trừ tự động theo buổi xác nhận, gói học phí.</li>
+    <li>Đối soát giao dịch theo kỳ.</li>
+    <li><b>Duyệt lương</b> cho gia sư theo số buổi hoàn thành đã xác nhận.</li>
+  </ol>
+
+  <h3>8.4 Admin — Giám sát hệ thống</h3>
+  <ol class="step-list">
+    <li>Toàn quyền truy cập mọi phân hệ CRM.</li>
+    <li>Theo dõi <b>Audit Log</b>: mọi hành động (đăng nhập, khớp lớp, duyệt lương, xóa...) đều được ghi lại để truy vết.</li>
+  </ol>
+</div>
+
+<!-- ============ 9. QUY TRÌNH TỔNG THỂ ============ -->
+<div class="section" id="quy-trinh">
+  <h2>9. Quy trình vận hành tổng thể</h2>
+  <p>Một vòng đời lớp học hoàn chỉnh đi qua 5 giai đoạn:</p>
+  <ol>
+    <li><b>Tiếp nhận nhu cầu:</b> Phụ huynh đăng ký tìm gia sư (UC-01).</li>
+    <li><b>Khớp lớp:</b> Hệ thống gợi ý + Sales duyệt (UC-09); Gia sư ứng tuyển/được chọn (UC-06).</li>
+    <li><b>Giảng dạy:</b> Gia sư điểm danh (UC-07) → Phụ huynh xác nhận PIN (UC-03); nghỉ/đổi lịch 2 bên (UC-04 / UC-08).</li>
+    <li><b>Thanh toán:</b> Autopay trừ gói học phí (UC-10); Kế toán duyệt lương gia sư cuối kỳ.</li>
+    <li><b>Giải quyết khiếu nại:</b> Học vụ trọng tài tranh chấp (UC-11) khi có vấn đề.</li>
+  </ol>
+
+  <h3>Sơ đồ dòng chảy nhanh</h3>
+  <table class="table">
+    <tr><th>Giai đoạn</th><th>Ai thao tác</th><th>Hệ thống tự động làm gì</th></tr>
+    <tr><td>1. Đăng ký nhu cầu</td><td>Phụ huynh</td><td>Kiểm tra SĐT hợp lệ, tạo yêu cầu</td></tr>
+    <tr><td>2. Khớp lớp</td><td>Sales + Gia sư</td><td>Gợi ý ứng viên, kiểm tra trùng giờ, năng lực</td></tr>
+    <tr><td>3. Dạy & điểm danh</td><td>Gia sư → Phụ huynh</td><td>Khóa điểm danh sau 24h, ghi nhận buổi</td></tr>
+    <tr><td>4. Thanh toán</td><td>Kế toán</td><td>Autopay trừ tiền gói, cộng công gia sư</td></tr>
+    <tr><td>5. Khiếu nại</td><td>Học vụ</td><td>Lưu chứng cứ, audit log đầy đủ</td></tr>
+  </table>
+</div>
+
+<!-- ============ 10. TÀI KHOẢN DEMO ============ -->
+<div class="section" id="tai-khoan-demo">
+  <h2>10. Danh sách tài khoản & mật khẩu mặc định</h2>
+  <table class="table">
+    <tr><th>Vai</th><th>SĐT</th><th>Mật khẩu</th><th>Ghi chú</th></tr>
+    <tr><td>Admin / Học vụ</td><td><code>0123456789</code></td><td><code>admin123</code></td><td>Tài khoản quản trị duy nhất (seed)</td></tr>
+    <tr><td colspan="2">Mã OTP đặt lại mật khẩu (demo)</td><td><code>123456</code></td><td>Chỉ dùng trong bản demo</td></tr>
+    <tr><td colspan="2">Mã PIN phụ huynh xác nhận điểm danh</td><td><code>1234</code></td><td>Đặt khi đăng ký / đổi trong hồ sơ</td></tr>
+  </table>
+  <div class="note">⚠️ Các tài khoản khác (phụ huynh, gia sư) do người dùng tự đăng ký — mật khẩu do họ đặt, hệ thống không lưu dạng chữ thường.</div>
+</div>
+
+<!-- ============ 11. FAQ ============ -->
+<div class="section" id="cau-hoi-thuong-gap">
+  <h2>11. Câu hỏi thường gặp (FAQ) & lỗi thường gặp</h2>
+
+  <h3>Q1. Đăng ký báo "Số điện thoại này đã được đăng ký" thì làm sao?</h3>
+  <p>Mỗi SĐT chỉ đăng ký 1 tài khoản. Nếu bạn từng đăng ký rồi → vào trang <b>Đăng nhập</b>, chọn SĐT của mình trong ô chọn tài khoản và đăng nhập trực tiếp.</p>
+
+  <h3>Q2. Báo "Số điện thoại hoặc mật khẩu không chính xác"?</h3>
+  <p>Kiểm tra lại: SĐT đủ 10 số bắt đầu bằng 0? Mật khẩu đúng 8-15 ký tự? Nếu quên mật khẩu → dùng chức năng <b>"Quên mật khẩu"</b>.</p>
+
+  <h3>Q3. Báo "VUI LÒNG NHẬP LẠI"?</h3>
+  <p>Định dạng nhập sai: SĐT phải 10 chữ số bắt đầu 0 (không chữ cái/ký tự đặc biệt), mật khẩu 8-15 ký tự, mật khẩu xác nhận phải khớp.</p>
+
+  <h3>Q4. Tài khoản "chưa kích hoạt qua OTP"?</h3>
+  <p>Chỉ xảy ra với tài khoản tạo theo cách cũ. Liên hệ admin để kích hoạt hoặc đăng ký lại bằng SĐT mới.</p>
+
+  <h3>Q5. Đăng nhập vào nhưng bị "Không tìm thấy hồ sơ"?</h3>
+  <p>Thường gặp với tài khoản lỗi dữ liệu cũ. Hãy dùng tài khoản đăng ký mới hoặc tài khoản admin chuẩn <code>0123456789</code>.</p>
+
+  <h3>Q6. Muốn dùng thử nhiều vai cùng lúc?</h3>
+  <p>Dùng nút <b>"Đổi tài khoản nhanh"</b> ở góc trên bất kỳ portal nào → chọn tài khoản → nhập mật khẩu → vào portal tương ứng ngay.</p>
+
+  <h3>Q7. Tôi là thầy/cô, muốn demo cho lớp?</h3>
+  <ol>
+    <li>Đăng ký 1 tài khoản <b>Phụ huynh</b> (ví dụ: <code>0987654321</code>).</li>
+    <li>Đăng ký 1 tài khoản <b>Gia sư</b> (ví dụ: <code>0976543210</code>).</li>
+    <li>Đăng nhập admin <code>0123456789 / admin123</code> → xem CRM khớp lớp, quản lý khiếu nại.</li>
+    <li>Chuyển qua lại giữa 3 vai bằng nút "Đổi tài khoản nhanh" để minh họa toàn bộ quy trình.</li>
+  </ol>
+</div>
+
+</div>
+
+<div class="footer">
+  Tài liệu nội bộ — CRM Trung tâm Gia sư · Đi kèm: Sơ đồ Use Case (<code>docs-use-case-diagram.html</code>) · Trải nghiệm từng bước (<code>docs-ux-journey.html</code>)
+</div>
+
+</body>
+</html>

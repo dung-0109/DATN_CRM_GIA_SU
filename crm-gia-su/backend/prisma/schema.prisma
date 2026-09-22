@@ -1,0 +1,546 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ------------------------------------------------------
+// Enums
+// ------------------------------------------------------
+
+enum UserRole {
+  ADMIN
+  SALES
+  ACADEMIC
+  ACCOUNTANT
+  PARENT
+  TUTOR
+}
+
+enum RequestStatus {
+  NEW
+  CONSULTING
+  PUBLISHED
+  MATCHED
+  CANCELLED
+}
+
+enum ApplicationStatus {
+  PENDING
+  SHORTLISTED
+  SELECTED_FOR_TRIAL
+  REJECTED
+  WITHDRAWN
+}
+
+enum ClassStatus {
+  TRIAL_PENDING
+  TRIAL_FAILED
+  TEACHING
+  SUSPENDED
+  COMPLETED
+}
+
+enum SessionStatus {
+  SCHEDULED
+  ATTENDED
+  CONFIRMED
+  CANCELLED_BY_TUTOR
+  CANCELLED_BY_STUDENT
+  DISPUTED
+}
+
+enum DisputeResolution {
+  RESOLVED_CONFIRM
+  RESOLVED_CANCEL
+  RESOLVED_PARTIAL
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PackageStatus {
+  ACTIVE
+  EXHAUSTED
+  REFUNDED
+}
+
+enum TransactionType {
+  TUITION_DEPOSIT
+  SESSION_DEDUCTION
+  TUTOR_SALARY
+  SALARY_WITHDRAWAL
+  REFUND
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESSFUL
+  FAILED
+}
+
+enum NotificationType {
+  SESSION_CONFIRM_REQUEST
+  LEAVE_APPROVAL
+  CLASS_UPDATE
+  WALLET_UPDATE
+  DISPUTE_ALERT
+  SYSTEM
+}
+
+// ------------------------------------------------------
+// Models
+// ------------------------------------------------------
+
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  phone         String    @unique @db.VarChar(20)
+  email         String?   @unique @db.VarChar(255)
+  fullName      String?   @map("full_name") @db.VarChar(100)
+  passwordHash  String    @map("password_hash") @db.VarChar(255)
+  role          UserRole
+  isActive      Boolean   @default(true) @map("is_active")
+  lastLoginAt   DateTime? @map("last_login_at")
+  
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+  deletedBy     String?   @map("deleted_by") @db.Uuid
+
+  // Relations
+  parentProfile    Parent?
+  tutorProfile     Tutor?
+  staffProfile     Staff?
+  notifications    Notification[]
+  auditLogs        AuditLog[]
+  deletedByUser    User?          @relation("UserDeletions", fields: [deletedBy], references: [id])
+  deletedUsers     User[]         @relation("UserDeletions")
+  disputeEvidences DisputeEvidence[]
+
+  @@map("users")
+}
+
+model Parent {
+  id              String          @id @db.Uuid
+  fullName        String          @map("full_name") @db.VarChar(100)
+  address         String          @db.VarChar(255)
+  district        String          @db.VarChar(50)
+  province        String          @db.VarChar(50)
+  pinHash         String          @map("pin_hash") @db.VarChar(255)
+  pinAttempts     Int             @default(0) @map("pin_attempts")
+  pinLockedUntil  DateTime?       @map("pin_locked_until")
+  balance         Decimal         @default(0.00) @db.Decimal(12, 2)
+
+  // Relations
+  user            User            @relation(fields: [id], references: [id])
+  students        Student[]
+  tutorRequests   TutorRequest[]
+  transactions    Transaction[]
+  packages        Package[]
+  classes         Class[]
+
+  @@map("parents")
+}
+
+model Student {
+  id          String   @id @default(uuid()) @db.Uuid
+  parentId    String   @map("parent_id") @db.Uuid
+  fullName    String   @map("full_name") @db.VarChar(100)
+  gender      String   @db.VarChar(10)
+  dateOfBirth DateTime @map("date_of_birth") @db.Date
+  school      String?  @db.VarChar(150)
+  grade       String?  @db.VarChar(20)
+  notes       String?  @db.Text
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  deletedBy   String?   @map("deleted_by") @db.Uuid
+
+  // Relations
+  parent         Parent          @relation(fields: [parentId], references: [id])
+  tutorRequests  TutorRequest[]
+  studentLeaves  StudentLeave[]
+  classes        Class[]
+
+  @@map("students")
+}
+
+model Tutor {
+  id                 String             @id @db.Uuid
+  fullName           String             @map("full_name") @db.VarChar(100)
+  gender             String             @db.VarChar(10)
+  dateOfBirth        DateTime           @map("date_of_birth") @db.Date
+  identityNumber     String             @map("identity_number") @db.VarChar(255)
+  identityNumberHash String             @unique @map("identity_number_hash") @db.VarChar(64)
+  occupation         String             @db.VarChar(100)
+  qualification      String             @db.VarChar(255)
+  certificatesJson   Json?              @map("certificates_json")
+  isPublic           Boolean            @default(true) @map("is_public")
+  publicProfile      Json?              @map("public_profile")
+  ratingAvg          Decimal            @default(5.00) @map("rating_avg") @db.Decimal(3, 2)
+  walletBalance      Decimal            @default(0.00) @map("wallet_balance") @db.Decimal(12, 2)
+  status             String             @db.VarChar(20) // ACTIVE, PENDING_REVIEW, BANNED
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  deletedBy   String?   @map("deleted_by") @db.Uuid
+
+  // Relations
+  user              User               @relation(fields: [id], references: [id])
+  tutorSubjects     TutorSubject[]
+  classApplications ClassApplication[]
+  tutorSchedules    TutorSchedule[]
+  tutorLeaves       TutorLeave[]
+  tutorBankAccounts TutorBankAccount[]
+  classes           Class[]
+  transactions      Transaction[]
+
+  @@map("tutors")
+}
+
+model TutorSubject {
+  id         String   @id @default(uuid()) @db.Uuid
+  tutorId    String   @map("tutor_id") @db.Uuid
+  subject    String   @db.VarChar(100)
+  grade      String   @db.VarChar(20)
+  isVerified Boolean  @default(false) @map("is_verified")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  deletedBy   String?   @map("deleted_by") @db.Uuid
+
+  // Relations
+  tutor      Tutor    @relation(fields: [tutorId], references: [id])
+
+  @@unique([tutorId, subject, grade])
+  @@map("tutor_subjects")
+}
+
+model TutorSchedule {
+  id        String   @id @default(uuid()) @db.Uuid
+  tutorId   String   @map("tutor_id") @db.Uuid
+  dayOfWeek Int      @map("day_of_week")
+  slotStart String   @map("slot_start") @db.VarChar(10) // HH:mm
+  slotEnd   String   @map("slot_end") @db.VarChar(10)   // HH:mm
+  isActive  Boolean  @default(true) @map("is_active")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  deletedBy   String?   @map("deleted_by") @db.Uuid
+
+  // Relations
+  tutor     Tutor    @relation(fields: [tutorId], references: [id])
+
+  @@map("tutor_schedules")
+}
+
+model TutorRequest {
+  id                String        @id @default(uuid()) @db.Uuid
+  parentId          String        @map("parent_id") @db.Uuid
+  studentId         String        @map("student_id") @db.Uuid
+  subject           String        @db.VarChar(100)
+  grade             String        @db.VarChar(20)
+  scheduleNotes     String        @map("schedule_notes") @db.Text
+  sessionsPerWeek   Int           @map("sessions_per_week")
+  budgetPerSession  Decimal       @map("budget_per_session") @db.Decimal(10, 2)
+  tutorGenderPref   String        @map("tutor_gender_pref") @db.VarChar(10)
+  status            RequestStatus
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  deletedBy   String?   @map("deleted_by") @db.Uuid
+
+  // Relations
+  parent            Parent             @relation(fields: [parentId], references: [id])
+  student           Student            @relation(fields: [studentId], references: [id])
+  classApplications ClassApplication[]
+  classes           Class[]
+
+  @@map("tutor_requests")
+}
+
+model ClassApplication {
+  id             String            @id @default(uuid()) @db.Uuid
+  tutorRequestId String            @map("tutor_request_id") @db.Uuid
+  tutorId        String            @map("tutor_id") @db.Uuid
+  coverLetter    String?           @map("cover_letter") @db.Text
+  status         ApplicationStatus
+  note           String?           @db.Text
+  appliedAt      DateTime          @default(now()) @map("applied_at")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  deletedBy   String?   @map("deleted_by") @db.Uuid
+
+  // Relations
+  tutorRequest   TutorRequest      @relation(fields: [tutorRequestId], references: [id])
+  tutor          Tutor             @relation(fields: [tutorId], references: [id])
+
+  @@unique([tutorRequestId, tutorId])
+  @@map("class_applications")
+}
+
+model Class {
+  id                String      @id @default(uuid()) @db.Uuid
+  tutorRequestId    String      @map("tutor_request_id") @db.Uuid
+  tutorId           String?     @map("tutor_id") @db.Uuid
+  parentId          String      @map("parent_id") @db.Uuid
+  studentId         String      @map("student_id") @db.Uuid
+  hourlyRate        Decimal     @map("hourly_rate") @db.Decimal(10, 2)
+  tutorWageRate     Decimal     @map("tutor_wage_rate") @db.Decimal(10, 2)
+  remainingSessions Int         @default(0) @map("remaining_sessions")
+  status            ClassStatus
+  trialFailedNote   String?     @map("trial_failed_note") @db.Text
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  deletedBy   String?   @map("deleted_by") @db.Uuid
+
+  // Relations
+  tutorRequest   TutorRequest    @relation(fields: [tutorRequestId], references: [id])
+  tutor          Tutor?          @relation(fields: [tutorId], references: [id])
+  parent         Parent          @relation(fields: [parentId], references: [id])
+  student        Student         @relation(fields: [studentId], references: [id])
+  classSchedules ClassSchedule[]
+  packages       Package[]
+  sessions       Session[]
+  transactions   Transaction[]
+
+  @@map("classes")
+}
+
+model Package {
+  id            String        @id @default(uuid()) @db.Uuid
+  classId       String        @map("class_id") @db.Uuid
+  parentId      String        @map("parent_id") @db.Uuid
+  name          String        @db.VarChar(100)
+  totalSessions Int           @map("total_sessions")
+  usedSessions  Int           @default(0) @map("used_sessions")
+  price         Decimal       @db.Decimal(12, 2)
+  status        PackageStatus
+  purchasedAt   DateTime      @default(now()) @map("purchased_at")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  deletedBy   String?   @map("deleted_by") @db.Uuid
+
+  // Relations
+  class         Class         @relation(fields: [classId], references: [id])
+  parent        Parent        @relation(fields: [parentId], references: [id])
+  transactions  Transaction[]
+
+  @@map("packages")
+}
+
+model ClassSchedule {
+  id        String   @id @default(uuid()) @db.Uuid
+  classId   String   @map("class_id") @db.Uuid
+  dayOfWeek Int      @map("day_of_week")
+  slotStart String   @map("slot_start") @db.VarChar(10) // HH:mm
+  slotEnd   String   @map("slot_end") @db.VarChar(10)   // HH:mm
+  isActive  Boolean  @default(true) @map("is_active")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  deletedBy   String?   @map("deleted_by") @db.Uuid
+
+  // Relations
+  class     Class    @relation(fields: [classId], references: [id])
+
+  @@map("class_schedules")
+}
+
+model Session {
+  id                 String             @id @default(uuid()) @db.Uuid
+  classId            String             @map("class_id") @db.Uuid
+  scheduledTime      DateTime           @map("scheduled_time")
+  actualStart        DateTime?          @map("actual_start")
+  actualEnd          DateTime?          @map("actual_end")
+  status             SessionStatus
+  disputeResolution  DisputeResolution? @map("dispute_resolution")
+  disputeReason      String?            @map("dispute_reason") @db.Text
+  tutorNotes         String?            @map("tutor_notes") @db.Text
+  parentRating       Int?               @map("parent_rating")
+  parentFeedback     String?            @map("parent_feedback") @db.Text
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  deletedBy   String?   @map("deleted_by") @db.Uuid
+
+  // Relations
+  class           Class            @relation(fields: [classId], references: [id])
+  tutorLeaves     TutorLeave[]
+  studentLeaves   StudentLeave[]
+  disputeEvidences DisputeEvidence[]
+  transactions    Transaction[]
+
+  @@map("sessions")
+}
+
+model DisputeEvidence {
+  id         String   @id @default(uuid()) @db.Uuid
+  sessionId  String   @map("session_id") @db.Uuid
+  fileUrl    String   @map("file_url") @db.VarChar(500)
+  uploadedBy String   @map("uploaded_by") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  session    Session  @relation(fields: [sessionId], references: [id])
+  uploader   User     @relation(fields: [uploadedBy], references: [id])
+
+  @@map("dispute_evidence")
+}
+
+model TutorLeave {
+  id                  String      @id @default(uuid()) @db.Uuid
+  sessionId           String      @map("session_id") @db.Uuid
+  tutorId             String      @map("tutor_id") @db.Uuid
+  requestTime         DateTime    @map("request_time")
+  reason              String      @db.Text
+  status              LeaveStatus
+  rescheduleSuggested DateTime?   @map("reschedule_suggested")
+  parentApprovedAt    DateTime?   @map("parent_approved_at")
+  isLateLeave         Boolean     @default(false) @map("is_late_leave")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  deletedBy   String?   @map("deleted_by") @db.Uuid
+
+  // Relations
+  session             Session     @relation(fields: [sessionId], references: [id])
+  tutor               Tutor       @relation(fields: [tutorId], references: [id])
+
+  @@map("tutor_leaves")
+}
+
+model StudentLeave {
+  id             String      @id @default(uuid()) @db.Uuid
+  sessionId      String      @map("session_id") @db.Uuid
+  studentId      String      @map("student_id") @db.Uuid
+  requestTime    DateTime    @map("request_time")
+  reason         String      @db.Text
+  status         LeaveStatus
+  parentApproved Boolean     @default(false) @map("parent_approved")
+  parentApprovedAt DateTime? @map("parent_approved_at")
+  isLateLeave    Boolean     @default(false) @map("is_late_leave")
+  rescheduledTo  DateTime?   @map("rescheduled_to")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  deletedBy   String?   @map("deleted_by") @db.Uuid
+
+  // Relations
+  session        Session     @relation(fields: [sessionId], references: [id])
+  student        Student     @relation(fields: [studentId], references: [id])
+
+  @@map("student_leaves")
+}
+
+model TutorBankAccount {
+  id                     String   @id @default(uuid()) @db.Uuid
+  tutorId                String   @map("tutor_id") @db.Uuid
+  bankName               String   @map("bank_name") @db.VarChar(100)
+  accountHolder          String   @map("account_holder") @db.VarChar(100)
+  accountNumberEncrypted String   @map("account_number_encrypted") @db.Text
+  isDefault              Boolean  @default(false) @map("is_default")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  deletedBy   String?   @map("deleted_by") @db.Uuid
+
+  // Relations
+  tutor                  Tutor    @relation(fields: [tutorId], references: [id])
+
+  @@map("tutor_bank_accounts")
+}
+
+model Transaction {
+  id         String            @id @default(uuid()) @db.Uuid
+  parentId   String?           @map("parent_id") @db.Uuid
+  tutorId    String?           @map("tutor_id") @db.Uuid
+  classId    String?           @map("class_id") @db.Uuid
+  sessionId  String?           @map("session_id") @db.Uuid
+  packageId  String?           @map("package_id") @db.Uuid
+  type       TransactionType
+  amount     Decimal           @db.Decimal(12, 2)
+  status     TransactionStatus
+  reference  String?           @db.VarChar(100)
+  createdAt  DateTime          @default(now()) @map("created_at")
+
+  // Relations
+  parent     Parent?           @relation(fields: [parentId], references: [id])
+  tutor      Tutor?            @relation(fields: [tutorId], references: [id])
+  class      Class?            @relation(fields: [classId], references: [id])
+  session    Session?          @relation(fields: [sessionId], references: [id])
+  package    Package?          @relation(fields: [packageId], references: [id])
+
+  @@map("transactions")
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  type      NotificationType
+  title     String           @db.VarChar(200)
+  content   String           @db.Text
+  isRead    Boolean          @default(false) @map("is_read")
+  deepLink  String?          @map("deep_link") @db.VarChar(500)
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  // Relations
+  user      User             @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @map("user_id") @db.Uuid
+  action     String   @db.VarChar(100)
+  entityType String   @map("entity_type") @db.VarChar(50)
+  entityId   String   @map("entity_id") @db.Uuid
+  oldValue   Json?    @map("old_value")
+  newValue   Json?    @map("new_value")
+  ipAddress  String?  @map("ip_address") @db.VarChar(45)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+model Staff {
+  id           String    @id @db.Uuid
+  fullName     String    @map("full_name") @db.VarChar(100)
+  department   String    @db.VarChar(50) // SALES, ACADEMIC, ACCOUNTANT, ADMIN
+  branch       String?   @db.VarChar(100)
+  supervisorId String?   @map("supervisor_id") @db.Uuid
+  isActive     Boolean   @default(true) @map("is_active")
+
+  // Relations
+  user         User      @relation(fields: [id], references: [id])
+  supervisor   Staff?    @relation("StaffSupervisor", fields: [supervisorId], references: [id])
+  subordinates Staff[]   @relation("StaffSupervisor")
+
+  @@map("staff")
+}

@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bản Đồ Sơ Đồ Nghiệp Vụ — CRM Gia Sư</title>
+  <script src="vendor/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-card: #ffffff;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg-primary); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+    
+    /* Sidebar */
+    .sidebar { width: 340px; background-color: var(--bg-secondary); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0; }
+    .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); }
+    .sidebar-header h1 { font-size: 18px; font-weight: 700; color: #fff; }
+    .sidebar-header p { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    
+    .nav-group { padding: 12px 16px 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #818cf8; }
+    .nav-item { padding: 10px 16px; margin: 2px 8px; border-radius: 8px; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+    .nav-item:hover { background-color: rgba(99, 102, 241, 0.1); color: #fff; }
+    .nav-item.active { background-color: var(--accent); color: #fff; font-weight: 600; }
+    
+    /* Main Content */
+    .content { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #0f172a 70%); }
+    .content-header { padding: 16px 28px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); }
+    .content-header h2 { font-size: 20px; font-weight: 700; color: #fff; }
+    .badge { padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); color: #a5b4fc; }
+    
+    /* View Controls */
+    .view-tabs { display: flex; gap: 8px; margin-bottom: 20px; background: #f1f5f9; padding: 4px; border-radius: 10px; width: fit-content; }
+    .tab-btn { border: none; background: transparent; padding: 8px 16px; font-size: 13px; font-weight: 600; color: #64748b; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+    .tab-btn.active { background: #ffffff; color: #1e293b; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+    .diagram-container { flex: 1; padding: 32px; overflow: auto; display: flex; justify-content: center; align-items: flex-start; }
+    .diagram-card { background: #ffffff; color: #1e293b; border-radius: 16px; padding: 32px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); max-width: 1050px; width: 100%; }
+    .diagram-card h3 { margin-bottom: 8px; color: #0f172a; font-size: 18px; }
+    .diagram-card p { margin-bottom: 20px; color: #64748b; font-size: 14px; line-height: 1.5; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; }
+    
+    .mermaid { display: flex; justify-content: center; min-height: 280px; overflow-x: auto; padding: 12px 0; }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1>🎓 Sơ Đồ Nghiệp Vụ CRM</h1>
+      <p>Hệ thống Trung tâm Gia sư (3 Phân hệ)</p>
+    </div>
+
+    <div class="nav-group">TỔNG THỂ HỆ THỐNG</div>
+    <div class="nav-item active" onclick="switchModule('overview')">🔄 Luồng liên cổng End-to-End</div>
+
+    <div class="nav-group">1. CỔNG PHỤ HUYNH & HỌC SINH</div>
+    <div class="nav-item" onclick="switchModule('cli-profile')">👨‍👩‍👧 Profile Switcher & PIN</div>
+    <div class="nav-item" onclick="switchModule('cli-finance')">💰 Dòng tiền 3 bước & Gói FIFO</div>
+    <div class="nav-item" onclick="switchModule('cli-request')">🔍 Vòng đời yêu cầu tìm gia sư</div>
+    <div class="nav-item" onclick="switchModule('cli-session')">✅ Điểm danh & Khiếu nại 48h</div>
+    <div class="nav-item" onclick="switchModule('cli-leave')">⏰ Quy tắc báo nghỉ học trước 4h</div>
+
+    <div class="nav-group">2. CỔNG GIA SƯ</div>
+    <div class="nav-item" onclick="switchModule('tut-profile')">📋 Xét duyệt hồ sơ & Lịch rảnh</div>
+    <div class="nav-item" onclick="switchModule('tut-apply')">🎯 Ứng tuyển & Mở khóa SĐT</div>
+    <div class="nav-item" onclick="switchModule('tut-attendance')">⏱️ Khóa điểm danh trong 24h</div>
+    <div class="nav-item" onclick="switchModule('tut-leave')">⚠️ Báo nghỉ 24h & Dạy bù</div>
+    <div class="nav-item" onclick="switchModule('tut-wallet')">💳 Rút lương & Quyết toán</div>
+
+    <div class="nav-group">3. CỔNG QUẢN TRỊ CRM</div>
+    <div class="nav-item" onclick="switchModule('crm-rbac')">🛡️ Phân quyền RBAC & Audit Log</div>
+    <div class="nav-item" onclick="switchModule('crm-tutor-approval')">📝 Thẩm định bằng cấp & Môn</div>
+    <div class="nav-item" onclick="switchModule('crm-match')">🤝 Matching Engine & Dạy thử</div>
+    <div class="nav-item" onclick="switchModule('crm-class')">📚 Vòng đời lớp & Sinh lịch tự động</div>
+    <div class="nav-item" onclick="switchModule('crm-dispute')">⚖️ Giải quyết khiếu nại SLA 48h</div>
+    <div class="nav-item" onclick="switchModule('crm-payout')">💵 Kế toán duyệt chi Payout</div>
+  </div>
+
+  <!-- Content Area -->
+  <div class="content">
+    <div class="content-header">
+      <h2 id="diag-title">Luồng Tương Tác Liên Cổng End-to-End</h2>
+      <span class="badge" id="diag-badge">Hệ Thống Tổng Thể</span>
+    </div>
+
+    <div class="diagram-container">
+      <div class="diagram-card">
+        <div class="view-tabs">
+          <button id="tab-sequence" class="tab-btn active" onclick="setViewMode('sequence')">⚡ Sơ đồ Sequence (Tuần tự)</button>
+          <button id="tab-flowchart" class="tab-btn" onclick="setViewMode('flowchart')">📊 Sơ đồ Flowchart (Khối)</button>
+        </div>
+
+        <h3 id="card-title">Sơ đồ tương tác toàn bộ quy trình</h3>
+        <p id="card-desc">Khép kín từ khâu phụ huynh gửi nhu cầu, trung tâm duyệt gia sư, khớp lớp dạy thử, mua gói học phí, điểm danh và quyết toán lương.</p>
+        <div id="mermaid-render" class="mermaid"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose',
+      fontFamily: 'sans-serif'
+    });
+
+    let currentModule = 'overview';
+    let currentMode = 'sequence';
+
+    const modules = {
+      'overview': {
+        title: "Luồng Tương Tác Liên Cổng End-to-End",
+        badge: "Toàn Hệ Thống",
+        cardTitle: "Quy trình xuyên suốt giữa Phụ huynh - Trung tâm - Gia sư",
+        desc: "Mô tả đầy đủ vòng đời khép kín từ lúc phụ huynh gửi yêu cầu đến khi gia sư nhận tiền thù lao qua tài khoản ngân hàng.",
+        sequence: `sequenceDiagram
+    autonumber
+    actor PH as Phụ huynh (Client)
+    actor CRM as Trung tâm (CRM)
+    actor GS as Gia sư (Tutor)
+    actor KT as Kế toán (CRM)
+
+    PH->>CRM: 1. Tạo yêu cầu tìm gia sư (Môn, lớp, ngân sách)
+    CRM->>GS: 2. Đăng tin lớp tuyển ẩn danh lên sàn
+    GS->>CRM: 3. Nộp đơn ứng tuyển lớp
+    CRM->>CRM: 4. Matching Engine tính % -> Chọn 1 GS giao dạy thử
+    CRM->>GS: 5. Mở khóa SĐT & Địa chỉ của Phụ huynh
+    
+    PH->>CRM: 6. Mua gói học phí >= 10 buổi (Nhập mã PIN)
+    Note over PH,GS: Vòng lặp các buổi học chính thức
+    GS->>CRM: 7. Điểm danh buổi dạy trong vòng 24h
+    alt Phụ huynh xác nhận
+        PH->>CRM: 8a. Xác nhận buổi học (Nhập PIN) -> Trừ 1 buổi gói
+        CRM->>GS: 9a. Tự động cộng ví lương gia sư
+    else Quá 48h không phản hồi
+        CRM->>CRM: 8b. Auto-Confirm tự động duyệt & cộng lương
+    end
+    GS->>KT: 10. Yêu cầu rút tiền từ ví lương
+    KT->>GS: 11. Chuyển khoản ngân hàng & Xác nhận Payout`,
+        flowchart: `flowchart TD
+    A[Phụ huynh tạo yêu cầu tìm gia sư] --> B[CRM thẩm định & Đăng sàn lớp ẩn danh]
+    B --> C[Gia sư nộp đơn ứng tuyển]
+    C --> D[CRM Matching Engine chọn 1 gia sư giao dạy thử]
+    D --> E[Dạy thử thành công -> Phụ huynh mua gói học phí]
+    E --> F[Gia sư giảng dạy & Điểm danh trong 24h]
+    F --> G[Phụ huynh xác nhận PIN / Tự duyệt 48h]
+    G --> H[Trừ 1 buổi gói & Cộng tiền ví lương gia sư]
+    H --> I[Gia sư rút tiền -> Kế toán CRM duyệt chi Payout]`
+      },
+
+      'cli-profile': {
+        title: "Mô Hình Family Account & Profile Switcher",
+        badge: "Client Portal",
+        cardTitle: "Phân quyền chuyển đổi giữa Phụ huynh và Con",
+        desc: "Phụ huynh dùng mã PIN bảo mật 4 số để kiểm soát ví tiền và đơn xin nghỉ. Profile của con chỉ được xem lịch học.",
+        sequence: `sequenceDiagram
+    autonumber
+    actor User as Người dùng
+    participant App as Client Portal UI
+    participant SVR as Backend Server
+    participant DB as Database
+
+    User->>App: Đăng nhập (Số điện thoại + Mật khẩu)
+    App->>SVR: POST /api/auth/login
+    SVR-->>App: Trả về Danh sách Profiles trong gia đình (Phụ huynh, Bé An, Bé Bình)
+    App-->>User: Hiển thị Modal "Ai đang sử dụng?"
+
+    alt Chọn Profile Con (Bé An)
+        User->>App: Bấm chọn "Bé An"
+        App->>App: Chuyển vai trò sang STUDENT
+        App-->>User: Mở giao diện Học sinh (Chỉ xem lịch học, gửi đơn xin nghỉ)
+    else Chọn Profile Phụ huynh
+        User->>App: Bấm chọn "Mẹ Hoa (Phụ huynh)"
+        App-->>User: Yêu cầu nhập Mã PIN 4 số bảo mật
+        User->>App: Nhập PIN (ví dụ: 1234)
+        App->>SVR: POST /api/client/profiles/verify-pin {pin: "1234"}
+        SVR->>DB: Kiểm tra Hash PIN
+        alt Đúng PIN
+            SVR-->>App: HTTP 200 OK (Cấp Token quyền PARENT)
+            App-->>User: Mở giao diện Phụ huynh (Toàn quyền ví tiền, mua gói, duyệt điểm danh)
+        else Sai PIN 5 lần
+            SVR->>DB: Khóa tạm thời 15 phút
+            SVR-->>App: Error 423 Locked (Gửi SMS cảnh báo đến SĐT Phụ huynh)
+        end
+    end`,
+        flowchart: `flowchart TD
+    Login["1. Đăng nhập SĐT + Mật khẩu"] --> Modal["2. Hiển thị danh sách Profile gia đình"]
+    Modal -->|Chọn Profile Phụ huynh| CheckPIN{"3. Yêu cầu nhập Mã PIN 4 số"}
+    CheckPIN -->|Nhập đúng PIN| ParentDash["Client Dashboard<br>(Toàn quyền ví tiền & quản trị)"]
+    CheckPIN -->|Sai PIN 5 lần| LockPIN["Khóa tạm 15 phút<br>(Gửi SMS cảnh báo)"]
+    Modal -->|Chọn Profile Con| StudentDash["Student Dashboard<br>(Chỉ xem lịch học & gửi đơn nghỉ)"]`
+      },
+
+      'cli-finance': {
+        title: "Mô Hình Dòng Tiền 3 Bước (Tránh Trừ Tiền Trùng)",
+        badge: "Client Portal",
+        cardTitle: "Quy trình nạp ví, mua gói trả trước và tiêu thụ FIFO",
+        desc: "Tiền ví chỉ trừ 1 lần duy nhất lúc mua gói. Khi điểm danh chỉ trừ số buổi trong gói và tự động trả thù lao gia sư.",
+        sequence: `sequenceDiagram
+    autonumber
+    actor PH as Phụ huynh (Client)
+    participant UI as Client Portal UI
+    participant SVR as Backend Server
+    participant DB as Database
+    actor GS as Gia sư (Tutor)
+
+    Note over PH, DB: Bước 1: Nạp tiền vào ví phụ huynh
+    PH->>UI: Nạp 5,000,000 VNĐ qua QR Banking
+    UI->>SVR: Webhook thanh toán thành công
+    SVR->>DB: INSERT transactions (type: 'TUITION_DEPOSIT')
+    SVR->>DB: UPDATE parents SET balance = balance + 5,000,000
+
+    Note over PH, DB: Bước 2: Mua gói học phí trả trước (>= 10 buổi)
+    PH->>UI: Chọn mua Gói 20 buổi (Môn Toán) & Nhập PIN
+    UI->>SVR: POST /api/client/packages/purchase {packageId: 2, pin: "****"}
+    SVR->>DB: Kiểm tra PIN & balance >= giá gói (4,000,000)
+    SVR->>DB: UPDATE parents SET balance = balance - 4,000,000 (Trừ tiền ví 1 lần)
+    SVR->>DB: INSERT student_packages (total_sessions: 20, used: 0, status: 'ACTIVE')
+
+    Note over GS, PH: Bước 3: Tiêu thụ buổi học (Khi hoàn thành)
+    GS->>SVR: Điểm danh buổi học
+    PH->>SVR: Nhập PIN xác nhận buổi học
+    SVR->>DB: UPDATE sessions SET status = 'CONFIRMED'
+    SVR->>DB: Tìm gói cũ nhất còn buổi (FIFO) -> UPDATE used_sessions = used_sessions + 1
+    SVR->>DB: UPDATE tutors SET wallet_balance = wallet_balance + 200,000 (Cộng lương GS)`,
+        flowchart: `flowchart TD
+    subgraph B1["Bước 1: Nạp Tiền Vào Ví"]
+        A[Phụ huynh nạp tiền] -->|Giao dịch TUITION_DEPOSIT| B[(Ví Phụ Huynh: parents.balance)]
+    end
+    subgraph B2["Bước 2: Mua Gói Trả Trước"]
+        B -->|Số dư đủ| C[Trừ số dư ví Phụ huynh]
+        C -->|Khởi tạo Package 10/20 buổi| D[(Gói Học Phí: packages.total_sessions)]
+        D --> E[Trạng thái gói: ACTIVE]
+    end
+    subgraph B3["Bước 3: Tiêu Thụ Buổi Học"]
+        F[Xác nhận buổi học thành công] --> G{Tìm gói cũ nhất chưa hết - FIFO}
+        G --> H[Tăng used_sessions + 1]
+        H --> I[Giao dịch đối soát SESSION_DEDUCTION]
+        H --> J[Tự động cộng ví lương Gia sư]
+    end`
+      },
+
+      'cli-request': {
+        title: "Vòng Đời Yêu Cầu Tìm Gia Sư (Tutor Request)",
+        badge: "Client Portal",
+        cardTitle: "Vòng đời yêu cầu từ lúc tạo đến khi ghép lớp thành công",
+        desc: "Sales thẩm định, ẩn danh thông tin bảo mật và Matching Engine điều phối tới gia sư đạt chuẩn.",
+        sequence: `sequenceDiagram
+    autonumber
+    actor PH as Phụ huynh (Client)
+    participant CP as Client Portal UI
+    participant SVR as Backend API
+    actor Sale as Nhân viên Sales (CRM)
+    participant DB as Database
+
+    PH->>CP: Điền form tìm gia sư (Môn Toán 9, 2 buổi/tuần, 250k/buổi)
+    CP->>SVR: POST /api/client/tutor-requests
+    SVR->>DB: INSERT tutor_requests (status: 'NEW')
+    SVR-->>CP: Trả về Mã yêu cầu (YC089)
+    
+    Sale->>SVR: Tiếp nhận yêu cầu YC089 & Gọi điện tư vấn cho Phụ huynh
+    SVR->>DB: UPDATE tutor_requests SET status = 'CONSULTING'
+    Sale->>SVR: Hoàn thiện hồ sơ & Đăng lên Sàn lớp mới tuyển
+    SVR->>DB: UPDATE tutor_requests SET status = 'PUBLISHED' (Ẩn danh SĐT/Địa chỉ)
+
+    Note over SVR, DB: Gia sư nộp đơn ứng tuyển trên sàn
+    Sale->>SVR: Chọn Gia sư phù hợp & Giao lớp dạy thử
+    SVR->>DB: UPDATE tutor_requests SET status = 'MATCHED'
+    SVR->>DB: Sinh lớp mới (ClassStatus = 'TRIAL_PENDING')
+    SVR-)PH: Thông báo: "Đã tìm thấy gia sư phù hợp, mời xem hồ sơ!"`,
+        flowchart: `flowchart TD
+    NEW["1. NEW (Mới tạo)"] -->|Sales tiếp nhận| CONSULTING["2. CONSULTING (Đang tư vấn)"]
+    CONSULTING -->|Thống nhất nhu cầu| PUBLISHED["3. PUBLISHED (Công bố sàn lớp)"]
+    PUBLISHED -->|Chọn gia sư dạy thử| MATCHED["4. MATCHED (Khớp lớp & Giao dạy thử)"]
+    NEW -->|Phụ huynh hủy| CANCELLED["CANCELLED (Đã hủy)"]
+    CONSULTING -->|Không tìm được lớp| CANCELLED
+    PUBLISHED -->|Phụ huynh đổi ý| CANCELLED`
+      },
+
+      'cli-session': {
+        title: "Vòng Đời Buổi Học & Điểm Danh 48h",
+        badge: "Client Portal",
+        cardTitle: "Quy trình duyệt buổi học, Auto-Confirm và Khiếu nại",
+        desc: "Phụ huynh có 48h để duyệt bằng mã PIN. Quá hạn hệ thống tự duyệt để đảm bảo gia sư nhận lương đúng hạn.",
+        sequence: `sequenceDiagram
+    autonumber
+    actor GS as Gia sư (Tutor)
+    participant SVR as Backend API
+    participant DB as Database
+    actor PH as Phụ huynh (Parent)
+    actor HV as Học vụ CRM (Academic)
+
+    GS->>SVR: Điểm danh buổi học (nhập giờ thực tế, nhận xét) trong vòng 24h
+    SVR->>DB: UPDATE sessions SET status = 'ATTENDED', attended_at = now()
+    SVR-)PH: Gửi thông báo Push: "Gia sư đã điểm danh buổi học ngày hôm nay"
+
+    alt Phụ huynh xác nhận buổi học
+        PH->>SVR: Nhập mã PIN 4 số xác nhận
+        SVR->>DB: UPDATE sessions SET status = 'CONFIRMED'
+        SVR->>DB: Trừ 1 buổi gói (FIFO) & Cộng ví lương gia sư
+    else Quá hạn 48 giờ phụ huynh không thao tác
+        SVR->>DB: Cron Job: UPDATE sessions SET status = 'CONFIRMED' (Auto-Confirm)
+        SVR->>DB: Trừ 1 buổi gói & Cộng ví lương gia sư
+    else Phụ huynh khiếu nại (Dispute)
+        PH->>SVR: Bấm Khiếu nại + Đính kèm lý do & ảnh minh chứng
+        SVR->>DB: UPDATE sessions SET status = 'DISPUTED' (Đóng băng tài chính)
+        SVR-)HV: Bắn cảnh báo SLA 48h cho bộ phận Học vụ
+        HV->>SVR: Xác minh 2 bên & Ra phán quyết giải quyết tranh chấp
+    end`,
+        flowchart: `flowchart TD
+    SCHEDULED["1. SCHEDULED<br>(Đã lên lịch định kỳ)"] -->|Gia sư dạy & điểm danh trong 24h| ATTENDED["2. ATTENDED<br>(Chờ duyệt trong 48h)"]
+    ATTENDED -->|Phụ huynh nhập mã PIN| CONFIRMED["3. CONFIRMED<br>(Trừ buổi & Trả lương GS)"]
+    ATTENDED -->|Quá hạn 48h không duyệt| CONFIRMED
+    ATTENDED -->|Phụ huynh phát hiện sai| DISPUTED["4. DISPUTED<br>(Tạm đóng băng tài chính)"]
+    DISPUTED -->|Học vụ duyệt đúng| CONFIRMED
+    DISPUTED -->|Học vụ xác nhận vi phạm| CANCEL_TUTOR["CANCELLED_BY_TUTOR<br>(Không trừ tiền & Không trả lương)"]
+    DISPUTED -->|Thỏa hiệp| CONFIRMED
+    SCHEDULED -->|Gia sư báo nghỉ trước 24h| CANCEL_TUTOR
+    SCHEDULED -->|Phụ huynh báo nghỉ trước 4h| CANCEL_STUDENT["CANCELLED_BY_STUDENT<br>(Bảo lưu buổi học)"]`
+      },
+
+      'cli-leave': {
+        title: "Quy Tắc Báo Nghỉ Học Trước 4 Giờ",
+        badge: "Client Portal",
+        cardTitle: "Chế tài học viên xin nghỉ học lẻ (Rule BR-SCH-01)",
+        desc: "Báo trước 4h được bảo lưu số buổi. Báo muộn dưới 4h vẫn tính 1 buổi học trong gói và hỗ trợ 50% thù lao cho gia sư.",
+        sequence: `sequenceDiagram
+    autonumber
+    actor HS as Học sinh / Phụ huynh
+    participant CP as Client Portal UI
+    participant SVR as Backend Server
+    participant DB as Database
+    actor GS as Gia sư (Tutor)
+
+    HS->>CP: Chọn buổi học cần xin nghỉ & nhập lý do
+    CP->>SVR: POST /api/client/sessions/{id}/request-leave {reason}
+    SVR->>DB: Kiểm tra: startTime - now() >= 4 giờ?
+
+    alt Gửi trước giờ học >= 4 giờ (Nghỉ hợp lệ)
+        SVR->>DB: UPDATE sessions SET status = 'CANCELLED_BY_STUDENT'
+        SVR->>DB: Bảo lưu buổi học (Không trừ số buổi gói)
+        SVR-->>CP: Xác nhận đơn nghỉ hợp lệ
+        SVR-)GS: Thông báo: "Học sinh xin nghỉ, vui lòng thống nhất lịch học bù"
+    else Gửi trước giờ học < 4 giờ hoặc Tự ý nghỉ (Nghỉ muộn)
+        SVR->>DB: UPDATE sessions SET status = 'CONFIRMED', notes = 'Học sinh báo nghỉ muộn < 4h'
+        SVR->>DB: Trừ 1 buổi học trong gói phụ huynh (FIFO)
+        SVR->>DB: Chi trả 50% thù lao buổi dạy cho Gia sư
+        SVR-->>CP: Cảnh báo: Đã trừ 1 buổi học do vi phạm quy tắc báo trước 4h
+        SVR-)GS: Thông báo: "Học sinh nghỉ muộn, bạn được nhận 50% thù lao buổi này"
+    end`,
+        flowchart: `flowchart TD
+    A[Học viên / Phụ huynh có nhu cầu xin nghỉ buổi học] --> B{Thời điểm gửi đơn xin nghỉ?}
+    B -->|Gửi trước giờ học >= 4 giờ| C[Nghỉ Hợp Lệ - Không Trừ Tiền]
+    C --> D[Phụ huynh phê duyệt đơn nghỉ]
+    D --> E[Gia sư nhận thông báo & đề xuất lịch học bù]
+    E --> F[Hai bên thống nhất giờ bù -> Cập nhật lịch mới]
+    B -->|Gửi trước giờ học < 4 giờ hoặc Tự ý nghỉ| G[Nghỉ Muộn / Tự Ý Nghỉ]
+    G --> H[Hệ thống vẫn tính buổi học ĐÃ DIỄN RA]
+    H --> I[Trừ 1 buổi học trong gói của Phụ huynh]
+    I --> J[Hỗ trợ 50% thù lao buổi dạy cho Gia sư]`
+      },
+
+      'tut-profile': {
+        title: "Quy Trình Thẩm Định & Đăng Ký Lịch Rảnh",
+        badge: "Tutor Portal",
+        cardTitle: "Đăng ký hồ sơ, lịch rảnh và phê duyệt cấp quyền",
+        desc: "Gia sư hoàn thiện hồ sơ, đăng ký các khung giờ rảnh và chờ Sales thẩm định bằng cấp.",
+        sequence: `sequenceDiagram
+    autonumber
+    actor GS as Gia sư (Tutor)
+    participant TP as Tutor Portal UI
+    participant SVR as Backend Server
+    participant DB as Database
+    actor Sale as NV Sales (CRM)
+
+    GS->>TP: Đăng ký tài khoản, tải ảnh thẻ SV/CCCD & chọn môn dạy
+    GS->>TP: Chọn lịch rảnh tuần (Ma trận 7x3: Sáng/Chiều/Tối)
+    TP->>SVR: POST /api/tutor/profile {bio, subjects, availability}
+    SVR->>DB: INSERT tutors (status: 'PENDING_REVIEW')
+    SVR->>DB: INSERT tutor_availabilities (slots)
+    SVR-->>TP: HTTP 201 Created (Chờ duyệt)
+
+    Sale->>SVR: Mở hồ sơ thẩm định & đối chiếu CCCD, bằng cấp
+    alt Hồ sơ đạt chuẩn
+        Sale->>SVR: POST /api/crm/tutors/{id}/approve
+        SVR->>DB: UPDATE tutors SET status = 'ACTIVE'
+        SVR-)GS: Thông báo Push: "Hồ sơ của bạn đã được duyệt! Hãy vào nhận lớp mới."
+    else Giấy tờ không đạt
+        Sale->>SVR: POST /api/crm/tutors/{id}/reject {reason}
+        SVR->>DB: UPDATE tutors SET status = 'REJECTED'
+        SVR-)GS: Gửi Email lý do từ chối & hướng dẫn nộp lại
+    end`,
+        flowchart: `flowchart TD
+    NEW["Đăng ký tài khoản"] --> PENDING["PENDING_REVIEW<br>(Chờ duyệt bằng cấp)"]
+    PENDING -->|Đạt chuẩn| ACTIVE["ACTIVE<br>(Được phép nhận lớp & điểm danh)"]
+    PENDING -->|Thiếu giấy tờ| REJECTED["REJECTED<br>(Yêu cầu nộp lại)"]
+    REJECTED -->|Bổ sung chứng chỉ| PENDING
+    ACTIVE -->|Vi phạm quy định| BANNED["BANNED<br>(Khóa tài khoản kỷ luật)"]
+    BANNED -->|Admin xem xét mở khóa| ACTIVE`
+      },
+
+      'tut-apply': {
+        title: "Ứng Tuyển Lớp & Mở Khóa Thông Tin Dạy Thử",
+        badge: "Tutor Portal",
+        cardTitle: "Gia sư nộp đơn trên sàn lớp ẩn danh & mở khóa liên hệ",
+        desc: "Kiểm tra năng lực môn dạy và chống trùng lịch. Khi được giao dạy thử mới mở khóa SĐT và địa chỉ phụ huynh.",
+        sequence: `sequenceDiagram
+    autonumber
+    actor GS as Gia sư (Tutor)
+    participant TP as Tutor Portal UI
+    participant SVR as Backend API
+    participant DB as Database
+    actor Sale as NV Sales (CRM)
+
+    GS->>TP: Chọn lớp YC089 trên sàn ẩn danh & Bấm "Ứng tuyển ngay"
+    TP->>SVR: POST /api/tutor/applications {requestId: "YC089"}
+    SVR->>DB: Kiểm tra: Năng lực môn (BR-MAT-01) & Trùng lịch (BR-MAT-02)
+    alt Không đủ điều kiện
+        SVR-->>TP: Error 400 (SCHEDULE_CONFLICT / SUBJECT_NOT_ALLOWED)
+        TP-->>GS: Cảnh báo lý do không thể ứng tuyển
+    else Đủ điều kiện
+        SVR->>DB: INSERT application (status: 'PENDING')
+        SVR-->>TP: HTTP 201 Created (Nộp đơn thành công)
+        TP-->>GS: Trạng thái "Chờ Sales xét duyệt"
+    end
+
+    Sale->>SVR: Xem ứng viên & Bấm "Giao lớp dạy thử" cho Gia sư
+    SVR->>DB: UPDATE app = 'SELECTED_FOR_TRIAL'
+    SVR->>DB: Mở khóa Contact phụ huynh (BR-SEC-01)
+    SVR-)TP: Push: "Bạn đã được chọn dạy thử lớp YC089!"
+    GS->>TP: Vào xem SĐT & Địa chỉ phụ huynh để liên hệ trong 12h`,
+        flowchart: `flowchart TD
+    APPLY["1. Nộp đơn ứng tuyển"] --> PENDING["PENDING<br>(Chờ Sales duyệt)"]
+    PENDING -->|Sales đưa vào danh sách chọn| SHORTLISTED["SHORTLISTED<br>(Lọt danh sách đề xuất)"]
+    PENDING -->|Không phù hợp| REJECTED["REJECTED<br>(Từ chối)"]
+    SHORTLISTED -->|Giao lớp dạy thử| TRIAL["SELECTED_FOR_TRIAL<br>(Mở khóa thông tin phụ huynh)"]
+    SHORTLISTED -->|Chọn gia sư khác| REJECTED
+    TRIAL -->|Dạy thử đạt| SUCCESS["LỚP CHÍNH THỨC<br>(Ký hợp đồng & Mua gói)"]
+    TRIAL -->|Dạy thử không đạt| REJECTED
+    PENDING -->|Gia sư tự rút đơn| WITHDRAWN["WITHDRAWN<br>(Đã rút đơn)"]`
+      },
+
+      'tut-attendance': {
+        title: "Quy Tắc Khóa Điểm Danh Trong 24 Giờ",
+        badge: "Tutor Portal",
+        cardTitle: "Chế tài nộp báo cáo điểm danh của Gia sư (Rule BR-SCH-04)",
+        desc: "Bắt buộc điểm danh trong 24h sau giờ tan lớp. Quá hạn hệ thống tự khóa để chống báo bù khống.",
+        sequence: `sequenceDiagram
+    autonumber
+    actor GS as Gia sư (Tutor)
+    participant TP as Tutor Portal UI
+    participant SVR as Backend API
+    participant DB as Database
+    actor PH as Phụ huynh (Client)
+
+    GS->>TP: Bấm "Điểm danh" buổi học vừa dạy
+    TP->>SVR: GET /api/tutor/sessions/{id}/can-attend
+    SVR->>DB: Kiểm tra: now() - session.end_time <= 24 giờ (BR-SCH-04)
+    alt Quá 24 giờ
+        SVR-->>TP: Error 400 (ATTENDANCE_LOCKED)
+        TP-->>GS: Khóa nút điểm danh, yêu cầu giải trình với Học vụ
+    else Trong vòng 24 giờ hợp lệ
+        SVR-->>TP: HTTP 200 OK (Mở form điểm danh)
+        GS->>TP: Nhập giờ dạy thực tế, nội dung bài học, nhận xét
+        TP->>SVR: POST /api/tutor/sessions/{id}/attend
+        SVR->>DB: UPDATE sessions SET status = 'ATTENDED'
+        SVR->>DB: Kích hoạt đếm ngược 48h tự động duyệt (BR-SCH-02)
+        SVR-)PH: Thông báo cho Phụ huynh vào duyệt bằng mã PIN
+    end`,
+        flowchart: `flowchart TD
+    A[Buổi dạy kết thúc] --> B[Gia sư mở Tutor Portal -> Chọn Buổi học hôm nay]
+    B --> C{Kiểm tra thời gian kết thúc buổi dạy}
+    C -->|Thời gian trôi qua <= 24 giờ| D[Mở Form Điểm Danh Thành Công]
+    D --> E[Nhập giờ dạy thực tế + Nhận xét học sinh]
+    E --> F[Gửi báo cáo điểm danh]
+    F --> G[Buổi học chuyển sang trạng thái ATTENDED]
+    G --> H[Hệ thống gửi thông báo duyệt đến Phụ huynh]
+    C -->|Thời gian trôi qua > 24 giờ| I[Hệ thống Khóa Điểm Danh - ATTENDANCE_LOCKED]
+    I --> J[Gia sư bị phạt vi phạm điểm danh muộn]
+    J --> K[Bắt buộc liên hệ Học vụ trung tâm để mở khóa thủ công]`
+      },
+
+      'tut-leave': {
+        title: "Quy Tắc Gia Sư Báo Nghỉ Dạy Trước 24 Giờ",
+        badge: "Tutor Portal",
+        cardTitle: "Chế tài gia sư xin nghỉ và đề xuất lịch dạy bù (Rule BR-SCH-02)",
+        desc: "Nghỉ muộn dưới 24h bị ghi nhận vi phạm vào hồ sơ. Tích lũy 3 lần vi phạm sẽ bị khóa tài khoản 30 ngày.",
+        sequence: `sequenceDiagram
+    autonumber
+    actor GS as Gia sư (Tutor)
+    participant TP as Tutor Portal UI
+    participant SVR as Backend API
+    participant DB as Database
+    actor PH as Phụ huynh (Client)
+    actor HV as Học vụ CRM (Academic)
+
+    GS->>TP: Bấm "Báo nghỉ dạy" & Chọn khung giờ bù (CN 15h-17h)
+    TP->>SVR: POST /api/tutor/leaves {sessionId, reason, compensationSlot}
+    SVR->>DB: Kiểm tra: startTime - now() >= 24h?
+    alt Báo nghỉ muộn < 24h
+        SVR->>DB: Gán cờ is_late_leave = true
+        SVR-)HV: Cảnh báo đỏ: "Gia sư vi phạm báo nghỉ muộn < 24h"
+    else Báo nghỉ hợp lệ >= 24h
+        SVR->>DB: Gán cờ is_late_leave = false
+    end
+    SVR->>DB: INSERT tutor_leaves (status: 'PENDING_PARENT_APPROVAL')
+    SVR-)PH: Thông báo: "Gia sư xin nghỉ & đề xuất dạy bù ngày CN"
+    PH->>SVR: Chấp thuận lịch bù
+    SVR->>DB: Sinh buổi học bù mới (status: 'SCHEDULED')
+    SVR-)GS: Thông báo: "Lịch dạy bù đã được xác nhận!"`,
+        flowchart: `flowchart TD
+    A[Gia sư có việc đột xuất cần xin nghỉ buổi dạy] --> B{Thời gian gửi đơn xin nghỉ trước giờ dạy?}
+    B -->|Gửi trước giờ dạy >= 24 giờ| C[Báo Nghỉ Hợp Lệ]
+    C --> D[Bắt buộc đề xuất 1 khung giờ Dạy Bù]
+    D --> E[Gửi thông báo tới Phụ huynh phê duyệt]
+    E --> F{Phụ huynh phản hồi?}
+    F -->|Đồng ý| G[Tạo buổi học bù mới trên lịch]
+    F -->|Từ chối| H[Gia sư đề xuất giờ bù khác hoặc Học vụ can thiệp]
+    B -->|Gửi trước giờ dạy < 24 giờ| I[Báo Nghỉ Muộn - Vi Phạm Kỷ Luật]
+    I --> J[Hệ thống ghi nhận 1 vi phạm is_late_leave = true]
+    J --> K[Bắn cảnh báo đỏ tới Nhân viên Học vụ]
+    K --> L[Tích lũy 3 lần vi phạm -> Khóa tài khoản 30 ngày]`
+      },
+
+      'tut-wallet': {
+        title: "Quy Trình Rút Tiền Thu Nhập (Payout)",
+        badge: "Tutor Portal",
+        cardTitle: "Gia sư rút tiền từ ví lương về tài khoản ngân hàng",
+        desc: "Ví lương cộng tiền thời gian thực sau mỗi buổi dạy được duyệt. Kế toán chuyển khoản và đối soát bằng mã ngân hàng.",
+        sequence: `sequenceDiagram
+    autonumber
+    actor GS as Gia sư (Tutor)
+    actor CRM as Hệ thống CRM
+    actor KT as Kế toán (Admin)
+    actor NH as Ngân hàng đối tác
+
+    GS->>CRM: 1. Bấm "Yêu cầu rút lương" (Chọn STK & Số tiền)
+    CRM->>CRM: 2. Tạo yêu cầu PENDING & Khóa số dư tương ứng
+    CRM->>KT: 3. Thông báo lệnh rút tiền trên Dashboard Kế toán
+    KT->>NH: 4. Thực hiện chuyển khoản qua App ngân hàng
+    KT->>CRM: 5. Nhập Mã giao dịch ngân hàng & Bấm "Duyệt chi"
+    CRM->>CRM: 6. Trừ vĩnh viễn ví lương gia sư (SALARY_WITHDRAWAL)
+    CRM->>GS: 7. Gửi thông báo: Tiền lương đã về tài khoản!`,
+        flowchart: `flowchart TD
+    REQ["Yêu cầu rút lương / Kỳ quyết toán tháng"] --> LIST["Kế toán mở Bảng lương tổng hợp"]
+    LIST --> AUDIT["Đối soát các buổi dạy CONFIRMED tương ứng"]
+    AUDIT --> BANK["Kế toán chuyển khoản qua Internet Banking"]
+    BANK --> CODE["Nhập Mã giao dịch ngân hàng (FT...) vào hệ thống"]
+    CODE --> APPROVE["Bấm DUYỆT CHI"]
+    APPROVE --> DEDUCT["Trừ vĩnh viễn ví lương gia sư (Giao dịch SUCCESSFUL)"]
+    DEDUCT --> NOTIFY["Gửi thông báo Push & Email cho Gia sư"]`
+      },
+
+      'crm-rbac': {
+        title: "Ma Trận Phân Quyền RBAC & Audit Log",
+        badge: "Admin CRM",
+        cardTitle: "Bảo mật API, kiểm tra vai trò và ghi vết kiểm toán",
+        desc: "Phân định quyền hạn minh bạch giữa Admin, Sales, Học vụ và Kế toán, có audit log toàn diện.",
+        sequence: `sequenceDiagram
+    autonumber
+    actor NV as Nhân sự (Sales / Academic / Accountant)
+    participant UI as CRM Web Interface
+    participant Guard as Backend RolesGuard
+    participant CTRL as CRM Business Controller
+    participant DB as Database (Audit Logs & Data)
+
+    NV->>UI: Thao tác nhạy cảm: "Khóa tài khoản gia sư GS001"
+    UI->>Guard: POST /api/crm/tutors/GS001/ban (Header: Bearer JWT)
+    Guard->>Guard: Kiểm tra quyền role in ['ADMIN', 'ACADEMIC']
+    alt Role không có quyền
+        Guard-->>UI: HTTP 403 Forbidden (FORBIDDEN_ROLE)
+        UI-->>NV: Cảnh báo không đủ quyền hạn
+    else Role hợp lệ
+        Guard->>CTRL: Thực thi Business Service
+        CTRL->>DB: UPDATE tutors SET status = 'BANNED'
+        CTRL->>DB: INSERT INTO audit_logs (user_id, action, entity, old_val, new_val, ip)
+        CTRL-->>UI: HTTP 200 OK (Thành công)
+    end`,
+        flowchart: `flowchart TD
+    ADMIN["GIÁM ĐỐC TRUNG TÂM (ADMIN)<br>Toàn quyền hệ thống & Xem báo cáo KPI"]
+    ADMIN --> SALES["TƯ VẤN VIÊN (SALES)<br>Tiếp nhận YCGS, Thẩm định GS, Khớp lớp & Dạy thử"]
+    ADMIN --> ACADEMIC["HỌC VỤ (ACADEMIC)<br>Giám sát lớp, Xử lý Dispute SLA 48h, Dời lịch, Kỷ luật"]
+    ADMIN --> ACCOUNTANT["KẾ TOÁN (ACCOUNTANT)<br>Kiểm soát ví PH, Duyệt chi Payout lương GS, Hoàn tiền"]`
+      },
+
+      'crm-tutor-approval': {
+        title: "Thẩm Định Bằng Cấp & Phê Duyệt Môn Dạy",
+        badge: "Admin CRM",
+        cardTitle: "Quy trình thẩm định hồ sơ gia sư và xét duyệt môn",
+        desc: "Đối chiếu CCCD, thẻ sinh viên, chứng chỉ IELTS và kích hoạt tài khoản gia sư hoạt động.",
+        sequence: `sequenceDiagram
+    autonumber
+    actor Sale as NV Thẩm định (Sales CRM)
+    participant UI as CRM Web Interface
+    participant SVR as Backend API
+    participant DB as Database
+    actor GS as Gia sư (Tutor)
+
+    Sale->>UI: Mở hồ sơ gia sư GS012 (PENDING_REVIEW)
+    UI->>SVR: GET /api/crm/tutors/GS012/verification-details
+    SVR->>DB: Lấy ảnh CCCD, thẻ SV, bằng cấp & môn đăng ký
+    SVR-->>UI: Hiển thị đầy đủ minh chứng
+    Sale->>UI: Đối chiếu bằng cấp & Tích chọn môn Toán 9
+    Sale->>UI: Bấm "Phê duyệt hồ sơ"
+    UI->>SVR: POST /api/crm/tutors/GS012/approve {approvedSubjectIds: [101]}
+    SVR->>DB: UPDATE tutors SET status = 'ACTIVE'
+    SVR->>DB: UPDATE tutor_subjects SET is_approved = true WHERE id = 101
+    SVR->>DB: INSERT audit_logs (action: 'TUTOR_APPROVED')
+    SVR-->>UI: HTTP 200 OK (Đã phê duyệt)
+    SVR-)GS: Thông báo Push: "Hồ sơ của bạn đã được duyệt!"`,
+        flowchart: `flowchart TD
+    A[Hồ sơ gia sư nộp mới: PENDING_REVIEW] --> B[Nhân viên Sales mở giao diện thẩm định]
+    B --> C{Kiểm tra ảnh thẻ SV / Bằng ĐH & CCCD}
+    C -->|Giấy tờ mờ / Không khớp| D[Bấm TỪ CHỐI & Nhập lý do]
+    D --> E[Hồ sơ về REJECTED - Chờ nộp lại]
+    C -->|Giấy tờ đầy đủ, hợp lệ| F[Tích chọn duyệt từng môn đủ điều kiện]
+    F --> G[Bấm PHÊ DUYỆT HỒ SƠ]
+    G --> H[Hồ sơ chuyển sang ACTIVE & Ghi Audit Log]`
+      },
+
+      'crm-match': {
+        title: "Thuật Toán Khớp Lớp & Điều Phối Dạy Thử",
+        badge: "Admin CRM",
+        cardTitle: "Matching Engine tính điểm tương thích % và giao lớp",
+        desc: "Chấm điểm theo Môn (40%), Khu vực (30%), Lịch rảnh (20%), Đánh giá (10%) để giao gia sư phù hợp nhất.",
+        sequence: `sequenceDiagram
+    autonumber
+    actor Sales as Nhân viên Sales
+    participant SVR as Matching Engine
+    participant DB as Database
+    actor GS as Gia sư được chọn
+    actor PH as Phụ huynh
+
+    Sales->>SVR: Xem yêu cầu YC089 & Quét điểm tương thích (%)
+    SVR->>DB: Quét gia sư ACTIVE: Môn(40%) + Quận(30%) + Lịch(20%) + Rating(10%)
+    SVR-->>Sales: Danh sách ứng viên xếp hạng theo % match
+    Sales->>SVR: Bấm "Giao lớp dạy thử" cho Gia sư có % cao nhất
+    SVR->>DB: Sinh Lớp mới (ClassStatus = TRIAL_PENDING)
+    SVR->>DB: Mở khóa SĐT & Địa chỉ phụ huynh cho đúng gia sư này
+    SVR-)GS: Thông báo: "Bạn đã được giao lớp dạy thử!"
+    SVR-)PH: Thông báo: "Đã chọn gia sư dạy thử, mời xem hồ sơ!"`,
+        flowchart: `flowchart TD
+    YC["Yêu cầu tìm gia sư (PUBLISHED)"] --> ENGINE{"Matching Engine tính điểm %"}
+    ENGINE -->|Khớp Môn 40% + Quận 30% + Lịch 20% + Rating 10%| TOP["Danh sách ứng viên có điểm tương thích cao"]
+    TOP --> SALES["Sales chọn 1 Gia sư giao dạy thử (Tối đa 3 GS/vòng)"]
+    SALES --> TRIAL["Sinh Lớp học TRIAL_PENDING & Mở khóa SĐT phụ huynh"]
+    TRIAL --> RESULT{"Kết quả buổi dạy thử?"}
+    RESULT -->|Thành công| TEACHING["Chuyển lớp TEACHING chính thức & Mua gói"]
+    RESULT -->|Thất bại| FAILED["TRIAL_FAILED: Thu hồi liên hệ & Chọn GS khác"]`
+      },
+
+      'crm-class': {
+        title: "Vòng Đời Lớp Học & Quản Lý Gói Buổi",
+        badge: "Admin CRM",
+        cardTitle: "Kiểm soát trạng thái lớp và tiến độ sử dụng gói",
+        desc: "Cảnh báo khi gói còn dưới 2 buổi. Tự động tạm dừng khi hết buổi và mở lại khi nạp thêm gói mới.",
+        sequence: `sequenceDiagram
+    autonumber
+    actor Cron as Cron Scheduler (Chủ Nhật 00:00)
+    participant SVR as Backend Core
+    participant DB as Database
+    actor HV as Học vụ CRM (Academic)
+    actor PH as Phụ huynh (Parent)
+
+    Cron->>SVR: Trigger Job: generateWeeklySessions()
+    SVR->>DB: SELECT classes WHERE status = 'TEACHING'
+    loop Từng lớp học đang hoạt động
+        SVR->>DB: Đọc class_schedules & Kiểm tra remaining_sessions > 0
+        alt Còn buổi học trong gói
+            SVR->>DB: INSERT sessions (status: 'SCHEDULED') cho tuần tới
+        else Đã hết buổi học trong gói
+            SVR->>DB: UPDATE classes SET status = 'SUSPENDED'
+            SVR-)HV: Cảnh báo đỏ: "Lớp học đã hết buổi, tạm dừng lịch!"
+            SVR-)PH: Thông báo: "Gói học đã hết buổi, vui lòng gia hạn"
+        end
+    end`,
+        flowchart: `flowchart TD
+    TRIAL_PENDING["1. TRIAL_PENDING<br>(Đang chờ dạy thử)"] -->|Dạy thử đạt + Mua gói| TEACHING["2. TEACHING<br>(Lớp học chính thức)"]
+    TRIAL_PENDING -->|Dạy thử thất bại| TRIAL_FAILED["TRIAL_FAILED<br>(Đổi gia sư khác)"]
+    TRIAL_FAILED -->|Giao gia sư mới dạy thử| TRIAL_PENDING
+    TEACHING -->|Hết số buổi trong gói| SUSPENDED["3. SUSPENDED<br>(Tạm dừng lớp)"]
+    TEACHING -->|Học viên xin nghỉ dài ngày| SUSPENDED
+    SUSPENDED -->|Phụ huynh mua gói mới| TEACHING
+    TEACHING -->|Hoàn thành mục tiêu học| COMPLETED["4. COMPLETED<br>(Kết thúc hợp đồng)"]
+    SUSPENDED -->|Dừng học & Thanh lý gói| COMPLETED`
+      },
+
+      'crm-dispute': {
+        title: "Quy Trình Giải Quyết Khiếu Nại (SLA 48h)",
+        badge: "Admin CRM",
+        cardTitle: "Học vụ xử lý tranh chấp điểm danh với 3 phán quyết",
+        desc: "Đối soát chứng cứ hai bên và ra phán quyết: Duyệt đúng (trả 100% lương), Hủy buổi (phạt GS), Thỏa hiệp (hỗ trợ 50%).",
+        sequence: `sequenceDiagram
+    autonumber
+    actor PH as Phụ huynh
+    actor HV as Nhân viên Học vụ
+    actor GS as Gia sư
+
+    PH->>HV: 1. Gửi đơn khiếu nại + Ảnh minh chứng (Buổi học DISPUTED)
+    HV->>HV: 2. Kiểm tra thông tin: Giờ điểm danh, ghi chú, camera
+    HV->>PH: 3. Gọi điện lắng nghe phụ huynh
+    HV->>GS: 4. Gọi điện yêu cầu gia sư giải trình
+    
+    alt Phán quyết 1: Gia sư dạy đúng (RESOLVED_CONFIRM)
+        HV->>HV: Trừ 1 buổi của PH + Trả đủ 100% lương cho GS
+    else Phán quyết 2: Gia sư vi phạm (RESOLVED_CANCEL)
+        HV->>HV: Không trừ buổi PH + Không trả lương GS + Ghi phạt kỷ luật
+    else Phán quyết 3: Thỏa hiệp (RESOLVED_PARTIAL)
+        HV->>HV: Trừ 1 buổi của PH + Hỗ trợ 50% lương GS
+    end
+    HV->>PH: 5. Thông báo kết quả phán quyết cho Phụ huynh
+    HV->>GS: 6. Thông báo kết quả phán quyết cho Gia sư`,
+        flowchart: `flowchart TD
+    DISPUTE["Buổi học DISPUTED<br>(Có khiếu nại từ Phụ huynh)"] --> SLA["Học vụ thụ lý (Cam kết SLA <= 48h)"]
+    SLA --> INVESTIGATE["Đối soát chứng cứ: Camera, Bài vở, SĐT 2 bên"]
+    INVESTIGATE --> DECISION{"Học vụ ra 1 trong 3 Phán quyết:"}
+    DECISION -->|1. Gia sư dạy đúng: RESOLVED_CONFIRM| CONFIRM["Trừ 1 buổi của PH + Trả đủ 100% lương cho GS"]
+    DECISION -->|2. Gia sư vi phạm: RESOLVED_CANCEL| CANCEL["Không trừ buổi PH + Không trả lương GS + Ghi phạt"]
+    DECISION -->|3. Thỏa hiệp: RESOLVED_PARTIAL| PARTIAL["Trừ 1 buổi của PH + Hỗ trợ 50% lương cho GS"]`
+      },
+
+      'crm-payout': {
+        title: "Kế Toán Đối Soát & Quyết Toán Lương (Payout)",
+        badge: "Admin CRM",
+        cardTitle: "Quy trình chuyển khoản và nhập mã giao dịch ngân hàng",
+        desc: "Chỉ quyết toán cho các buổi học CONFIRMED. Nhập mã giao dịch chuyển khoản vào hệ thống để ghi sổ cái và trừ ví lương.",
+        sequence: `sequenceDiagram
+    autonumber
+    actor GS as Gia sư (Tutor)
+    actor KT as Kế toán (Accountant CRM)
+    participant UI as CRM Finance UI
+    participant SVR as Backend Core
+    participant DB as Database
+    actor Bank as Cổng Ngân hàng
+
+    GS->>SVR: POST /api/tutor/withdrawals {amount: 1,500,000, bankAccountId: 10}
+    SVR->>DB: INSERT transactions (type: 'SALARY_WITHDRAWAL', status: 'PENDING')
+    KT->>UI: Mở màn hình "Quyết toán lương & Payout"
+    UI->>SVR: GET /api/crm/finance/payouts?status=PENDING
+    KT->>Bank: Mở App Ngân hàng chuyển khoản 1.500.000 đ
+    Bank-->>KT: Chuyển khoản thành công (Mã FT24089876)
+    KT->>UI: Nhập mã 'FT24089876' & Bấm "Duyệt chi Payout"
+    UI->>SVR: POST /api/crm/finance/payouts/{id}/approve {bankReference: 'FT24089876'}
+    SVR->>DB: UPDATE transactions SET status = 'SUCCESSFUL', reference = 'FT24089876'
+    SVR->>DB: UPDATE tutors SET wallet_balance = wallet_balance - 1,500,000
+    SVR-)GS: Push: "Lương 1.500.000 đ đã được chuyển vào tài khoản ngân hàng!"`,
+        flowchart: `flowchart TD
+    REQ["Yêu cầu rút lương / Kỳ quyết toán tháng"] --> LIST["Kế toán mở Bảng lương tổng hợp"]
+    LIST --> AUDIT["Đối soát các buổi dạy CONFIRMED tương ứng"]
+    AUDIT --> BANK["Kế toán chuyển khoản qua Internet Banking"]
+    BANK --> CODE["Nhập Mã giao dịch ngân hàng (FT...) vào hệ thống"]
+    CODE --> APPROVE["Bấm DUYỆT CHI"]
+    APPROVE --> DEDUCT["Trừ vĩnh viễn ví lương gia sư (Giao dịch SUCCESSFUL)"]
+    DEDUCT --> NOTIFY["Gửi thông báo Push & Email cho Gia sư"]`
+      }
+    };
+
+    function renderCurrent() {
+      const data = modules[currentModule];
+      if (!data) return;
+
+      document.getElementById('diag-title').innerText = data.title;
+      document.getElementById('diag-badge').innerText = data.badge;
+      document.getElementById('card-title').innerText = data.cardTitle;
+      document.getElementById('card-desc').innerText = data.desc;
+
+      const code = (currentMode === 'sequence') ? data.sequence : data.flowchart;
+      const renderEl = document.getElementById('mermaid-render');
+      renderEl.removeAttribute('data-processed');
+      renderEl.innerHTML = code;
+
+      mermaid.run({
+        nodes: [renderEl]
+      });
+    }
+
+    function switchModule(key) {
+      currentModule = key;
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      renderCurrent();
+    }
+
+    function setViewMode(mode) {
+      currentMode = mode;
+      document.getElementById('tab-sequence').classList.toggle('active', mode === 'sequence');
+      document.getElementById('tab-flowchart').classList.toggle('active', mode === 'flowchart');
+      renderCurrent();
+    }
+
+    // Initial render
+    window.addEventListener('DOMContentLoaded', () => {
+      renderCurrent();
+    });
+  </script>
+</body>
+</html>

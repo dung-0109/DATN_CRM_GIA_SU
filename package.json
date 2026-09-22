@@ -1,0 +1,11 @@
+{
+  "name": "crm-gia-su-root",
+  "version": "1.0.0",
+  "description": "Đồ án CRM Trung tâm Gia sư và Client/Tutor Portal",
+  "scripts": {
+    "dev": "npm run dev --prefix crm-gia-su",
+    "start:backend": "npm run start:backend --prefix crm-gia-su",
+    "start:frontend": "npm run start:frontend --prefix crm-gia-su",
+    "install:all": "npm run install:all --prefix crm-gia-su"
+  }
+}
