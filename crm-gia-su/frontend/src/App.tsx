@@ -410,49 +410,96 @@ function AdminCRM() {
           )}
 
           {activeTab === 'classes' && (
-            <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 shadow-xl backdrop-blur-md animate-fadeIn">
-              <h3 className="text-lg font-bold mb-4">Danh sách quản lý Lớp học hoạt động</h3>
+            <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 shadow-xl backdrop-blur-md animate-fadeIn overflow-x-auto">
+              <h3 className="text-lg font-bold mb-6">Quản lý Lớp học (Kanban Board)</h3>
               {loading ? (
-                <div className="text-center py-6 text-slate-500 text-xs">Đang tải danh sách lớp học...</div>
-              ) : classes.length === 0 ? (
-                <div className="text-center py-6 text-slate-500 text-xs">Không có lớp học nào.</div>
+                <div className="text-center py-6 text-slate-500 text-xs">Đang tải bảng Kanban...</div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-left text-slate-300">
-                    <thead className="bg-slate-950 text-slate-450 uppercase text-[10px] tracking-wider">
-                      <tr>
-                        <th className="p-3">Mã Lớp</th>
-                        <th className="p-3">Học sinh / Phụ huynh</th>
-                        <th className="p-3">Gia sư đảm nhận</th>
-                        <th className="p-3">Đơn giá / Buổi</th>
-                        <th className="p-3">Số buổi còn lại</th>
-                        <th className="p-3">Trạng thái</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-850">
-                      {classes.map((c) => (
-                        <tr key={c.id} className="hover:bg-slate-950/30">
-                          <td className="p-3 font-mono text-[10px] text-slate-455">{c.id.slice(0, 8)}</td>
-                          <td className="p-3">
-                            <div className="font-bold text-white">{c.student?.fullName}</div>
-                            <div className="text-[10px] text-slate-555">Phụ huynh: {c.parent?.fullName}</div>
-                          </td>
-                          <td className="p-3 text-indigo-400 font-semibold">{c.tutor?.fullName || 'Chưa giao'}</td>
-                          <td className="p-3 text-slate-400">{c.hourlyRate.toLocaleString()}đ</td>
-                          <td className="p-3">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${c.remainingSessions <= 2 ? 'bg-amber-950 text-amber-400 border border-amber-850' : 'bg-indigo-950 text-indigo-400 border border-indigo-850'}`}>
-                              {c.remainingSessions} buổi
-                            </span>
-                          </td>
-                          <td className="p-3">
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${c.status === 'TEACHING' ? 'bg-emerald-950 text-emerald-400 border border-emerald-850' : 'bg-amber-950 text-amber-400 border border-amber-850'}`}>
-                              {c.status}
-                            </span>
-                          </td>
-                        </tr>
+                <div className="flex gap-4 min-w-max pb-4">
+                  {/* Column OPEN */}
+                  <div className="w-72 bg-slate-950/40 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3">
+                    <h4 className="font-bold text-xs text-slate-400 uppercase tracking-wider flex justify-between items-center">
+                      Đang tìm Gia sư (OPEN)
+                      <span className="bg-slate-800 text-white px-2 py-0.5 rounded-full text-[10px]">{classes.filter(c => c.status === 'OPEN').length}</span>
+                    </h4>
+                    <div className="flex flex-col gap-3">
+                      {classes.filter(c => c.status === 'OPEN').map(c => (
+                        <div key={c.id} className="p-3 bg-slate-900 border border-slate-700 hover:border-indigo-500 transition-colors rounded-xl shadow-lg cursor-grab active:cursor-grabbing">
+                          <div className="text-xs font-bold text-white mb-1">ID: {c.id.slice(0, 8)}</div>
+                          <div className="text-[11px] text-slate-400">HS: {c.student?.fullName}</div>
+                          <div className="text-[11px] text-emerald-400 mt-1">{c.hourlyRate.toLocaleString()}đ/b</div>
+                        </div>
                       ))}
-                    </tbody>
-                  </table>
+                    </div>
+                  </div>
+
+                  {/* Column DEPOSIT */}
+                  <div className="w-72 bg-slate-950/40 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3">
+                    <h4 className="font-bold text-xs text-amber-500 uppercase tracking-wider flex justify-between items-center">
+                      Chờ Nộp Cọc (DEPOSIT)
+                      <span className="bg-amber-950 text-amber-400 px-2 py-0.5 rounded-full text-[10px]">{classes.filter(c => c.status === 'DEPOSIT').length}</span>
+                    </h4>
+                    <div className="flex flex-col gap-3">
+                      {classes.filter(c => c.status === 'DEPOSIT').map(c => (
+                        <div key={c.id} className="p-3 bg-amber-950/20 border border-amber-900/40 hover:border-amber-500 transition-colors rounded-xl shadow-lg cursor-grab active:cursor-grabbing">
+                          <div className="text-xs font-bold text-white mb-1">ID: {c.id.slice(0, 8)}</div>
+                          <div className="text-[11px] text-slate-400">HS: {c.student?.fullName}</div>
+                          <div className="text-[11px] text-amber-400 font-semibold mt-1">GS: {c.tutor?.fullName}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Column TRIAL */}
+                  <div className="w-72 bg-slate-950/40 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3">
+                    <h4 className="font-bold text-xs text-indigo-400 uppercase tracking-wider flex justify-between items-center">
+                      Dạy Thử (TRIAL)
+                      <span className="bg-indigo-950 text-indigo-400 px-2 py-0.5 rounded-full text-[10px]">{classes.filter(c => c.status === 'TRIAL').length}</span>
+                    </h4>
+                    <div className="flex flex-col gap-3">
+                      {classes.filter(c => c.status === 'TRIAL').map(c => (
+                        <div key={c.id} className="p-3 bg-indigo-950/20 border border-indigo-900/40 hover:border-indigo-500 transition-colors rounded-xl shadow-lg cursor-grab active:cursor-grabbing">
+                          <div className="text-xs font-bold text-white mb-1">ID: {c.id.slice(0, 8)}</div>
+                          <div className="text-[11px] text-slate-400">HS: {c.student?.fullName}</div>
+                          <div className="text-[11px] text-indigo-400 font-semibold mt-1">GS: {c.tutor?.fullName}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Column TEACHING */}
+                  <div className="w-72 bg-slate-950/40 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3">
+                    <h4 className="font-bold text-xs text-emerald-500 uppercase tracking-wider flex justify-between items-center">
+                      Đang Học (TEACHING)
+                      <span className="bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded-full text-[10px]">{classes.filter(c => c.status === 'TEACHING').length}</span>
+                    </h4>
+                    <div className="flex flex-col gap-3">
+                      {classes.filter(c => c.status === 'TEACHING').map(c => (
+                        <div key={c.id} className="p-3 bg-emerald-950/20 border border-emerald-900/40 hover:border-emerald-500 transition-colors rounded-xl shadow-lg cursor-grab active:cursor-grabbing">
+                          <div className="text-xs font-bold text-white mb-1">ID: {c.id.slice(0, 8)}</div>
+                          <div className="text-[11px] text-slate-400">HS: {c.student?.fullName}</div>
+                          <div className="text-[11px] text-emerald-400 font-semibold mt-1">GS: {c.tutor?.fullName}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Column CLOSED */}
+                  <div className="w-72 bg-slate-950/40 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3 opacity-60">
+                    <h4 className="font-bold text-xs text-slate-500 uppercase tracking-wider flex justify-between items-center">
+                      Đã Đóng (CLOSED)
+                      <span className="bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full text-[10px]">{classes.filter(c => c.status === 'CLOSED').length}</span>
+                    </h4>
+                    <div className="flex flex-col gap-3">
+                      {classes.filter(c => c.status === 'CLOSED').map(c => (
+                        <div key={c.id} className="p-3 bg-slate-900 border border-slate-800 rounded-xl shadow-lg">
+                          <div className="text-xs font-bold text-white mb-1 line-through">ID: {c.id.slice(0, 8)}</div>
+                          <div className="text-[11px] text-slate-400">Lý do: {c.cancelReason || 'Không rõ'}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                 </div>
               )}
             </div>
@@ -511,12 +558,8 @@ function ClientPortal() {
   const { activeProfile } = useAuth();
   const isParent = activeProfile?.type === 'PARENT' && !activeProfile?.subType;
 
-  const [balance, setBalance] = useState(0);
   const [classes, setClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedClass, setSelectedClass] = useState<any | null>(null);
-  const [submittingPackage, setSubmittingPackage] = useState(false);
-
   // Parent Profile state
   const [profileInfo, setProfileInfo] = useState<any>(null);
   const [editingProfile, setEditingProfile] = useState(false);
@@ -526,9 +569,6 @@ function ClientPortal() {
   const fetchWalletAndClasses = async () => {
     setLoading(true);
     try {
-      const balRes = await api.get('/api/v1/wallet/balance');
-      setBalance(balRes.data.balance);
-
       const clsRes = await api.get('/api/v1/classes');
       setClasses(clsRes.data);
 
@@ -540,7 +580,6 @@ function ClientPortal() {
           address: profRes.data?.address || '',
           district: profRes.data?.district || '',
           province: profRes.data?.province || '',
-          newPin: '',
         });
       }
     } catch (err) {
@@ -560,14 +599,6 @@ function ClientPortal() {
         district: profForm.district,
         province: profForm.province,
       };
-      if (profForm.newPin) {
-        if (profForm.newPin.length !== 4 || isNaN(Number(profForm.newPin))) {
-          alert('Mã PIN mới phải đúng 4 ký số!');
-          setProfileLoading(false);
-          return;
-        }
-        payload.newPin = profForm.newPin;
-      }
       await api.post('/api/v1/crm/parent/profile', payload);
       alert('Đã cập nhật hồ sơ phụ huynh thành công!');
       setEditingProfile(false);
@@ -583,54 +614,12 @@ function ClientPortal() {
     fetchWalletAndClasses();
   }, []);
 
-  const handleTopup = async () => {
-    try {
-      const res = await api.post('/api/v1/wallet/topup', { amount: 1000000 });
-      setBalance(res.data.balance);
-      alert('Đã nạp thành công 1,000,000đ vào ví giả lập!');
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Nạp tiền thất bại');
-    }
-  };
 
-  const handleBuyPackage = async (totalSessions: number, price: number) => {
-    if (!selectedClass) return;
-    setSubmittingPackage(true);
-    try {
-      const res = await api.post('/api/v1/packages/purchase', {
-        classId: selectedClass.id,
-        name: `Gói ${totalSessions} buổi học`,
-        totalSessions,
-        price,
-      });
-      alert(res.data.message);
-      setSelectedClass(null);
-      fetchWalletAndClasses();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Mua gói học phí thất bại');
-    } finally {
-      setSubmittingPackage(false);
-    }
-  };
 
   return (
     <PageTemplate title="Client Portal (Phụ huynh & Học sinh)" colorClass="from-cyan-500 to-teal-400">
       <div className="w-full space-y-8 text-left">
-        {/* Wallet & Topup Section (Only for Parent profile) */}
-        {isParent && (
-          <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl backdrop-blur-md flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div>
-              <span className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Ví tiền Phụ huynh</span>
-              <h2 className="text-3xl font-extrabold mt-1 text-cyan-400">{balance.toLocaleString()}đ</h2>
-            </div>
-            <button
-              onClick={handleTopup}
-              className="px-5 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-md shadow-cyan-500/10 flex items-center gap-1.5 cursor-pointer"
-            >
-              <Plus size={14} /> Nạp 1,000,000đ (Demo)
-            </button>
-          </div>
-        )}
+
 
         {/* Profile Settings Section (For Parent only) */}
         {isParent && profileInfo && (
@@ -655,10 +644,7 @@ function ClientPortal() {
                     <span className="text-slate-500 uppercase font-bold text-[10px]">Họ và tên Phụ huynh</span>
                     <div className="font-bold text-white text-sm mt-0.5">{profileInfo.fullName}</div>
                   </div>
-                  <div>
-                    <span className="text-slate-500 uppercase font-bold text-[10px]">Mã PIN bảo mật hiện tại</span>
-                    <div className="text-slate-400 mt-0.5">**** (Sử dụng để duyệt thanh toán)</div>
-                  </div>
+
                 </div>
 
                 <div className="p-4 bg-slate-950/60 border border-slate-850 rounded-2xl space-y-2">
@@ -684,17 +670,7 @@ function ClientPortal() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-[10px] uppercase font-bold text-slate-450 mb-1.5">Mã PIN mới (Tuỳ chọn - 4 số)</label>
-                    <input
-                      type="password"
-                      placeholder="Nhập 4 số để đổi mã PIN"
-                      maxLength={4}
-                      value={profForm.newPin}
-                      onChange={(e) => setProfForm(prev => ({ ...prev, newPin: e.target.value }))}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-850 rounded-xl text-xs text-white focus:outline-none font-mono"
-                    />
-                  </div>
+
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -769,7 +745,7 @@ function ClientPortal() {
                   Báo Nghỉ & Dời Lịch
                 </Link>
                 <Link to="/client/attendance" className="px-4 py-2 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-all cursor-pointer">
-                  Duyệt Điểm Danh
+                  Đánh Giá Dạy Thử
                 </Link>
                 <Link to="/client/request-tutor" className="px-4 py-2 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-all cursor-pointer">
                   Đăng ký tìm Gia sư
@@ -807,14 +783,7 @@ function ClientPortal() {
                     </div>
                   </div>
 
-                  {isParent && (cls.status === 'TRIAL_PENDING' || cls.status === 'TEACHING') && (
-                    <button
-                      onClick={() => setSelectedClass(cls)}
-                      className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-lg transition-all cursor-pointer inline-flex items-center gap-1 shrink-0"
-                    >
-                      Mua gói học phí
-                    </button>
-                  )}
+
                 </div>
               ))}
             </div>
@@ -822,56 +791,12 @@ function ClientPortal() {
         </div>
       </div>
 
-      {/* Modal mua gói học phí */}
-      {selectedClass && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 text-left shadow-2xl relative">
-            <h3 className="text-lg font-bold mb-2">Mua Gói Học Phí Trả Trước</h3>
-            <p className="text-slate-400 text-xs mb-6">
-              Học sinh: <strong className="text-white">{selectedClass.student?.fullName}</strong> | Đơn giá: <strong className="text-white">{parseInt(selectedClass.hourlyRate).toLocaleString()}đ/buổi</strong>
-            </p>
 
-            <div className="space-y-4">
-              <button
-                disabled={submittingPackage}
-                onClick={() => handleBuyPackage(10, selectedClass.hourlyRate * 10)}
-                className="w-full p-4 bg-slate-950 hover:bg-slate-950/40 border border-slate-800 hover:border-indigo-500/50 rounded-2xl text-left transition-all cursor-pointer flex justify-between items-center"
-              >
-                <div>
-                  <h4 className="font-bold text-sm text-white">Gói 10 buổi học</h4>
-                  <span className="text-xs text-slate-500">Đơn giá chuẩn</span>
-                </div>
-                <strong className="text-indigo-400">{(selectedClass.hourlyRate * 10).toLocaleString()}đ</strong>
-              </button>
-
-              <button
-                disabled={submittingPackage}
-                onClick={() => handleBuyPackage(20, selectedClass.hourlyRate * 20 * 0.95)} // Giảm 5%
-                className="w-full p-4 bg-slate-950 hover:bg-slate-950/40 border border-slate-800 hover:border-indigo-500/50 rounded-2xl text-left transition-all cursor-pointer flex justify-between items-center"
-              >
-                <div>
-                  <h4 className="font-bold text-sm text-white">Gói 20 buổi học</h4>
-                  <span className="text-xs text-emerald-500 font-semibold">Ưu đãi giảm 5%</span>
-                </div>
-                <strong className="text-indigo-400">{(selectedClass.hourlyRate * 20 * 0.95).toLocaleString()}đ</strong>
-              </button>
-            </div>
-
-            <button
-              onClick={() => setSelectedClass(null)}
-              className="mt-6 py-2 bg-slate-950 border border-slate-800 hover:border-slate-700 font-semibold rounded-xl text-xs cursor-pointer transition-all text-slate-400 hover:text-white text-center w-full"
-            >
-              Huỷ bỏ
-            </button>
-          </div>
-        </div>
-      )}
     </PageTemplate>
   );
 }
 
 function TutorPortal() {
-  const [balance, setBalance] = useState(0);
   const [classes, setClasses] = useState<any[]>([]);
   const [bankAccounts, setBankAccounts] = useState<any[]>([]);
   const [schedules, setSchedules] = useState<any[]>([]);
@@ -893,9 +818,6 @@ function TutorPortal() {
   const fetchTutorData = async () => {
     setLoading(true);
     try {
-      const balRes = await api.get('/api/v1/wallet/balance');
-      setBalance(balRes.data.balance);
-
       const clsRes = await api.get('/api/v1/classes');
       setClasses(clsRes.data);
 
@@ -1198,16 +1120,34 @@ function TutorPortal() {
             ) : (
               <div className="space-y-4">
                 {classes.map((cls) => (
-                  <div key={cls.id} className="p-4 bg-slate-950/60 border border-slate-850 rounded-2xl flex justify-between items-center gap-4">
-                    <div>
-                      <h4 className="font-bold text-white text-sm">Học sinh: {cls.student?.fullName || 'Chưa rõ'}</h4>
-                      <p className="text-xs text-slate-400 mt-1">
-                        Mức lương: {parseInt(cls.tutorWageRate).toLocaleString()}đ/buổi | Trạng thái: {cls.status}
-                      </p>
+                  <div key={cls.id} className="p-4 bg-slate-950/60 border border-slate-850 rounded-2xl flex flex-col gap-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-bold text-white text-sm">Học sinh: {cls.student?.fullName || 'Chưa rõ'}</h4>
+                        <p className="text-xs text-slate-400 mt-1">
+                          Mức lương đề xuất: {parseInt(cls.tutorWageRate || cls.hourlyRate).toLocaleString()}đ/buổi
+                        </p>
+                      </div>
+                      <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${cls.status === 'DEPOSIT' ? 'bg-amber-950 border border-amber-800 text-amber-400' : cls.status === 'TRIAL' ? 'bg-indigo-950 border border-indigo-800 text-indigo-400' : 'bg-emerald-950 border border-emerald-800 text-emerald-400'}`}>
+                        {cls.status === 'DEPOSIT' ? 'Chờ Nộp Cọc' : cls.status === 'TRIAL' ? 'Đang Dạy Thử' : cls.status}
+                      </span>
                     </div>
-                    <span className="text-xs text-slate-400">
-                      Số buổi còn lại: <strong className="text-amber-400">{cls.remainingSessions} buổi</strong>
-                    </span>
+
+                    {cls.status === 'DEPOSIT' && (
+                      <div className="mt-2 p-3 bg-amber-950/20 border border-amber-900/30 rounded-xl flex items-center justify-between">
+                        <span className="text-xs text-amber-500">Bạn cần nộp 500,000đ tiền cọc để nhận lớp này.</span>
+                        <button 
+                          onClick={() => {
+                             api.post('/api/v1/finance/deposit', { classId: cls.id, amount: 500000 })
+                               .then(() => { alert('Đã nộp cọc giả lập thành công!'); fetchTutorData(); })
+                               .catch(err => alert(err.response?.data?.message || 'Lỗi nộp cọc'));
+                          }}
+                          className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded-lg text-xs cursor-pointer shadow-md"
+                        >
+                          Quét mã QR nộp cọc
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1306,15 +1246,21 @@ function TutorPortal() {
 
         {/* Right Side: Wallet & Linked Bank Accounts */}
         <div className="w-full lg:w-80 shrink-0 space-y-8">
-          {/* Wallet Balance */}
-          <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl backdrop-blur-md flex justify-between items-center">
-            <div>
-              <span className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Ví tiền lương Gia sư</span>
-              <h2 className="text-3xl font-extrabold mt-1 text-amber-400">{balance.toLocaleString()}đ</h2>
+          {/* Karma Score */}
+          <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl backdrop-blur-md flex justify-between items-center relative overflow-hidden">
+             <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-emerald-500/10 blur-[50px]" />
+            <div className="relative z-10">
+              <span className="text-slate-500 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                Điểm Uy Tín (Karma)
+              </span>
+              <div className="flex items-end gap-2 mt-1">
+                 <h2 className="text-4xl font-black text-emerald-400">{profileInfo?.karmaScore || 0}</h2>
+                 <span className="text-slate-400 font-bold mb-1">/ 100</span>
+              </div>
             </div>
             <button
               onClick={fetchTutorData}
-              className="p-2.5 bg-slate-950 border border-slate-800 hover:border-slate-700 hover:bg-slate-900 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer"
+              className="p-2.5 bg-slate-950 border border-slate-800 hover:border-slate-700 hover:bg-slate-900 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer relative z-10"
             >
               <RefreshCw size={16} />
             </button>
@@ -1323,8 +1269,8 @@ function TutorPortal() {
           {/* Linked Bank Accounts */}
           <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl backdrop-blur-md space-y-6">
             <div>
-              <h3 className="text-md font-bold text-white">Tài khoản Ngân hàng (FR-TUT-05)</h3>
-              <p className="text-[10px] text-slate-450 mt-1">Liên kết tối đa 3 tài khoản ngân hàng để nhận chuyển khoản lương.</p>
+              <h3 className="text-md font-bold text-white">Tài khoản Ngân hàng (Hoàn cọc)</h3>
+              <p className="text-[10px] text-slate-450 mt-1">Liên kết tài khoản ngân hàng để hệ thống hoàn lại 500k tiền cọc sau quá trình dạy.</p>
             </div>
 
             <div className="space-y-3">

@@ -1,27 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
-import { ArrowLeft, Loader, CheckCircle2, AlertTriangle, Calendar, ShieldAlert, Key } from 'lucide-react';
+import { ArrowLeft, Loader, CheckCircle2, AlertTriangle, Calendar, Star, XCircle, TrendingDown } from 'lucide-react';
 
 export default function ParentAttendance() {
   const [classes, setClasses] = useState<any[]>([]);
-  const [selectedClassId, setSelectedClassId] = useState('');
-  const [sessions, setSessions] = useState<any[]>([]);
-  
   const [loading, setLoading] = useState(true);
-  const [sessionLoading, setSessionLoading] = useState(false);
-
-  // States cho modal PIN
-  const [confirmingSession, setConfirmingSession] = useState<any | null>(null);
-  const [pin, setPin] = useState('');
-  const [submittingConfirm, setSubmittingConfirm] = useState(false);
-  const [confirmError, setConfirmError] = useState<string | null>(null);
-
-  // States cho modal Dispute
-  const [disputingSession, setDisputingSession] = useState<any | null>(null);
+  
+  const [reviewingClass, setReviewingClass] = useState<any | null>(null);
+  const [decision, setDecision] = useState<'ACCEPT' | 'REJECT_TUTOR' | 'REJECT_PARENT' | 'SCALE_DOWN'>('ACCEPT');
   const [reason, setReason] = useState('');
-  const [submittingDispute, setSubmittingDispute] = useState(false);
-  const [disputeError, setDisputeError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
@@ -29,10 +19,8 @@ export default function ParentAttendance() {
     setLoading(true);
     try {
       const res = await api.get('/api/v1/classes');
-      setClasses(res.data);
-      if (res.data.length > 0) {
-        setSelectedClassId(res.data[0].id);
-      }
+      // Only show classes in TRIAL status for review
+      setClasses(res.data.filter((c: any) => c.status === 'TRIAL'));
     } catch (err) {
       console.error('Lỗi tải danh sách lớp học', err);
     } finally {
@@ -40,84 +28,37 @@ export default function ParentAttendance() {
     }
   };
 
-  const fetchSessions = async (classId: string) => {
-    if (!classId) return;
-    setSessionLoading(true);
-    try {
-      const res = await api.get(`/api/v1/sessions?classId=${classId}`);
-      setSessions(res.data);
-    } catch (err) {
-      console.error('Lỗi tải danh sách buổi học', err);
-    } finally {
-      setSessionLoading(false);
-    }
-  };
-
   useEffect(() => {
     fetchClasses();
   }, []);
 
-  useEffect(() => {
-    if (selectedClassId) {
-      fetchSessions(selectedClassId);
-    }
-  }, [selectedClassId]);
-
-  const handleOpenConfirm = (session: any) => {
-    setConfirmingSession(session);
-    setPin('');
-    setConfirmError(null);
-  };
-
-  const handleConfirmSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!confirmingSession) return;
-
-    setSubmittingConfirm(true);
-    setConfirmError(null);
-
-    try {
-      const res = await api.post(`/api/v1/sessions/${confirmingSession.id}/resolve`, {
-        action: 'CONFIRM',
-        pin,
-      });
-
-      alert(res.data.message);
-      setConfirmingSession(null);
-      fetchSessions(selectedClassId);
-    } catch (err: any) {
-      setConfirmError(err.response?.data?.message || 'Xác nhận mã PIN thất bại');
-    } finally {
-      setSubmittingConfirm(false);
-    }
-  };
-
-  const handleOpenDispute = (session: any) => {
-    setDisputingSession(session);
+  const handleOpenReview = (cls: any) => {
+    setReviewingClass(cls);
+    setDecision('ACCEPT');
     setReason('');
-    setDisputeError(null);
+    setError(null);
   };
 
-  const handleDisputeSubmit = async (e: React.FormEvent) => {
+  const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!disputingSession) return;
+    if (!reviewingClass) return;
 
-    setSubmittingDispute(true);
-    setDisputeError(null);
+    setSubmitting(true);
+    setError(null);
 
     try {
-      const res = await api.post(`/api/v1/sessions/${disputingSession.id}/resolve`, {
-        action: 'DISPUTE',
-        reason,
+      const res = await api.post(`/api/v1/sessions/class/${reviewingClass.id}/trial-review`, {
+        action: decision,
+        reason: decision !== 'ACCEPT' ? reason : undefined,
       });
 
       alert(res.data.message);
-      setDisputingSession(null);
-      fetchSessions(selectedClassId);
+      setReviewingClass(null);
+      fetchClasses();
     } catch (err: any) {
-      setDisputeError(err.response?.data?.message || 'Gửi khiếu nại thất bại');
+      setError(err.response?.data?.message || 'Đánh giá dạy thử thất bại');
     } finally {
-      setSubmittingDispute(false);
+      setSubmitting(false);
     }
   };
 
@@ -133,7 +74,7 @@ export default function ParentAttendance() {
           <ArrowLeft size={16} /> Quay lại Client Portal
         </button>
         <span className="text-sm font-semibold px-3 py-1 rounded-full bg-cyan-950 border border-cyan-850 text-cyan-400">
-          Duyệt Điểm Danh
+          Đánh Giá Dạy Thử
         </span>
       </header>
 
@@ -141,187 +82,130 @@ export default function ParentAttendance() {
         {loading ? (
           <div className="text-center py-12">
             <Loader size={36} className="animate-spin text-cyan-550 mx-auto" />
-            <p className="mt-4 text-slate-400">Đang tải danh sách lớp học của các con...</p>
+            <p className="mt-4 text-slate-400">Đang tải danh sách lớp học dạy thử...</p>
           </div>
         ) : classes.length === 0 ? (
-          <div className="p-12 bg-slate-900/40 border border-slate-800 rounded-3xl text-center text-slate-500">
-            Hiện tại các con chưa có lớp học nào đang hoạt động.
+          <div className="p-12 bg-slate-900/40 border border-slate-800 rounded-3xl text-center text-slate-500 flex flex-col items-center">
+            <Star size={48} className="text-slate-700 mb-4" />
+            <p className="text-lg">Hiện tại không có lớp học nào đang trong giai đoạn dạy thử cần đánh giá.</p>
           </div>
         ) : (
           <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-8 backdrop-blur-xl shadow-2xl space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <h2 className="text-xl font-bold flex items-center gap-2">
-                <Calendar className="text-cyan-400" /> Quản lý duyệt buổi học
-              </h2>
-              <select
-                value={selectedClassId}
-                onChange={(e) => setSelectedClassId(e.target.value)}
-                className="px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-white text-xs cursor-pointer focus:outline-none focus:border-cyan-550"
-              >
-                {classes.map((cls) => (
-                  <option key={cls.id} value={cls.id} className="bg-slate-900">
-                    Học sinh: {cls.student?.fullName || 'Học viên'} (Gia sư: {cls.tutor?.fullName || 'Chưa rõ'})
-                  </option>
-                ))}
-              </select>
-            </div>
+            <h2 className="text-xl font-bold flex items-center gap-2 mb-6">
+              <Calendar className="text-cyan-400" /> Các lớp đang chờ đánh giá dạy thử
+            </h2>
 
-            {/* Danh sách các buổi */}
-            {sessionLoading ? (
-              <div className="text-center py-12 text-slate-500 text-xs">Đang tải danh sách buổi học...</div>
-            ) : sessions.length === 0 ? (
-              <div className="text-center py-12 text-slate-500 text-xs">
-                Chưa có buổi học nào được ghi nhận cho lớp này.
-              </div>
-            ) : (
-              <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2">
-                {sessions.map((ses) => (
-                  <div
-                    key={ses.id}
-                    className="p-5 bg-slate-950/60 border border-slate-850 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
-                  >
-                    <div>
-                      <h4 className="font-bold text-white text-xs">
-                        {new Date(ses.startTime).toLocaleString()} - {new Date(ses.endTime).toLocaleTimeString()}
-                      </h4>
-                      <p className="text-[11px] text-slate-400 mt-1">
-                        Nội dung bài học: <strong className="text-slate-350 font-normal">"{ses.description}"</strong>
-                      </p>
-                      <div className="mt-2">
-                        <span
-                          className={`px-2 py-0.5 text-[10px] font-semibold rounded-full ${
-                            ses.status === 'CONFIRMED'
-                              ? 'bg-emerald-950 border border-emerald-800 text-emerald-450'
-                              : ses.status === 'DISPUTED'
-                              ? 'bg-red-950 border border-red-800 text-red-450'
-                              : 'bg-amber-950 border border-amber-800 text-amber-450'
-                          }`}
-                        >
-                          {ses.status === 'CONFIRMED' ? 'Đã duyệt & Đối soát xong' : ses.status === 'DISPUTED' ? 'Tranh chấp / Khiếu nại' : 'Chờ Phụ huynh duyệt'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {ses.status === 'ATTENDED' && (
-                      <div className="flex gap-2 w-full md:w-auto">
-                        <button
-                          onClick={() => handleOpenDispute(ses)}
-                          className="flex-1 md:flex-none px-3.5 py-1.5 bg-red-650 hover:bg-red-550 active:bg-red-700 text-white text-xs font-bold rounded-lg cursor-pointer transition-all inline-flex items-center justify-center gap-1"
-                        >
-                          Khiếu nại <AlertTriangle size={12} />
-                        </button>
-                        <button
-                          onClick={() => handleOpenConfirm(ses)}
-                          className="flex-1 md:flex-none px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-slate-950 text-xs font-extrabold rounded-lg cursor-pointer transition-all inline-flex items-center justify-center gap-1"
-                        >
-                          Phê duyệt <CheckCircle2 size={12} />
-                        </button>
-                      </div>
-                    )}
+            <div className="space-y-4">
+              {classes.map((cls) => (
+                <div
+                  key={cls.id}
+                  className="p-5 bg-slate-950/60 border border-slate-850 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+                >
+                  <div>
+                    <h4 className="font-bold text-white text-sm">
+                      Học sinh: {cls.student?.fullName || 'Học viên'}
+                    </h4>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Gia sư dạy thử: <strong className="text-cyan-400">{cls.tutor?.fullName || 'Chưa rõ'}</strong>
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Mức phí: {(cls.hourlyRate).toLocaleString()}đ/buổi
+                    </p>
                   </div>
-                ))}
-              </div>
-            )}
+
+                  <button
+                    onClick={() => handleOpenReview(cls)}
+                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-lg cursor-pointer transition-all inline-flex items-center justify-center gap-2 shadow-lg shadow-cyan-600/20"
+                  >
+                    Viết Đánh Giá <Star size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </main>
 
-      {/* Modal nhập mã PIN để xác nhận (Netflix PIN Switcher Style) */}
-      {confirmingSession && (
+      {/* Modal Đánh giá dạy thử */}
+      {reviewingClass && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 text-left shadow-2xl relative">
-            <h3 className="text-lg font-bold mb-1 flex items-center gap-2">
-              <Key className="text-emerald-450 animate-pulse" size={20} /> Xác thực Phê Duyệt
-            </h3>
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 text-left shadow-2xl relative">
+            <h3 className="text-xl font-bold mb-2 text-white">Đánh giá kết quả dạy thử</h3>
             <p className="text-slate-400 text-xs mb-6 leading-relaxed">
-              Bạn đang duyệt buổi học giá <strong className="text-white">{(confirmingSession.class ? parseInt(confirmingSession.class.hourlyRate).toLocaleString() : '---')}đ</strong>. Hãy nhập mã PIN Phụ huynh để ký duyệt đối soát.
+              Vui lòng cho biết quyết định của Phụ huynh sau buổi dạy thử của gia sư <strong className="text-cyan-400">{reviewingClass.tutor?.fullName}</strong>.
             </p>
 
-            {confirmError && (
+            {error && (
               <div className="mb-4 p-3 bg-red-950/40 border border-red-800/40 rounded-xl text-xs text-red-400">
-                {confirmError}
+                {error}
               </div>
             )}
 
-            <form onSubmit={handleConfirmSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-2">Mã PIN bảo mật (4 chữ số)</label>
-                <input
-                  type="password"
-                  maxLength={4}
-                  required
-                  placeholder="• • • •"
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                  className="w-full text-center tracking-[1.5em] px-4 py-3 bg-slate-950 border border-slate-850 rounded-xl text-white font-extrabold focus:outline-none focus:border-emerald-500 transition-all"
-                />
+            <form onSubmit={handleReviewSubmit} className="space-y-5">
+              <div className="space-y-3">
+                <label className="block text-xs font-semibold text-slate-300">Quyết định của bạn:</label>
+                
+                <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${decision === 'ACCEPT' ? 'bg-emerald-950/30 border-emerald-500/50' : 'bg-slate-950 border-slate-800'}`}>
+                  <input type="radio" name="decision" value="ACCEPT" checked={decision === 'ACCEPT'} onChange={() => setDecision('ACCEPT')} className="mt-1" />
+                  <div>
+                    <div className="text-sm font-bold text-emerald-400 flex items-center gap-1"><CheckCircle2 size={14}/> Chốt gia sư này</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Tiếp tục học chính thức. Tiền cọc sẽ được chuyển cho gia sư.</div>
+                  </div>
+                </label>
+
+                <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${decision === 'REJECT_TUTOR' ? 'bg-red-950/30 border-red-500/50' : 'bg-slate-950 border-slate-800'}`}>
+                  <input type="radio" name="decision" value="REJECT_TUTOR" checked={decision === 'REJECT_TUTOR'} onChange={() => setDecision('REJECT_TUTOR')} className="mt-1" />
+                  <div>
+                    <div className="text-sm font-bold text-red-400 flex items-center gap-1"><AlertTriangle size={14}/> Đổi gia sư khác (Lỗi do gia sư)</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Gia sư dạy không đạt yêu cầu. Lớp sẽ được tuyển lại gia sư mới.</div>
+                  </div>
+                </label>
+
+                <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${decision === 'REJECT_PARENT' ? 'bg-amber-950/30 border-amber-500/50' : 'bg-slate-950 border-slate-800'}`}>
+                  <input type="radio" name="decision" value="REJECT_PARENT" checked={decision === 'REJECT_PARENT'} onChange={() => setDecision('REJECT_PARENT')} className="mt-1" />
+                  <div>
+                    <div className="text-sm font-bold text-amber-400 flex items-center gap-1"><XCircle size={14}/> Huỷ lớp (Từ phía Phụ huynh)</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Phụ huynh đổi ý không muốn học nữa. Gia sư bị mất công.</div>
+                  </div>
+                </label>
+
+                <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${decision === 'SCALE_DOWN' ? 'bg-indigo-950/30 border-indigo-500/50' : 'bg-slate-950 border-slate-800'}`}>
+                  <input type="radio" name="decision" value="SCALE_DOWN" checked={decision === 'SCALE_DOWN'} onChange={() => setDecision('SCALE_DOWN')} className="mt-1" />
+                  <div>
+                    <div className="text-sm font-bold text-indigo-400 flex items-center gap-1"><TrendingDown size={14}/> Giảm quy mô lớp</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Gia sư không đáp ứng đủ số buổi, cần tìm gia sư khác thay thế.</div>
+                  </div>
+                </label>
               </div>
 
-              <div className="flex gap-4">
+              {decision !== 'ACCEPT' && (
+                <div className="animate-fadeIn">
+                  <label className="block text-xs font-semibold text-slate-300 mb-2">Lý do chi tiết (Bắt buộc):</label>
+                  <textarea
+                    required
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    placeholder="Vui lòng cho biết lý do cụ thể..."
+                    className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-500"
+                    rows={3}
+                  />
+                </div>
+              )}
+
+              <div className="flex gap-4 pt-2">
                 <button
                   type="button"
-                  onClick={() => setConfirmingSession(null)}
-                  className="flex-1 py-2 bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white rounded-xl text-xs cursor-pointer"
+                  onClick={() => setReviewingClass(null)}
+                  className="flex-1 py-2.5 bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white rounded-xl text-sm font-semibold cursor-pointer"
                 >
                   Huỷ bỏ
                 </button>
                 <button
                   type="submit"
-                  disabled={submittingConfirm}
-                  className="flex-1 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs cursor-pointer"
+                  disabled={submitting}
+                  className="flex-1 py-2.5 bg-cyan-600 hover:bg-cyan-500 disabled:bg-cyan-800 text-white font-bold rounded-xl text-sm cursor-pointer shadow-lg shadow-cyan-600/20"
                 >
-                  {submittingConfirm ? 'Đang duyệt...' : 'Xác nhận ký'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal gửi khiếu nại (Dispute) */}
-      {disputingSession && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 text-left shadow-2xl relative">
-            <h3 className="text-lg font-bold mb-1 flex items-center gap-2">
-              <ShieldAlert className="text-red-400" size={20} /> Khiếu nại Buổi học
-            </h3>
-            <p className="text-slate-400 text-xs mb-6">
-              Vui lòng nêu rõ lý do bạn khiếu nại buổi học này để học vụ tiến hành điều tra đối soát.
-            </p>
-
-            {disputeError && (
-              <div className="mb-4 p-3 bg-red-950/40 border border-red-800/40 rounded-xl text-xs text-red-400">
-                {disputeError}
-              </div>
-            )}
-
-            <form onSubmit={handleDisputeSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-2">Lý do khiếu nại</label>
-                <textarea
-                  rows={4}
-                  required
-                  placeholder="Gia sư nghỉ dạy đột xuất không báo trước / Gia sư đi trễ 30 phút..."
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-950 border border-slate-850 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:border-red-500 transition-all resize-none"
-                />
-              </div>
-
-              <div className="flex gap-4">
-                <button
-                  type="button"
-                  onClick={() => setDisputingSession(null)}
-                  className="flex-1 py-2 bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white rounded-xl text-xs cursor-pointer"
-                >
-                  Huỷ bỏ
-                </button>
-                <button
-                  type="submit"
-                  disabled={submittingDispute}
-                  className="flex-1 py-2 bg-red-650 hover:bg-red-550 text-white font-bold rounded-xl text-xs cursor-pointer"
-                >
-                  {submittingDispute ? 'Đang gửi...' : 'Gửi yêu cầu'}
+                  {submitting ? 'Đang gửi...' : 'Xác nhận Đánh giá'}
                 </button>
               </div>
             </form>
