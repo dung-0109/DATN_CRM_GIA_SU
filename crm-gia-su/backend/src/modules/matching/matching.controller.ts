@@ -14,4 +14,19 @@ export class MatchingController {
   async getAllRequests() {
     return this.matchingService.findAllRequests();
   }
+
+  @Get('requests/:id/suggest')
+  @Roles(UserRole.ADMIN)
+  async suggestTutors(@Param('id') id: string) {
+    return this.matchingService.suggestTutors(id);
+  }
+
+  @Post('requests/:id/assign')
+  @Roles(UserRole.ADMIN)
+  async assignTutor(
+    @Param('id') requestId: string,
+    @Body('tutorId') tutorId: string
+  ) {
+    return this.matchingService.assignTutor(requestId, tutorId);
+  }
 }

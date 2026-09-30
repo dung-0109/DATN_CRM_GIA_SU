@@ -21,9 +21,10 @@ CRM-Gia sư/
 │   │   ├── HuongDanSuDung.md          # Quy trình sử dụng cho 3 đối tượng (PH, GS, CRM)
 │   │   ├── HuongDanChayUngDung.md     # Hướng dẫn cài đặt PostgreSQL, Prisma, Node từ A-Z
 │   │   └── TaiKhoanDangNhap.md        # Thông tin tài khoản đăng nhập & kiểm thử
-│   └── reports/                       # Báo cáo học thuật & tiêu chuẩn làm việc
-│       ├── BaoCaoDoAn.md              # Báo cáo đồ án tốt nghiệp/môn học hoàn chỉnh (Chương 1-5)
-│       └── NguyenTacLamViec.md        # Chuẩn mực làm việc của Lead Business Analyst
+│   ├── reports/                       # Báo cáo học thuật & tiêu chuẩn làm việc
+│   │   ├── BaoCaoDoAn.md              # Báo cáo đồ án tốt nghiệp/môn học hoàn chỉnh (Chương 1-5)
+│   │   └── NguyenTacLamViec.md        # Chuẩn mực làm việc của Lead Business Analyst
+│   └── API_Specification.md           # Tài liệu đặc tả API Backend (Đã cập nhật mới)
 └── crm-gia-su/                        # Thư mục mã nguồn ứng dụng
     ├── backend/                       # NestJS + Prisma ORM + PostgreSQL
     ├── frontend/                      # React + Vite + TypeScript + TailwindCSS
@@ -68,9 +69,9 @@ Hệ thống sẽ đồng thời khởi động:
 
 ## 🔑 Tài Khoản Đăng Nhập Mặc Định
 
-| Phân hệ | Đường dẫn truy cập | Tài khoản | Mật khẩu / Mã PIN |
+| Phân hệ | Đường dẫn truy cập | Tài khoản | Mật khẩu |
 | :--- | :--- | :--- | :--- |
-| **CRM Back-office** (Admin / Sales / Học vụ / Kế toán) | [localhost:5173/admin-crm](http://localhost:5173/admin-crm) | `0123456789` | Mật khẩu: `admin123`<br>PIN: `1234` |
+| **CRM Back-office** (Admin / Sales) | [localhost:5173/admin-crm](http://localhost:5173/admin-crm) | `0123456789` | Mật khẩu: `admin123` |
 | **Client Portal** (Phụ huynh & Học sinh) | [localhost:5173/client](http://localhost:5173/client) | Tự đăng ký mới trên Web | Tự tạo mật khẩu & mã PIN |
 | **Tutor Portal** (Gia sư) | [localhost:5173/tutor](http://localhost:5173/tutor) | Tự đăng ký mới trên Web | Tự tạo mật khẩu |
 
@@ -112,6 +113,7 @@ Toàn bộ nghiệp vụ đã được cải tạo tối ưu theo quy trình t�
 * [Hướng dẫn sử dụng nhanh 3 cổng](docs/guides/HuongDanSuDung.md)
 * [Hướng dẫn chạy ứng dụng từ A-Z](docs/guides/HuongDanChayUngDung.md)
 * [Danh sách tài khoản kiểm thử](docs/guides/TaiKhoanDangNhap.md)
+* [Đặc tả API Kỹ thuật](docs/API_Specification.md)
 
 ### 🎓 Báo Cáo Đồ Án & Chuẩn Mực
 * [Báo cáo đồ án môn học hoàn chỉnh (Chương 1 đến 5)](file:///f:/CRM-Gia%20s%C6%B0/CRM-Gia%20s%C6%B0/docs/reports/BaoCaoDoAn.md)
