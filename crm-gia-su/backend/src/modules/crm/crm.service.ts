@@ -11,7 +11,7 @@ export class CrmService {
   async getDashboardStats() {
     const [revenueAgg, activeClasses, activeTutors, matchedRequests] =
       await Promise.all([
-        this.prisma.package.aggregate({ _sum: { price: true } }),
+        this.prisma.transaction.aggregate({ _sum: { amount: true }, where: { type: 'FEE_CONFIRMED' } }),
         this.prisma.class.count({
           where: { status: ClassStatus.TEACHING, deletedAt: null },
         }),
@@ -35,7 +35,7 @@ export class CrmService {
         : null;
 
     return {
-      totalRevenue: Number(revenueAgg._sum.price ?? 0),
+      totalRevenue: Number(revenueAgg._sum.amount ?? 0),
       activeClasses,
       activeTutors,
       timeToMatchHours: timeToMatchHours !== null ? Math.round(timeToMatchHours * 10) / 10 : null,
@@ -228,9 +228,7 @@ export class CrmService {
     if (data.address !== undefined) updateData.address = data.address;
     if (data.district !== undefined) updateData.district = data.district;
     if (data.province !== undefined) updateData.province = data.province;
-    if (data.newPin !== undefined && data.newPin.length === 4) {
-      updateData.pinHash = await bcrypt.hash(data.newPin, 10);
-    }
+
 
     return this.prisma.parent.update({
       where: { id: parentId },

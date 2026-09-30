@@ -133,7 +133,6 @@ export class AuthService {
           address: 'Chưa cập nhật',
           district: 'Chưa cập nhật',
           province: 'Chưa cập nhật',
-          pinHash: defaultPinHash, // PIN mặc định là 1234
         },
       });
       console.log(`[PROFILE SYSTEM] Đã tự động tạo Parent profile cho user ID: ${user.id}`);
@@ -195,7 +194,6 @@ export class AuthService {
           address: 'Chưa cập nhật',
           district: 'Chưa cập nhật',
           province: 'Chưa cập nhật',
-          pinHash: defaultPinHash, // PIN mặc định là 1234
         },
       });
       console.log(`[PROFILE SYSTEM] Đã tự động tạo Parent profile cho user ID: ${updatedUser.id}`);
@@ -288,44 +286,6 @@ export class AuthService {
       if (!parent || parent.id !== userId) {
         throw new ForbiddenException('Profile Phụ huynh không hợp lệ hoặc không thuộc về bạn');
       }
-
-      // Kiểm tra mã PIN bảo mật
-      if (!dto.parentPin) {
-        throw new BadRequestException('Mã PIN bảo mật là bắt buộc đối với profile Phụ huynh');
-      }
-
-      // Kiểm tra khóa PIN (BR-SEC-04)
-      const now = new Date();
-      if (parent.pinLockedUntil && parent.pinLockedUntil > now) {
-        const remainingMinutes = Math.ceil((parent.pinLockedUntil.getTime() - now.getTime()) / 60000);
-        throw new ForbiddenException(`Tính năng xác nhận tạm thời bị khóa. Vui lòng thử lại sau ${remainingMinutes} phút.`);
-      }
-
-      const isPinValid = await bcrypt.compare(dto.parentPin, parent.pinHash);
-      if (!isPinValid) {
-        const nextAttempts = parent.pinAttempts + 1;
-        if (nextAttempts >= 5) {
-          // Khóa 15 phút
-          const lockTime = new Date(now.getTime() + 15 * 60000);
-          await this.prisma.parent.update({
-            where: { id: parent.id },
-            data: { pinAttempts: 0, pinLockedUntil: lockTime },
-          });
-          throw new ForbiddenException('Bạn đã nhập sai PIN 5 lần. Tính năng bị khóa 15 phút.');
-        } else {
-          await this.prisma.parent.update({
-            where: { id: parent.id },
-            data: { pinAttempts: nextAttempts },
-          });
-          throw new BadRequestException(`Mã PIN không chính xác. Bạn còn ${5 - nextAttempts} lần thử.`);
-        }
-      }
-
-      // Nhập PIN đúng -> Reset số lần sai
-      await this.prisma.parent.update({
-        where: { id: parent.id },
-        data: { pinAttempts: 0, pinLockedUntil: null },
-      });
 
       // Tạo JWT chứa profile_type = PARENT
       const payload = {

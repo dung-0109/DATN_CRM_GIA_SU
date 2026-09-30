@@ -12,7 +12,6 @@ async function main() {
   // 1. Xóa dữ liệu nghiệp vụ cũ theo thứ tự ràng buộc khóa ngoại
   //    (GIỮ nguyên tài khoản người dùng tự đăng ký)
   await prisma.transaction.deleteMany();
-  await prisma.package.deleteMany();
   await prisma.studentLeave.deleteMany();
   await prisma.tutorLeave.deleteMany();
   await prisma.disputeEvidence.deleteMany();
