@@ -12,7 +12,7 @@ export class MatchingService {
       include: {
         parent: { select: { fullName: true } },
         student: { select: { fullName: true, grade: true } },
-        _count: { select: { applications: true } }
+        _count: { select: { classApplications: true } }
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -23,7 +23,7 @@ export class MatchingService {
     const request = await this.prisma.tutorRequest.findUnique({
       where: { id: requestId },
       include: {
-        applications: {
+        classApplications: {
           include: {
             tutor: {
               include: {
@@ -42,7 +42,7 @@ export class MatchingService {
     if (!request) throw new NotFoundException('Không tìm thấy yêu cầu tìm gia sư');
 
     // Đánh giá điểm phù hợp (Match Score) cho từng gia sư ứng tuyển
-    const scoredTutors = request.applications.map(app => {
+    const scoredTutors = request.classApplications.map(app => {
       const tutor = app.tutor;
       let score = 0;
 
@@ -94,7 +94,7 @@ export class MatchingService {
   async assignTutor(requestId: string, tutorId: string) {
     const request = await this.prisma.tutorRequest.findUnique({
       where: { id: requestId },
-      include: { applications: true }
+      include: { classApplications: true }
     });
 
     if (!request) throw new NotFoundException('Yêu cầu không tồn tại');
@@ -102,7 +102,7 @@ export class MatchingService {
       throw new BadRequestException('Yêu cầu không ở trạng thái đang tuyển');
     }
 
-    const application = request.applications.find(a => a.tutorId === tutorId);
+    const application = request.classApplications.find(a => a.tutorId === tutorId);
     if (!application) {
       throw new BadRequestException('Gia sư này chưa ứng tuyển vào lớp');
     }
@@ -111,32 +111,30 @@ export class MatchingService {
       // 1. Đóng Yêu Cầu Tìm Gia Sư
       await tx.tutorRequest.update({
         where: { id: requestId },
-        data: { status: RequestStatus.FULFILLED }
+        data: { status: RequestStatus.MATCHED }
       });
 
       // 2. Chuyển trạng thái ứng tuyển
-      await tx.application.updateMany({
-        where: { requestId },
+      await tx.classApplication.updateMany({
+        where: { tutorRequestId: requestId },
         data: { status: ApplicationStatus.REJECTED }
       });
 
-      await tx.application.update({
+      await tx.classApplication.update({
         where: { id: application.id },
-        data: { status: ApplicationStatus.APPROVED }
+        data: { status: ApplicationStatus.SELECTED_FOR_TRIAL }
       });
 
       // 3. Tạo Lớp Học (Class) ở trạng thái DEPOSIT
       const newClass = await tx.class.create({
         data: {
+          tutorRequestId: requestId,
           parentId: request.parentId,
           studentId: request.studentId,
           tutorId: tutorId,
-          subject: request.subject,
           hourlyRate: request.budgetPerSession,
           tutorWageRate: request.budgetPerSession, // Giả sử thu 100% cho gia sư, trung tâm chỉ lấy cọc
-          totalSessions: request.sessionsPerWeek * 4, // Tạm tính 1 tháng
           remainingSessions: request.sessionsPerWeek * 4,
-          scheduleNotes: request.scheduleNotes,
           status: ClassStatus.DEPOSIT,
         }
       });

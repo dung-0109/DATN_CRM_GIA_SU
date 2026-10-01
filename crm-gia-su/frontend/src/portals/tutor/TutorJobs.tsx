@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import api from '../../services/api';
-import { Briefcase, Calendar, DollarSign, ArrowLeft, Loader, Send } from 'lucide-react';
+import { Briefcase, Calendar, DollarSign, ArrowLeft, Loader, Send, X } from 'lucide-react';
+import PageTemplate from '../../components/PageTemplate';
 
 export default function TutorJobs() {
   const [requests, setRequests] = useState<any[]>([]);
@@ -10,7 +11,6 @@ export default function TutorJobs() {
   const [applyingRequest, setApplyingRequest] = useState<any | null>(null);
   const [coverLetter, setCoverLetter] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const navigate = useNavigate();
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -47,7 +47,6 @@ export default function TutorJobs() {
         coverLetter,
       });
       setApplyingRequest(null);
-      // Reload danh sách
       fetchRequests();
       alert('Ứng tuyển thành công! Vui lòng chờ phản hồi từ Sales.');
     } catch (err: any) {
@@ -58,33 +57,32 @@ export default function TutorJobs() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-slate-950 text-white p-6 relative overflow-hidden flex flex-col">
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-600/5 blur-[120px]" />
+    <PageTemplate
+      title="Bảng Tin Tuyển Dụng"
+      subtitle="Danh sách các lớp học đang mở tuyển gia sư giảng dạy"
+      badge="Tutor Portal"
+    >
+      <div className="w-full space-y-6 text-left font-sans text-[#566a7f]">
+        <div className="flex items-center justify-between">
+          <Link
+            to="/tutor"
+            className="text-xs font-semibold text-[#697a8d] hover:text-[#696cff] bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
+          >
+            <ArrowLeft size={14} /> Quay lại Tutor Portal
+          </Link>
+        </div>
 
-      <header className="flex justify-between items-center pb-6 border-b border-indigo-900/30 relative z-10 max-w-5xl mx-auto w-full">
-        <button
-          onClick={() => navigate('/tutor')}
-          className="flex items-center gap-2 text-sm font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer"
-        >
-          <ArrowLeft size={16} /> Quay lại Tutor Portal
-        </button>
-        <span className="text-sm font-semibold px-3 py-1 rounded-full bg-amber-950/40 border border-amber-900/50 text-amber-400">
-          Danh Sách Lớp Đang Tuyển
-        </span>
-      </header>
-
-      <main className="flex-1 relative z-10 max-w-5xl mx-auto w-full py-12">
         {loading ? (
-          <div className="text-center py-12">
-            <Loader size={36} className="animate-spin text-amber-500 mx-auto" />
-            <p className="mt-4 text-slate-400">Đang tải danh sách lớp học tuyển dụng...</p>
+          <div className="text-center py-16 text-[#a1acb8] text-sm flex flex-col items-center gap-3">
+            <Loader size={28} className="animate-spin text-[#696cff]" />
+            Đang tải danh sách lớp học tuyển dụng...
           </div>
         ) : error && !applyingRequest ? (
-          <div className="p-4 bg-red-950/40 border border-red-800/40 rounded-2xl text-center text-red-400">
+          <div className="p-4 bg-[#ffe0db] border border-[#ff3e1d]/40 rounded-xl text-center text-[#ff3e1d] text-xs font-semibold">
             {error}
           </div>
         ) : requests.length === 0 ? (
-          <div className="p-12 bg-slate-900/40 border border-slate-800 rounded-3xl text-center text-slate-500">
+          <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-12 text-center text-[#a1acb8] text-sm">
             Hiện tại chưa có lớp học nào đang đăng tin tìm Gia sư.
           </div>
         ) : (
@@ -92,20 +90,20 @@ export default function TutorJobs() {
             {requests.map((req) => (
               <div
                 key={req.id}
-                className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur-md flex flex-col justify-between"
+                className="bg-white border border-gray-100 hover:border-[#696cff]/40 rounded-xl p-6 shadow-sm flex flex-col justify-between transition-all space-y-4"
               >
                 <div>
                   <div className="flex justify-between items-start gap-4">
-                    <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-950 border border-indigo-800 text-indigo-400">
+                    <span className="px-2.5 py-1 text-xs font-bold rounded-md bg-[#e7e7ff] text-[#696cff]">
                       {req.subject}
                     </span>
                     <span
-                      className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
+                      className={`px-2.5 py-1 text-xs font-bold rounded-md ${
                         req.status === 'PUBLISHED'
-                          ? 'bg-emerald-950 border border-emerald-800 text-emerald-400'
+                          ? 'bg-[#e8fadf] text-[#71dd37]'
                           : req.status === 'NEW'
-                          ? 'bg-cyan-950 border border-cyan-800 text-cyan-400'
-                          : 'bg-slate-950 border border-slate-800 text-slate-500'
+                          ? 'bg-[#d7f5fc] text-[#03c3ec]'
+                          : 'bg-[#f5f5f9] text-[#a1acb8]'
                       }`}
                     >
                       {req.status === 'PUBLISHED'
@@ -116,42 +114,43 @@ export default function TutorJobs() {
                     </span>
                   </div>
 
-                  <h3 className="mt-4 text-lg font-bold text-white">
-                    {req.subject} - {req.student?.grade || req.grade}
+                  <h3 className="mt-3 text-lg font-bold text-[#566a7f]">
+                    {req.subject} — {req.student?.grade || req.grade}
                   </h3>
 
-                  <p className="mt-3 text-xs text-slate-400 line-clamp-2">
-                    <strong className="text-slate-300">Lịch dạy:</strong> {req.scheduleNotes}
+                  <p className="mt-2 text-xs text-[#697a8d] line-clamp-2">
+                    <strong className="text-[#566a7f]">Lịch dạy:</strong> {req.scheduleNotes}
                   </p>
 
-                  <div className="mt-5 grid grid-cols-2 gap-4 border-t border-slate-800 pt-4 text-xs">
+                  <div className="mt-4 grid grid-cols-2 gap-4 border-t border-gray-100 pt-3 text-xs">
                     <div>
-                      <span className="text-slate-500 block">Số buổi học</span>
-                      <strong className="text-white text-sm flex items-center gap-1.5 mt-1">
-                        <Calendar size={14} className="text-amber-500" /> {req.sessionsPerWeek} buổi / tuần
+                      <span className="text-[#a1acb8] block">Số buổi học</span>
+                      <strong className="text-[#566a7f] text-sm flex items-center gap-1.5 mt-0.5">
+                        <Calendar size={14} className="text-[#696cff]" /> {req.sessionsPerWeek} buổi / tuần
                       </strong>
                     </div>
                     <div>
-                      <span className="text-slate-500 block">Học phí đề xuất</span>
-                      <strong className="text-white text-sm flex items-center gap-1 mt-1">
-                        <DollarSign size={14} className="text-emerald-500" /> {parseInt(req.budgetPerSession).toLocaleString()}đ
+                      <span className="text-[#a1acb8] block">Học phí đề xuất</span>
+                      <strong className="text-[#71dd37] text-sm flex items-center gap-1 mt-0.5">
+                        <DollarSign size={14} className="text-[#71dd37]" /> {parseInt(req.budgetPerSession).toLocaleString()}đ/b
                       </strong>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-6">
+                <div className="pt-2">
                   {req.status === 'PUBLISHED' ? (
                     <button
                       onClick={() => handleApplyClick(req)}
-                      className="w-full py-2.5 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 font-bold rounded-xl transition-all text-xs cursor-pointer shadow-lg shadow-amber-500/10 flex items-center justify-center gap-1"
+                      className="w-full py-2.5 bg-[#696cff] hover:bg-[#5f61e6] active:bg-[#595cd9] text-white font-bold rounded-lg transition-all text-xs cursor-pointer shadow-[0_2px_4px_0_rgba(105,108,255,0.4)] flex items-center justify-center gap-1.5"
                     >
-                      Ứng tuyển ngay <Briefcase size={12} />
+                      <Briefcase size={14} />
+                      <span>Ứng tuyển ngay</span>
                     </button>
                   ) : (
                     <button
                       disabled
-                      className="w-full py-2.5 bg-slate-950 border border-slate-800 text-slate-500 font-semibold rounded-xl text-xs"
+                      className="w-full py-2.5 bg-[#f5f5f9] border border-gray-200 text-[#a1acb8] font-semibold rounded-lg text-xs"
                     >
                       Chưa mở tuyển dụng
                     </button>
@@ -161,63 +160,71 @@ export default function TutorJobs() {
             ))}
           </div>
         )}
-      </main>
 
-      {/* Modal ứng tuyển (Netflix Style) */}
-      {applyingRequest && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 text-left shadow-2xl relative">
-            <h3 className="text-xl font-bold mb-2">Ứng tuyển lớp học</h3>
-            <p className="text-slate-400 text-xs leading-relaxed mb-6">
-              Bạn đang đăng ký dạy lớp <strong className="text-white">{applyingRequest.subject}</strong> cho học sinh <strong className="text-white">{applyingRequest.student?.fullName || 'Học viên'}</strong>.
-            </p>
+        {/* Modal ứng tuyển */}
+        {applyingRequest && (
+          <div className="fixed inset-0 z-50 bg-[#233446]/40 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="bg-white border-0 rounded-xl max-w-md w-full p-6 text-left shadow-2xl relative">
+              <button
+                onClick={() => setApplyingRequest(null)}
+                className="absolute top-4 right-4 text-[#a1acb8] hover:text-[#566a7f] cursor-pointer"
+              >
+                <X size={18} />
+              </button>
 
-            {error && (
-              <div className="mb-4 p-3 bg-red-950/40 border border-red-800/40 rounded-xl text-xs text-red-400">
-                {error}
-              </div>
-            )}
+              <h3 className="text-lg font-bold mb-1 text-[#566a7f]">Ứng tuyển lớp học</h3>
+              <p className="text-[#a1acb8] text-xs leading-relaxed mb-4">
+                Bạn đang ứng tuyển dạy lớp <strong className="text-[#696cff]">{applyingRequest.subject}</strong> cho học sinh <strong className="text-[#566a7f]">{applyingRequest.student?.fullName || 'Học viên'}</strong>.
+              </p>
 
-            <form onSubmit={handleApplySubmit} className="space-y-5">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-2">
-                  Thư giới thiệu bản thân & kinh nghiệm (Tuỳ chọn)
-                </label>
-                <textarea
-                  rows={4}
-                  placeholder="Ví dụ: Tôi có 2 năm kinh nghiệm dạy môn Toán THPT, đạt giải học sinh giỏi tỉnh..."
-                  value={coverLetter}
-                  onChange={(e) => setCoverLetter(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-950/60 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 transition-all text-xs resize-none"
-                />
-              </div>
+              {error && (
+                <div className="mb-4 p-3 bg-[#ffe0db] border border-[#ff3e1d]/40 rounded-lg text-xs font-semibold text-[#ff3e1d]">
+                  {error}
+                </div>
+              )}
 
-              <div className="flex gap-4">
-                <button
-                  type="button"
-                  onClick={() => setApplyingRequest(null)}
-                  className="flex-1 py-2.5 bg-slate-950 border border-slate-800 hover:border-slate-700 font-semibold rounded-xl text-xs cursor-pointer transition-all text-slate-400 hover:text-white text-center"
-                >
-                  Huỷ bỏ
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 disabled:bg-amber-700 text-slate-950 font-bold rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 text-xs cursor-pointer"
-                >
-                  {submitting ? (
-                    <Loader size={14} className="animate-spin" />
-                  ) : (
-                    <>
-                      Xác nhận ứng tuyển <Send size={12} />
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
+              <form onSubmit={handleApplySubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#566a7f] mb-1.5">
+                    Thư giới thiệu bản thân & kinh nghiệm (Tuỳ chọn)
+                  </label>
+                  <textarea
+                    rows={4}
+                    placeholder="Ví dụ: Tôi có 2 năm kinh nghiệm dạy môn Toán THPT, đạt giải học sinh giỏi tỉnh..."
+                    value={coverLetter}
+                    onChange={(e) => setCoverLetter(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff] resize-none"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setApplyingRequest(null)}
+                    className="flex-1 py-2 bg-[#f5f5f9] hover:bg-gray-200 text-[#697a8d] rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                  >
+                    Huỷ bỏ
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="flex-1 py-2 bg-[#696cff] hover:bg-[#5f61e6] active:bg-[#595cd9] disabled:opacity-50 text-white font-bold rounded-lg transition-all text-xs cursor-pointer shadow-[0_2px_4px_0_rgba(105,108,255,0.4)] flex items-center justify-center gap-1.5"
+                  >
+                    {submitting ? (
+                      <Loader size={14} className="animate-spin" />
+                    ) : (
+                      <>
+                        <span>Xác nhận ứng tuyển</span>
+                        <Send size={12} />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </PageTemplate>
   );
 }

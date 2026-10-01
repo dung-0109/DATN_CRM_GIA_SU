@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import api from '../../services/api';
-import { ArrowLeft, Loader, CheckCircle, Calendar, Plus, RefreshCw, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Loader, CheckCircle, Calendar, Plus, RefreshCw, AlertCircle, Clock } from 'lucide-react';
+import PageTemplate from '../../components/PageTemplate';
 
 export default function TutorAttendance() {
   const [classes, setClasses] = useState<any[]>([]);
@@ -15,14 +16,12 @@ export default function TutorAttendance() {
   const [startTimeHM, setStartTimeHM] = useState('');
   const [endTimeHM, setEndTimeHM] = useState('');
   const [description, setDescription] = useState('');
-  
+
   const [loading, setLoading] = useState(true);
   const [sessionLoading, setSessionLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-  const navigate = useNavigate();
 
   const fetchClasses = async () => {
     setLoading(true);
@@ -62,7 +61,6 @@ export default function TutorAttendance() {
     }
   }, [selectedClassId]);
 
-  // Tự định dạng dd/mm/yyyy khi gõ số (24082026 -> 24/08/2026)
   const handleDateChange = (raw: string) => {
     const digits = raw.replace(/\D/g, '').slice(0, 8);
     if (digits.length <= 2) return setSessionDate(digits);
@@ -70,7 +68,6 @@ export default function TutorAttendance() {
     setSessionDate(`${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`);
   };
 
-  // Tự định dạng HH:MM khi gõ số
   const handleTimeChange = (raw: string, setter: (v: string) => void) => {
     const digits = raw.replace(/\D/g, '').slice(0, 4);
     if (digits.length <= 2) return setter(digits);
@@ -102,7 +99,7 @@ export default function TutorAttendance() {
     const start = new Date(year, month - 1, day, sh, sm);
     const end = new Date(year, month - 1, day, eh, em);
     if (start.getDate() !== day || start.getMonth() !== month - 1) {
-      return { error: 'Ngày không tồn tại (ví dụ 31/02). Vui lòng kiểm tra lại.' };
+      return { error: 'Ngày không tồn tại. Vui lòng kiểm tra lại.' };
     }
     if (end <= start) {
       return { error: 'Giờ kết thúc phải sau giờ bắt đầu.' };
@@ -146,184 +143,181 @@ export default function TutorAttendance() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-slate-950 text-white p-6 relative overflow-hidden flex flex-col">
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-amber-600/5 blur-[120px]" />
+    <PageTemplate
+      title="Điểm Danh Buổi Học"
+      subtitle="Ghi nhận giờ dạy, nội dung bài giảng để gửi Phụ huynh đối soát"
+      badge="Tutor Portal"
+    >
+      <div className="w-full space-y-6 text-left font-sans text-[#566a7f]">
+        <div className="flex items-center justify-between">
+          <Link
+            to="/tutor"
+            className="text-xs font-semibold text-[#697a8d] hover:text-[#696cff] bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
+          >
+            <ArrowLeft size={14} /> Quay lại Tutor Portal
+          </Link>
+        </div>
 
-      <header className="flex justify-between items-center pb-6 border-b border-amber-900/30 relative z-10 max-w-5xl mx-auto w-full">
-        <button
-          onClick={() => navigate('/tutor')}
-          className="flex items-center gap-2 text-sm font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer"
-        >
-          <ArrowLeft size={16} /> Quay lại Tutor Portal
-        </button>
-        <span className="text-sm font-semibold px-3 py-1 rounded-full bg-amber-950/40 border border-amber-900/50 text-amber-400">
-          Điểm Danh Buổi Học
-        </span>
-      </header>
-
-      <main className="flex-1 relative z-10 max-w-5xl mx-auto w-full py-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
         {loading ? (
-          <div className="col-span-3 text-center py-12">
-            <Loader size={36} className="animate-spin text-amber-500 mx-auto" />
-            <p className="mt-4 text-slate-400">Đang tải danh sách lớp học của bạn...</p>
+          <div className="text-center py-16 text-[#a1acb8] text-sm flex flex-col items-center gap-3">
+            <Loader size={28} className="animate-spin text-[#696cff]" />
+            Đang tải danh sách lớp học...
           </div>
         ) : classes.length === 0 ? (
-          <div className="col-span-3 p-12 bg-slate-900/40 border border-slate-800 rounded-3xl text-center text-slate-500">
+          <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-12 text-center text-[#a1acb8] text-sm">
             Bạn chưa có lớp học nào được phân công.
           </div>
         ) : (
-          <>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Form điểm danh (Col 1) */}
-            <div className="lg:col-span-1 bg-slate-900/60 border border-slate-800 rounded-3xl p-6 shadow-xl backdrop-blur-md h-fit">
-              <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-                <Plus className="text-amber-500" size={20} /> Tạo buổi điểm danh
+            <div className="lg:col-span-1 bg-white border border-gray-100 rounded-xl p-6 shadow-sm space-y-4 h-fit">
+              <h3 className="text-base font-bold text-[#566a7f] flex items-center gap-2 pb-2 border-b border-gray-100">
+                <Plus className="text-[#696cff]" size={18} /> Tạo buổi điểm danh
               </h3>
 
               {error && (
-                <div className="mb-4 p-3 bg-red-950/40 border border-red-800/40 rounded-xl text-xs text-red-400">
+                <div className="p-3 bg-[#ffe0db] border border-[#ff3e1d]/40 rounded-lg text-xs font-semibold text-[#ff3e1d]">
                   {error}
                 </div>
               )}
 
               {success && (
-                <div className="mb-4 p-3 bg-emerald-950/40 border border-emerald-800/40 rounded-xl text-xs text-emerald-400">
+                <div className="p-3 bg-[#e8fadf] border border-[#71dd37]/40 rounded-lg text-xs font-semibold text-[#71dd37]">
                   {success}
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-3.5">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-350 mb-1.5">Chọn Lớp học</label>
+                  <label className="block text-xs font-semibold text-[#566a7f] mb-1">Chọn Lớp học</label>
                   <select
                     value={selectedClassId}
                     onChange={(e) => setSelectedClassId(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-white text-xs cursor-pointer focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff] cursor-pointer"
                   >
                     {classes.map((cls) => (
-                      <option key={cls.id} value={cls.id} className="bg-slate-900">
-                        {cls.student?.fullName || 'Học viên'} (ID: {cls.id.slice(0, 8)})
+                      <option key={cls.id} value={cls.id}>
+                        {cls.student?.fullName || 'Học viên'} (Mã: {cls.id.slice(0, 6)})
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-355 mb-1.5">Ngày dạy</label>
+                  <label className="block text-xs font-semibold text-[#566a7f] mb-1">Ngày dạy (dd/mm/yyyy)</label>
                   <input
                     type="text"
                     inputMode="numeric"
                     placeholder="dd/mm/yyyy"
                     value={sessionDate}
                     onChange={(e) => handleDateChange(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff]"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-355 mb-1.5">Giờ bắt đầu</label>
+                    <label className="block text-xs font-semibold text-[#566a7f] mb-1">Giờ bắt đầu</label>
                     <input
                       type="text"
                       inputMode="numeric"
-                      placeholder="HH:MM"
+                      placeholder="19:00"
                       value={startTimeHM}
                       onChange={(e) => handleTimeChange(e.target.value, setStartTimeHM)}
-                      className="w-full px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
+                      className="w-full px-3 py-2 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-355 mb-1.5">Giờ kết thúc</label>
+                    <label className="block text-xs font-semibold text-[#566a7f] mb-1">Giờ kết thúc</label>
                     <input
                       type="text"
                       inputMode="numeric"
-                      placeholder="HH:MM"
+                      placeholder="21:00"
                       value={endTimeHM}
                       onChange={(e) => handleTimeChange(e.target.value, setEndTimeHM)}
-                      className="w-full px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
+                      className="w-full px-3 py-2 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-355 mb-1.5">Nội dung bài học / Ghi chú</label>
+                  <label className="block text-xs font-semibold text-[#566a7f] mb-1">Nội dung bài học / Ghi chú</label>
                   <textarea
                     rows={3}
                     placeholder="Ghi nhận bài học hôm nay..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-white text-xs resize-none focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff] resize-none"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full py-2.5 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 disabled:bg-amber-700 text-slate-950 font-bold rounded-xl transition-all text-xs cursor-pointer"
+                  className="w-full py-2.5 bg-[#696cff] hover:bg-[#5f61e6] active:bg-[#595cd9] disabled:opacity-50 text-white font-bold rounded-lg transition-all text-xs cursor-pointer shadow-[0_2px_4px_0_rgba(105,108,255,0.4)]"
                 >
-                  {submitting ? 'Đang gửi...' : 'Ghi điểm danh'}
+                  {submitting ? 'Đang gửi...' : 'Ghi Điểm Danh'}
                 </button>
               </form>
             </div>
 
             {/* Danh sách buổi dạy (Col 2 & 3) */}
-            <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-3xl p-6 shadow-xl backdrop-blur-md">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold flex items-center gap-2">
-                  <Calendar className="text-amber-500" size={20} /> Lịch sử điểm danh buổi học
+            <div className="lg:col-span-2 bg-white border border-gray-100 rounded-xl p-6 shadow-sm space-y-4">
+              <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+                <h3 className="text-base font-bold text-[#566a7f] flex items-center gap-2">
+                  <Calendar className="text-[#696cff]" size={18} /> Lịch sử điểm danh buổi học
                 </h3>
                 <button
                   onClick={() => fetchSessions(selectedClassId)}
-                  className="p-1.5 bg-slate-950 border border-slate-800 hover:bg-slate-900 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer"
+                  className="p-1.5 bg-[#f5f5f9] hover:bg-gray-200 text-[#697a8d] rounded-lg transition-colors cursor-pointer"
+                  title="Làm mới"
                 >
                   <RefreshCw size={14} />
                 </button>
               </div>
 
               {sessionLoading ? (
-                <div className="text-center py-8">
-                  <Loader size={24} className="animate-spin text-amber-500 mx-auto" />
-                  <p className="mt-2 text-slate-500 text-xs">Đang tải lịch sử học...</p>
-                </div>
+                <div className="text-center py-12 text-[#a1acb8] text-sm">Đang tải lịch sử học...</div>
               ) : sessions.length === 0 ? (
-                <div className="text-center py-12 text-slate-500 text-xs">
+                <div className="text-center py-12 text-[#a1acb8] text-xs">
                   Chưa có buổi học nào được ghi nhận cho lớp này.
                 </div>
               ) : (
-                <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
                   {sessions.map((ses) => (
                     <div
                       key={ses.id}
-                      className="p-4 bg-slate-950/60 border border-slate-850 rounded-2xl flex justify-between items-center gap-4"
+                      className="p-4 bg-[#f9f9fa] border border-gray-100 rounded-xl flex justify-between items-center gap-4 hover:border-[#696cff]/40 transition-colors"
                     >
                       <div>
-                        <h4 className="font-bold text-white text-xs">
-                          {new Date(ses.startTime).toLocaleString()} - {new Date(ses.endTime).toLocaleTimeString()}
+                        <h4 className="font-bold text-[#566a7f] text-xs">
+                          {new Date(ses.startTime).toLocaleString('vi-VN')} - {new Date(ses.endTime).toLocaleTimeString('vi-VN')}
                         </h4>
-                        <p className="text-[11px] text-slate-400 mt-1 italic">
-                          "{ses.description}"
+                        <p className="text-xs text-[#697a8d] mt-1 italic">
+                          "{ses.description || 'Không có ghi chú'}"
                         </p>
                       </div>
                       <div>
                         <span
-                          className={`px-2.5 py-1 text-[10px] font-semibold rounded-full flex items-center gap-1 ${
+                          className={`px-2.5 py-1 text-xs font-bold rounded-md flex items-center gap-1 ${
                             ses.status === 'CONFIRMED'
-                              ? 'bg-emerald-950 border border-emerald-800 text-emerald-400'
+                              ? 'bg-[#e8fadf] text-[#71dd37]'
                               : ses.status === 'DISPUTED'
-                              ? 'bg-red-950 border border-red-800 text-red-400'
-                              : 'bg-amber-950 border border-amber-800 text-amber-400'
+                              ? 'bg-[#ffe0db] text-[#ff3e1d]'
+                              : 'bg-[#fff8e1] text-[#ffab00]'
                           }`}
                         >
                           {ses.status === 'CONFIRMED' ? (
                             <>
-                              <CheckCircle size={10} /> Đã Duyệt
+                              <CheckCircle size={12} /> Đã Duyệt
                             </>
                           ) : ses.status === 'DISPUTED' ? (
                             <>
-                              <AlertCircle size={10} /> Khiếu Nại
+                              <AlertCircle size={12} /> Khiếu Nại
                             </>
                           ) : (
                             <>
-                              <Loader size={10} className="animate-pulse" /> Chờ Duyệt
+                              <Clock size={12} /> Chờ Duyệt
                             </>
                           )}
                         </span>
@@ -333,9 +327,9 @@ export default function TutorAttendance() {
                 </div>
               )}
             </div>
-          </>
+          </div>
         )}
-      </main>
-    </div>
+      </div>
+    </PageTemplate>
   );
 }

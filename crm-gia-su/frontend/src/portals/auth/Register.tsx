@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Shield, Phone, Lock, User, CheckCircle, ArrowRight, Loader, Eye, EyeOff } from 'lucide-react';
+import { Phone, Lock, User, CheckCircle, ArrowRight, Loader, Eye, EyeOff } from 'lucide-react';
 import { validatePhone, validatePassword, sanitizePhone, MAX_PASSWORD_LENGTH } from '../../utils/validation';
 
 export default function Register() {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('PARENT'); // PARENT hoặc TUTOR
+  const [role, setRole] = useState('PARENT');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -27,14 +27,14 @@ export default function Register() {
     setPhoneTouched(true);
     setPasswordTouched(true);
 
-    const phoneError = validatePhone(phone);
-    if (phoneError) {
-      setError(phoneError);
+    const pErr = validatePhone(phone);
+    if (pErr) {
+      setError(pErr);
       return;
     }
-    const passwordError = validatePassword(password);
-    if (passwordError) {
-      setError(passwordError);
+    const passErr = validatePassword(password);
+    if (passErr) {
+      setError(passErr);
       return;
     }
 
@@ -45,7 +45,7 @@ export default function Register() {
       setSuccess(res.message);
       setTimeout(() => {
         navigate('/login');
-      }, 3000);
+      }, 2500);
     } catch (err: any) {
       setError(err);
     } finally {
@@ -54,144 +54,144 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center px-4 relative overflow-hidden text-white">
-      {/* Glow Effects */}
-      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-indigo-600/10 blur-[150px]" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-cyan-600/10 blur-[150px]" />
-
-      <div className="w-full max-w-md relative z-10">
-        <div className="text-center mb-8">
-          <div className="inline-flex p-3 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 mb-4">
-            <Shield size={32} />
+    <div className="min-h-screen bg-[#f5f5f9] font-sans text-[#566a7f] flex flex-col justify-center items-center px-4 py-12">
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-xl shadow-[0_2px_14px_0_rgba(67,89,113,0.1)] border border-gray-100 p-8 space-y-6">
+          {/* Brand Header */}
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center gap-2 mb-2">
+              <div className="w-10 h-10 rounded-xl bg-[#696cff] flex items-center justify-center text-white font-extrabold text-lg shadow-[0_2px_4px_0_rgba(105,108,255,0.4)]">
+                S
+              </div>
+              <span className="text-2xl font-bold text-[#566a7f] tracking-tight">Sneat CRM</span>
+            </div>
+            <h2 className="text-xl font-bold text-[#566a7f]">Tạo tài khoản mới 🚀</h2>
+            <p className="text-xs text-[#a1acb8]">
+              Đăng ký để kết nối gia sư hoặc nhận lớp giảng dạy ngay
+            </p>
           </div>
-          <h2 className="text-3xl font-extrabold tracking-tight">Đăng ký tài khoản mới</h2>
-          <p className="mt-2 text-sm text-slate-400">
-            Hệ thống quản lý CRM & Cổng tương tác Gia sư
-          </p>
-        </div>
 
-        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-8 backdrop-blur-xl shadow-2xl">
           {error && (
-            <div className="mb-6 p-4 bg-red-950/40 border border-red-800/40 rounded-xl text-sm text-red-400">
+            <div className="p-3.5 bg-[#ffe0db] border border-[#ff3e1d]/40 rounded-lg text-xs font-semibold text-[#ff3e1d] text-center">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="mb-6 p-4 bg-emerald-950/40 border border-emerald-800/40 rounded-xl text-sm text-emerald-400 flex items-start gap-3">
-              <CheckCircle className="shrink-0 text-emerald-400 mt-0.5" size={16} />
+            <div className="p-3.5 bg-[#e8fadf] border border-[#71dd37]/40 rounded-lg text-xs font-semibold text-[#71dd37] flex items-start gap-2">
+              <CheckCircle className="shrink-0 text-[#71dd37] mt-0.5" size={16} />
               <span>{success}</span>
             </div>
           )}
 
-          <form onSubmit={handleRegister} className="space-y-5">
+          <form onSubmit={handleRegister} className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-2">
+              <label className="block text-xs font-bold text-[#566a7f] uppercase tracking-wider mb-2">
                 Họ và tên
               </label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500">
-                  <User size={18} />
+                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[#a1acb8]">
+                  <User size={16} />
                 </span>
                 <input
                   type="text"
                   required
-                  placeholder="Họ và tên"
+                  placeholder="Nguyễn Văn A"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-950/60 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#d9dee3] rounded-lg text-[#566a7f] placeholder-[#a1acb8] focus:outline-none focus:border-[#696cff] focus:ring-2 focus:ring-[#696cff]/20 transition-all text-sm"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-2">
+              <label className="block text-xs font-bold text-[#566a7f] uppercase tracking-wider mb-2">
                 Số điện thoại
               </label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500">
-                  <Phone size={18} />
+                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[#a1acb8]">
+                  <Phone size={16} />
                 </span>
                 <input
-                  type="text"
+                  type="tel"
                   required
-                  placeholder="Số điện thoại"
+                  placeholder="0912345678"
                   value={phone}
                   onChange={(e) => setPhone(sanitizePhone(e.target.value))}
                   onBlur={() => setPhoneTouched(true)}
-                  className={`w-full pl-11 pr-4 py-3 bg-slate-950/60 border rounded-xl text-white placeholder-slate-600 focus:outline-none transition-all text-sm ${
+                  className={`w-full pl-10 pr-4 py-2.5 bg-white border rounded-lg text-[#566a7f] placeholder-[#a1acb8] focus:outline-none transition-all text-sm ${
                     phoneError
-                      ? 'border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500'
-                      : 'border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                      ? 'border-[#ff3e1d] focus:border-[#ff3e1d] focus:ring-2 focus:ring-[#ff3e1d]/20'
+                      : 'border-[#d9dee3] focus:border-[#696cff] focus:ring-2 focus:ring-[#696cff]/20'
                   }`}
                 />
-                {phoneError && (
-                  <p className="mt-1.5 text-[11px] text-red-400 font-medium">{phoneError}</p>
-                )}
               </div>
+              {phoneError && (
+                <p className="mt-1 text-[11px] text-[#ff3e1d] font-medium">{phoneError}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-2">
+              <label className="block text-xs font-bold text-[#566a7f] uppercase tracking-wider mb-2">
                 Mật khẩu
               </label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500">
-                  <Lock size={18} />
+                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[#a1acb8]">
+                  <Lock size={16} />
                 </span>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   maxLength={MAX_PASSWORD_LENGTH}
-                  placeholder="Mật khẩu"
+                  placeholder="············"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onBlur={() => setPasswordTouched(true)}
-                  className={`w-full pl-11 pr-11 py-3 bg-slate-950/60 border rounded-xl text-white placeholder-slate-600 focus:outline-none transition-all text-sm ${
+                  className={`w-full pl-10 pr-11 py-2.5 bg-white border rounded-lg text-[#566a7f] placeholder-[#a1acb8] focus:outline-none transition-all text-sm ${
                     passwordError
-                      ? 'border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500'
-                      : 'border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                      ? 'border-[#ff3e1d] focus:border-[#ff3e1d] focus:ring-2 focus:ring-[#ff3e1d]/20'
+                      : 'border-[#d9dee3] focus:border-[#696cff] focus:ring-2 focus:ring-[#696cff]/20'
                   }`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-indigo-400 transition-colors cursor-pointer"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#a1acb8] hover:text-[#566a7f] transition-colors cursor-pointer"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
-                {passwordError && (
-                  <p className="mt-1.5 text-[11px] text-red-400 font-medium">{passwordError}</p>
-                )}
               </div>
+              {passwordError && (
+                <p className="mt-1 text-[11px] text-[#ff3e1d] font-medium">{passwordError}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-2">
-                Bạn đăng ký làm
+              <label className="block text-xs font-bold text-[#566a7f] uppercase tracking-wider mb-2">
+                Loại tài khoản
               </label>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setRole('PARENT')}
-                  className={`py-3 rounded-xl border text-sm font-semibold transition-all ${
+                  className={`py-2.5 px-3 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
                     role === 'PARENT'
-                      ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
+                      ? 'bg-[#696cff]/10 border-[#696cff] text-[#696cff]'
+                      : 'bg-white border-[#d9dee3] text-[#697a8d] hover:border-gray-400'
                   }`}
                 >
-                  Phụ huynh học sinh
+                  👩 Phụ huynh
                 </button>
                 <button
                   type="button"
                   onClick={() => setRole('TUTOR')}
-                  className={`py-3 rounded-xl border text-sm font-semibold transition-all ${
+                  className={`py-2.5 px-3 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
                     role === 'TUTOR'
-                      ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
+                      ? 'bg-[#696cff]/10 border-[#696cff] text-[#696cff]'
+                      : 'bg-white border-[#d9dee3] text-[#697a8d] hover:border-gray-400'
                   }`}
                 >
-                  Gia sư dạy học
+                  👨‍🏫 Gia sư
                 </button>
               </div>
             </div>
@@ -199,29 +199,29 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 disabled:bg-indigo-800 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-sm cursor-pointer shadow-lg shadow-indigo-600/20"
+              className="w-full py-2.5 mt-2 bg-[#696cff] hover:bg-[#5f61e6] active:bg-[#595cd9] disabled:opacity-50 text-white font-bold rounded-lg shadow-[0_2px_4px_0_rgba(105,108,255,0.4)] transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
             >
               {loading ? (
                 <Loader size={18} className="animate-spin" />
               ) : (
                 <>
-                  Đăng ký ngay <ArrowRight size={16} />
+                  <span>Đăng Ký Tài Khoản</span>
+                  <ArrowRight size={16} />
                 </>
               )}
             </button>
           </form>
-        </div>
 
-        {/* Footer */}
-        <p className="mt-6 text-center text-sm text-slate-400">
-          Đã có tài khoản?{' '}
-          <Link
-            to="/login"
-            className="font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
-          >
-            Đăng nhập
-          </Link>
-        </p>
+          <div className="text-center pt-2 text-xs text-[#697a8d]">
+            Đã có tài khoản?{' '}
+            <Link
+              to="/login"
+              className="font-bold text-[#696cff] hover:text-[#5f61e6] transition-colors"
+            >
+              Đăng nhập ngay
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

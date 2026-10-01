@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import { getProfilesForCurrentPortal, setProfilesForCurrentPortal } from '../../services/sessionStore';
-import { ArrowLeft, Users, Plus, Pencil, Trash2, Loader, X } from 'lucide-react';
+import { Users, Plus, Pencil, Trash2, Loader, X, ArrowLeft } from 'lucide-react';
+import PageTemplate from '../../components/PageTemplate';
 
 interface Student {
   id: string;
@@ -33,7 +34,6 @@ export default function MyChildren() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Đồng bộ danh sách con vào phiên của cổng Client để các trang khác (RequestTutor) dùng ngay không cần đăng nhập lại
   const syncProfiles = (list: Student[]) => {
     try {
       const profiles = getProfilesForCurrentPortal();
@@ -46,7 +46,7 @@ export default function MyChildren() {
       }));
       setProfilesForCurrentPortal([...nonStudents, ...studentProfiles]);
     } catch {
-      /* bỏ qua lỗi đọc phiên */
+      /* ignore */
     }
   };
 
@@ -102,20 +102,15 @@ export default function MyChildren() {
       setModalOpen(false);
       await fetchStudents();
     } catch (err: any) {
-      setError(
-        err.response?.data?.message ||
-          (typeof err.response?.data === 'string' ? err.response.data : '') ||
-          'Có lỗi xảy ra khi lưu hồ sơ học sinh',
-      );
+      setError(err.response?.data?.message || 'Không thể lưu hồ sơ học sinh');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Bạn có chắc muốn xóa hồ sơ học sinh này?')) return;
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Bạn có chắc muốn xóa hồ sơ của bé ${name}?`)) return;
     setDeletingId(id);
-    setError(null);
     try {
       await api.delete(`/api/v1/students/${id}`);
       await fetchStudents();
@@ -139,58 +134,50 @@ export default function MyChildren() {
     g === 'MALE' ? 'Nam' : g === 'FEMALE' ? 'Nữ' : 'Khác';
 
   return (
-    <div className="w-full min-h-screen bg-slate-950 text-white p-6 relative overflow-hidden flex flex-col">
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-600/5 blur-[120px]" />
-
-      <header className="flex justify-between items-center pb-6 border-b border-indigo-900/30 relative z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-3 h-3 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500" />
-          <h1 className="text-xl font-bold tracking-tight">Con của tôi</h1>
-        </div>
-        <div className="flex items-center gap-4">
+    <PageTemplate
+      title="Con Của Tôi"
+      subtitle="Quản lý thông tin hồ sơ học sinh của gia đình"
+      badge="Client Portal"
+    >
+      <div className="w-full space-y-6 text-left font-sans text-[#566a7f]">
+        {/* Navigation & Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <Link
             to="/client"
-            className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors inline-flex items-center gap-1.5"
+            className="text-xs font-semibold text-[#697a8d] hover:text-[#696cff] bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
           >
-            <ArrowLeft size={14} /> Cổng Portal
+            <ArrowLeft size={14} /> Quay lại Client Portal
           </Link>
-        </div>
-      </header>
 
-      <main className="flex-1 flex flex-col relative z-10 max-w-4xl mx-auto w-full py-10">
+          <button
+            onClick={openAddModal}
+            className="px-4 py-2 bg-[#696cff] hover:bg-[#5f61e6] text-white text-xs font-bold rounded-lg transition-all cursor-pointer inline-flex items-center gap-2 shadow-[0_2px_4px_0_rgba(105,108,255,0.4)]"
+          >
+            <Plus size={16} /> Thêm con
+          </button>
+        </div>
+
         {error && !modalOpen && (
-          <div className="mb-6 p-4 bg-red-950/40 border border-red-800/40 rounded-xl text-sm text-red-400">
+          <div className="p-4 bg-[#ffe0db] border border-[#ff3e1d]/40 rounded-xl text-xs font-semibold text-[#ff3e1d]">
             {error}
           </div>
         )}
 
-        <div className="flex justify-between items-center mb-6">
-          <p className="text-sm text-slate-400">
-            Quản lý hồ sơ học sinh của gia đình bạn
-          </p>
-          <button
-            onClick={openAddModal}
-            className="px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-xl transition-all cursor-pointer inline-flex items-center gap-2 shadow-lg shadow-cyan-600/20"
-          >
-            <Plus size={15} /> Thêm con
-          </button>
-        </div>
-
         {loading ? (
-          <div className="text-center py-16 text-slate-500 text-sm flex flex-col items-center gap-3">
-            <Loader size={24} className="animate-spin text-cyan-500" />
-            Đang tải danh sách...
+          <div className="text-center py-16 text-[#a1acb8] text-sm flex flex-col items-center gap-3">
+            <Loader size={28} className="animate-spin text-[#696cff]" />
+            Đang tải danh sách học sinh...
           </div>
         ) : students.length === 0 ? (
-          <div className="py-16 text-center bg-slate-900/60 border border-slate-800 rounded-3xl backdrop-blur-md">
-            <Users size={44} className="mx-auto mb-4 text-slate-600" />
-            <p className="text-base font-semibold text-slate-300">Chưa có hồ sơ học sinh nào</p>
-            <p className="mt-2 text-xs text-slate-500 max-w-xs mx-auto">
+          <div className="py-16 text-center bg-white border border-gray-100 rounded-xl shadow-sm space-y-3">
+            <Users size={48} className="mx-auto text-[#a1acb8]" />
+            <p className="text-base font-bold text-[#566a7f]">Chưa có hồ sơ học sinh nào</p>
+            <p className="text-xs text-[#a1acb8] max-w-xs mx-auto">
               Thêm thông tin con để bắt đầu đăng ký tìm Gia sư phù hợp.
             </p>
             <button
               onClick={openAddModal}
-              className="mt-6 px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-xl transition-all cursor-pointer inline-flex items-center gap-2"
+              className="mt-2 px-5 py-2.5 bg-[#696cff] hover:bg-[#5f61e6] text-white text-xs font-bold rounded-lg shadow-[0_2px_4px_0_rgba(105,108,255,0.4)] cursor-pointer inline-flex items-center gap-2"
             >
               <Plus size={15} /> Thêm con ngay
             </button>
@@ -200,201 +187,193 @@ export default function MyChildren() {
             {students.map((s) => (
               <div
                 key={s.id}
-                className="p-5 bg-slate-900/60 border border-slate-800 rounded-3xl backdrop-blur-md flex flex-col justify-between"
+                className="p-5 bg-white border border-gray-100 hover:border-[#696cff]/40 rounded-xl shadow-sm flex flex-col justify-between space-y-4 transition-all"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="font-bold text-white">{s.fullName}</h3>
-                      <p className="text-xs text-slate-400 mt-1">
-                        {genderLabel(s.gender)} · {calcAge(s.dateOfBirth)} tuổi
-                        ({new Date(s.dateOfBirth).toLocaleDateString('vi-VN')})
+                      <h3 className="font-bold text-[#566a7f] text-base">{s.fullName}</h3>
+                      <p className="text-xs text-[#a1acb8] mt-0.5">
+                        {genderLabel(s.gender)} · {calcAge(s.dateOfBirth)} tuổi (
+                        {new Date(s.dateOfBirth).toLocaleDateString('vi-VN')})
                       </p>
                     </div>
-                    <span className="text-2xl shrink-0">
+                    <span className="text-3xl shrink-0">
                       {s.gender === 'MALE' ? '👦' : s.gender === 'FEMALE' ? '👧' : '🧑'}
                     </span>
                   </div>
+
                   <div className="mt-3 flex flex-wrap gap-2">
                     {s.grade && (
-                      <span className="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-cyan-950 border border-cyan-800 text-cyan-300">
+                      <span className="px-2.5 py-0.5 text-xs font-bold rounded-md bg-[#e7e7ff] text-[#696cff]">
                         {s.grade}
                       </span>
                     )}
                     {s.school && (
-                      <span className="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-slate-800 border border-slate-700 text-slate-300 truncate max-w-[200px]">
+                      <span className="px-2.5 py-0.5 text-xs font-semibold rounded-md bg-[#f5f5f9] text-[#697a8d]">
                         {s.school}
                       </span>
                     )}
                   </div>
+
                   {s.notes && (
-                    <p className="mt-3 text-xs text-slate-500 italic line-clamp-2">"{s.notes}"</p>
+                    <p className="mt-3 text-xs text-[#697a8d] italic bg-[#f9f9fa] p-2.5 rounded-lg border-l-2 border-[#696cff]">
+                      "{s.notes}"
+                    </p>
                   )}
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-slate-800 flex gap-2 justify-end">
+                <div className="pt-3 border-t border-gray-100 flex items-center justify-end gap-2">
                   <button
                     onClick={() => openEditModal(s)}
-                    className="px-3 py-2 bg-slate-950 border border-slate-800 hover:border-indigo-600 text-slate-400 hover:text-white rounded-xl text-xs font-semibold cursor-pointer inline-flex items-center gap-1.5 transition-all"
+                    className="p-2 text-[#697a8d] hover:text-[#696cff] hover:bg-[#f5f5f9] rounded-lg transition-colors cursor-pointer"
+                    title="Chỉnh sửa"
                   >
-                    <Pencil size={13} /> Sửa
+                    <Pencil size={15} />
                   </button>
                   <button
-                    onClick={() => handleDelete(s.id)}
+                    onClick={() => handleDelete(s.id, s.fullName)}
                     disabled={deletingId === s.id}
-                    className="px-3 py-2 bg-slate-950 border border-red-900/50 hover:border-red-500 text-red-400 hover:text-red-300 rounded-xl text-xs font-semibold cursor-pointer inline-flex items-center gap-1.5 transition-all disabled:opacity-50"
+                    className="p-2 text-[#a1acb8] hover:text-[#ff3e1d] hover:bg-[#ffe0db]/40 rounded-lg transition-colors cursor-pointer"
+                    title="Xóa hồ sơ"
                   >
                     {deletingId === s.id ? (
-                      <Loader size={13} className="animate-spin" />
+                      <Loader size={15} className="animate-spin" />
                     ) : (
-                      <Trash2 size={13} />
+                      <Trash2 size={15} />
                     )}
-                    Xóa
                   </button>
                 </div>
               </div>
             ))}
           </div>
         )}
-      </main>
 
-      {/* Modal thêm / sửa học sinh */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setModalOpen(false)}
-              className="absolute top-4 right-4 text-slate-500 hover:text-white cursor-pointer transition-colors"
-            >
-              <X size={18} />
-            </button>
-            <h3 className="text-lg font-bold mb-1">
-              {editingId ? 'Cập nhật hồ sơ học sinh' : 'Thêm hồ sơ học sinh'}
-            </h3>
-            <p className="text-slate-400 text-xs mb-5">
-              Điền thông tin cơ bản của con bạn
-            </p>
+        {/* Modal Form */}
+        {modalOpen && (
+          <div className="fixed inset-0 z-50 bg-[#233446]/40 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="bg-white border-0 rounded-xl max-w-md w-full p-6 text-left shadow-2xl relative">
+              <button
+                onClick={() => setModalOpen(false)}
+                className="absolute top-4 right-4 text-[#a1acb8] hover:text-[#566a7f] cursor-pointer"
+              >
+                <X size={18} />
+              </button>
 
-            {error && (
-              <div className="mb-4 p-3 bg-red-950/40 border border-red-800/40 rounded-xl text-xs text-red-400">
-                {error}
-              </div>
-            )}
+              <h3 className="text-lg font-bold mb-1 text-[#566a7f]">
+                {editingId ? 'Cập nhật hồ sơ học sinh' : 'Thêm hồ sơ học sinh'}
+              </h3>
+              <p className="text-[#a1acb8] text-xs mb-4">Điền thông tin cơ bản của con bạn</p>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Họ và tên *
-                </label>
-                <input
-                  type="text"
-                  required
-                  maxLength={100}
-                  placeholder="Nguyễn Văn A"
-                  value={form.fullName}
-                  onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-                  className="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 transition-all"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Giới tính *
-                  </label>
-                  <select
-                    value={form.gender}
-                    onChange={(e) => setForm({ ...form, gender: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-500 appearance-none cursor-pointer"
-                  >
-                    <option value="MALE" className="bg-slate-900">Nam</option>
-                    <option value="FEMALE" className="bg-slate-900">Nữ</option>
-                    <option value="OTHER" className="bg-slate-900">Khác</option>
-                  </select>
+              {error && (
+                <div className="mb-4 p-3 bg-[#ffe0db] border border-[#ff3e1d]/40 rounded-lg text-xs font-semibold text-[#ff3e1d]">
+                  {error}
                 </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-3.5">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Ngày sinh *
-                  </label>
+                  <label className="block text-xs font-semibold text-[#566a7f] mb-1">Họ và tên *</label>
                   <input
-                    type="date"
+                    type="text"
                     required
-                    value={form.dateOfBirth}
-                    onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-500 transition-all [color-scheme:dark]"
+                    maxLength={100}
+                    placeholder="Nguyễn Văn A"
+                    value={form.fullName}
+                    onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                    className="w-full px-3.5 py-2 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff]"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#566a7f] mb-1">Giới tính *</label>
+                    <select
+                      value={form.gender}
+                      onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                      className="w-full px-3.5 py-2 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff]"
+                    >
+                      <option value="MALE">Nam</option>
+                      <option value="FEMALE">Nữ</option>
+                      <option value="OTHER">Khác</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#566a7f] mb-1">Ngày sinh *</label>
+                    <input
+                      type="date"
+                      required
+                      value={form.dateOfBirth}
+                      onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
+                      className="w-full px-3.5 py-2 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#566a7f] mb-1">Trường đang học</label>
+                    <input
+                      type="text"
+                      maxLength={150}
+                      placeholder="THCS Cầu Giấy..."
+                      value={form.school}
+                      onChange={(e) => setForm({ ...form, school: e.target.value })}
+                      className="w-full px-3.5 py-2 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#566a7f] mb-1">Lớp hiện tại</label>
+                    <input
+                      type="text"
+                      maxLength={20}
+                      placeholder="Lớp 9"
+                      value={form.grade}
+                      onChange={(e) => setForm({ ...form, grade: e.target.value })}
+                      className="w-full px-3.5 py-2 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff]"
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Trường đang học
-                  </label>
-                  <input
-                    type="text"
-                    maxLength={150}
-                    placeholder="THCS Chu Văn An"
-                    value={form.school}
-                    onChange={(e) => setForm({ ...form, school: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 transition-all"
+                  <label className="block text-xs font-semibold text-[#566a7f] mb-1">Ghi chú</label>
+                  <textarea
+                    rows={2}
+                    maxLength={500}
+                    placeholder="Ví dụ: Cần kèm môn Toán hình, học lực khá..."
+                    value={form.notes}
+                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                    className="w-full px-3.5 py-2 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff] resize-none"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Lớp hiện tại
-                  </label>
-                  <input
-                    type="text"
-                    maxLength={20}
-                    placeholder="Lớp 9"
-                    value={form.grade}
-                    onChange={(e) => setForm({ ...form, grade: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 transition-all"
-                  />
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setModalOpen(false)}
+                    className="flex-1 py-2 bg-[#f5f5f9] hover:bg-gray-200 text-[#697a8d] rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="flex-1 py-2 bg-[#696cff] hover:bg-[#5f61e6] active:bg-[#595cd9] disabled:opacity-50 text-white font-bold rounded-lg text-xs cursor-pointer shadow-[0_2px_4px_0_rgba(105,108,255,0.4)] transition-all"
+                  >
+                    {submitting ? (
+                      <Loader size={16} className="animate-spin mx-auto" />
+                    ) : editingId ? (
+                      'Lưu thay đổi'
+                    ) : (
+                      'Thêm mới'
+                    )}
+                  </button>
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Ghi chú
-                </label>
-                <textarea
-                  rows={2}
-                  maxLength={500}
-                  placeholder="Ví dụ: Cần kèm cặp môn Toán..."
-                  value={form.notes}
-                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  className="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 transition-all resize-none"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setModalOpen(false)}
-                  className="flex-1 py-2.5 bg-slate-950/60 border border-slate-800 hover:border-slate-700 font-semibold rounded-xl text-sm cursor-pointer transition-all text-slate-400 hover:text-white"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="flex-1 py-2.5 bg-cyan-600 hover:bg-cyan-500 disabled:bg-cyan-800 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-sm cursor-pointer"
-                >
-                  {submitting ? (
-                    <Loader size={16} className="animate-spin" />
-                  ) : editingId ? (
-                    'Lưu thay đổi'
-                  ) : (
-                    'Thêm mới'
-                  )}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </PageTemplate>
   );
 }

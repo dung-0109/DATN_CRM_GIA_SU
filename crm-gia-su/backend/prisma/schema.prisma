@@ -38,6 +38,7 @@ enum ApplicationStatus {
 
 enum ClassStatus {
   OPEN // Đang tuyển
+  DEPOSIT // Chờ nộp cọc
   TRIAL // Đang dạy thử
   TEACHING // Học chính thức
   CLOSED // Đóng / Hủy

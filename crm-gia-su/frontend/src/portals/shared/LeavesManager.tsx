@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import { ArrowLeft, Loader, Calendar, Plus, RefreshCw } from 'lucide-react';
+import PageTemplate from '../../components/PageTemplate';
 
 export default function LeavesManager() {
   const [role, setRole] = useState('');
@@ -22,8 +23,6 @@ export default function LeavesManager() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-  const navigate = useNavigate();
 
   const getProfileData = () => {
     const userRole = localStorage.getItem('role') || '';
@@ -55,7 +54,6 @@ export default function LeavesManager() {
     if (!classId) return;
     try {
       const res = await api.get(`/api/v1/sessions?classId=${classId}`);
-      // Chỉ lấy các buổi học SCHEDULED
       const scheduledSessions = res.data.filter((s: any) => s.status === 'SCHEDULED');
       setSessions(scheduledSessions);
       if (scheduledSessions.length > 0) {
@@ -92,15 +90,15 @@ export default function LeavesManager() {
 
     const isTutor = profileType === 'TUTOR' || role === 'TUTOR';
     const endpoint = isTutor ? '/api/v1/leaves/tutor' : '/api/v1/leaves/student';
-    const payload = isTutor 
+    const payload = isTutor
       ? { sessionId: selectedSessionId, reason, rescheduleSuggested: new Date(rescheduleDate).toISOString() }
       : { sessionId: selectedSessionId, reason, rescheduledTo: new Date(rescheduleDate).toISOString() };
 
     try {
       await api.post(endpoint, payload);
       setSuccess(
-        isTutor 
-          ? 'Đã gửi đơn xin nghỉ dạy. Lịch bù đang chờ Phụ huynh phê duyệt.' 
+        isTutor
+          ? 'Đã gửi đơn xin nghỉ dạy. Lịch bù đang chờ Phụ huynh phê duyệt.'
           : 'Đã gửi đơn báo nghỉ học. Lịch bù đang chờ Gia sư phê duyệt.'
       );
       setReason('');
@@ -114,9 +112,10 @@ export default function LeavesManager() {
   };
 
   const handleApproveLeave = async (leaveId: string, type: 'TUTOR' | 'STUDENT') => {
-    const endpoint = type === 'TUTOR' 
-      ? `/api/v1/leaves/tutor/${leaveId}/approve`
-      : `/api/v1/leaves/student/${leaveId}/approve`;
+    const endpoint =
+      type === 'TUTOR'
+        ? `/api/v1/leaves/tutor/${leaveId}/approve`
+        : `/api/v1/leaves/student/${leaveId}/approve`;
 
     try {
       const res = await api.post(endpoint);
@@ -131,81 +130,80 @@ export default function LeavesManager() {
   const isParentRole = profileType === 'PARENT' || role === 'PARENT';
 
   return (
-    <div className="w-full min-h-screen bg-slate-950 text-white p-6 relative overflow-hidden flex flex-col">
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-600/5 blur-[120px]" />
+    <PageTemplate
+      title="Báo Nghỉ & Học Bù"
+      subtitle="Quản lý các yêu cầu hoãn lịch học và phối hợp sắp xếp lịch học bù"
+      badge={isTutorRole ? 'Tutor Portal' : 'Client Portal'}
+    >
+      <div className="w-full space-y-6 text-left font-sans text-[#566a7f]">
+        <div className="flex items-center justify-between">
+          <Link
+            to={isTutorRole ? '/tutor' : '/client'}
+            className="text-xs font-semibold text-[#697a8d] hover:text-[#696cff] bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
+          >
+            <ArrowLeft size={14} /> Quay lại {isTutorRole ? 'Tutor Portal' : 'Client Portal'}
+          </Link>
+        </div>
 
-      <header className="flex justify-between items-center pb-6 border-b border-indigo-900/30 relative z-10 max-w-6xl mx-auto w-full">
-        <button
-          onClick={() => navigate(isTutorRole ? '/tutor' : '/client')}
-          className="flex items-center gap-2 text-sm font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer"
-        >
-          <ArrowLeft size={16} /> Quay lại Portal
-        </button>
-        <span className="text-sm font-semibold px-3 py-1 rounded-full bg-indigo-950 border border-indigo-850 text-indigo-400">
-          Xin Nghỉ & Học Bù
-        </span>
-      </header>
-
-      <main className="flex-1 relative z-10 max-w-6xl mx-auto w-full py-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
         {loading ? (
-          <div className="col-span-3 text-center py-12">
-            <Loader size={36} className="animate-spin text-indigo-500 mx-auto" />
-            <p className="mt-4 text-slate-400">Đang tải lịch sử báo nghỉ & dời lịch...</p>
+          <div className="text-center py-16 text-[#a1acb8] text-sm flex flex-col items-center gap-3">
+            <Loader size={28} className="animate-spin text-[#696cff]" />
+            Đang tải dữ liệu đơn nghỉ...
           </div>
         ) : (
-          <>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Form Xin Nghỉ (Col 1) */}
-            <div className="lg:col-span-1 bg-slate-900/60 border border-slate-800 rounded-3xl p-6 shadow-xl backdrop-blur-md h-fit">
-              <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-                <Plus className="text-indigo-400" size={20} /> Tạo yêu cầu báo nghỉ
+            <div className="lg:col-span-1 bg-white border border-gray-100 rounded-xl p-6 shadow-sm space-y-4 h-fit">
+              <h3 className="text-base font-bold text-[#566a7f] flex items-center gap-2 pb-2 border-b border-gray-100">
+                <Plus className="text-[#696cff]" size={18} /> Tạo yêu cầu báo nghỉ
               </h3>
 
               {error && (
-                <div className="mb-4 p-3 bg-red-950/40 border border-red-800/40 rounded-xl text-xs text-red-400">
+                <div className="p-3 bg-[#ffe0db] border border-[#ff3e1d]/40 rounded-lg text-xs font-semibold text-[#ff3e1d]">
                   {error}
                 </div>
               )}
 
               {success && (
-                <div className="mb-4 p-3 bg-emerald-950/40 border border-emerald-800/40 rounded-xl text-xs text-emerald-400">
+                <div className="p-3 bg-[#e8fadf] border border-[#71dd37]/40 rounded-lg text-xs font-semibold text-[#71dd37]">
                   {success}
                 </div>
               )}
 
               {classes.length === 0 ? (
-                <div className="text-slate-500 text-xs text-center py-4">Chưa có lớp để xin nghỉ.</div>
+                <div className="text-[#a1acb8] text-xs text-center py-6">Chưa có lớp học nào để xin nghỉ.</div>
               ) : (
-                <form onSubmit={handleSubmitLeave} className="space-y-4">
+                <form onSubmit={handleSubmitLeave} className="space-y-3.5">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-350 mb-1.5">Chọn Lớp học</label>
+                    <label className="block text-xs font-semibold text-[#566a7f] mb-1">Chọn Lớp học</label>
                     <select
                       value={selectedClassId}
                       onChange={(e) => setSelectedClassId(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-white text-xs cursor-pointer focus:outline-none focus:border-indigo-500"
+                      className="w-full px-3 py-2 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff] cursor-pointer"
                     >
                       {classes.map((cls) => (
-                        <option key={cls.id} value={cls.id} className="bg-slate-900">
-                          {isTutorRole ? `Học sinh: ${cls.student?.fullName}` : `Gia sư: ${cls.tutor?.fullName}`} (ID: {cls.id.slice(0, 8)})
+                        <option key={cls.id} value={cls.id}>
+                          {isTutorRole ? `Học sinh: ${cls.student?.fullName}` : `Gia sư: ${cls.tutor?.fullName}`} (Mã: {cls.id.slice(0, 6)})
                         </option>
                       ))}
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-350 mb-1.5">Chọn Buổi học cần nghỉ</label>
+                    <label className="block text-xs font-semibold text-[#566a7f] mb-1">Buổi học cần nghỉ</label>
                     {sessions.length === 0 ? (
-                      <span className="block p-2 bg-slate-950/60 border border-slate-850 rounded-xl text-slate-500 text-xs italic">
-                        Lớp học này hiện tại không có lịch học nào sắp tới (SCHEDULED).
+                      <span className="block p-2 bg-[#fff8e1] border border-[#ffab00]/30 rounded-lg text-[#ffab00] text-xs font-medium">
+                        Lớp học này hiện không có lịch học sắp tới.
                       </span>
                     ) : (
                       <select
                         value={selectedSessionId}
                         onChange={(e) => setSelectedSessionId(e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-white text-xs cursor-pointer focus:outline-none focus:border-indigo-500"
+                        className="w-full px-3 py-2 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff] cursor-pointer"
                       >
                         {sessions.map((s) => (
-                          <option key={s.id} value={s.id} className="bg-slate-900">
-                            {new Date(s.scheduledTime).toLocaleString()}
+                          <option key={s.id} value={s.id}>
+                            {new Date(s.scheduledTime).toLocaleString('vi-VN')}
                           </option>
                         ))}
                       </select>
@@ -213,44 +211,44 @@ export default function LeavesManager() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-350 mb-1.5">Lý do xin nghỉ</label>
+                    <label className="block text-xs font-semibold text-[#566a7f] mb-1">Lý do xin nghỉ</label>
                     <textarea
-                      rows={3}
+                      rows={2}
                       required
-                      placeholder="Lý do nghỉ dạy / học hôm nay..."
+                      placeholder="Lý do nghỉ buổi học..."
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-white text-xs resize-none focus:outline-none focus:border-indigo-500"
+                      className="w-full px-3 py-2 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff] resize-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-350 mb-1.5">Đề xuất Ngày & Giờ học bù</label>
+                    <label className="block text-xs font-semibold text-[#566a7f] mb-1">Đề xuất Ngày & Giờ học bù</label>
                     <input
                       type="datetime-local"
                       required
                       value={rescheduleDate}
                       onChange={(e) => setRescheduleDate(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-indigo-500"
+                      className="w-full px-3 py-2 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff]"
                     />
                   </div>
 
                   {isTutorRole ? (
-                    <div className="p-3 bg-red-950/30 border border-red-900/40 rounded-xl text-[10px] text-red-300 leading-normal">
-                      ⚠️ <strong>Rule BR-LEAVE-01:</strong> Gia sư phải báo trước ít nhất <strong>24 tiếng</strong>. Nếu vi phạm, đơn sẽ bị đánh dấu báo nghỉ trễ và ghi nhận cảnh cáo vi phạm hợp đồng dạy học.
+                    <div className="p-3 bg-[#ffe0db]/60 border border-[#ff3e1d]/30 rounded-lg text-xs text-[#ff3e1d]">
+                      ⚠️ <strong>Quy định:</strong> Gia sư cần báo trước ít nhất <strong>24 tiếng</strong> để đảm bảo không bị cảnh cáo.
                     </div>
                   ) : (
-                    <div className="p-3 bg-indigo-950/30 border border-indigo-900/40 rounded-xl text-[10px] text-indigo-300 leading-normal">
-                      ⚠️ <strong>Rule BR-LEAVE-02:</strong> Học sinh cần báo trước ít nhất <strong>4 tiếng</strong>. Phụ huynh duyệt đơn nghỉ học của con trước khi chuyển đến Gia sư chốt lịch dạy bù.
+                    <div className="p-3 bg-[#e7e7ff] border border-[#696cff]/30 rounded-lg text-xs text-[#696cff]">
+                      ⚠️ <strong>Quy định:</strong> Học sinh cần báo trước ít nhất <strong>4 tiếng</strong> để gia sư chủ động lịch.
                     </div>
                   )}
 
                   <button
                     type="submit"
                     disabled={submitting || !selectedSessionId}
-                    className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 disabled:bg-indigo-800 text-white font-bold rounded-xl transition-all text-xs cursor-pointer shadow-lg shadow-indigo-600/10"
+                    className="w-full py-2.5 bg-[#696cff] hover:bg-[#5f61e6] active:bg-[#595cd9] disabled:opacity-50 text-white font-bold rounded-lg transition-all text-xs cursor-pointer shadow-[0_2px_4px_0_rgba(105,108,255,0.4)]"
                   >
-                    {submitting ? 'Đang gửi...' : 'Gửi yêu cầu nghỉ'}
+                    {submitting ? 'Đang gửi...' : 'Gửi Yêu Cầu Báo Nghỉ'}
                   </button>
                 </form>
               )}
@@ -259,46 +257,58 @@ export default function LeavesManager() {
             {/* Danh sách Đơn Xin Nghỉ (Col 2 & 3) */}
             <div className="lg:col-span-2 space-y-6">
               {/* Đơn nghỉ của Gia sư */}
-              <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 shadow-xl backdrop-blur-md">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-md font-bold flex items-center gap-2">
-                    <Calendar className="text-amber-500" size={18} /> Đơn xin nghỉ của Gia sư
+              <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm space-y-4">
+                <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+                  <h3 className="text-base font-bold text-[#566a7f] flex items-center gap-2">
+                    <Calendar className="text-[#ffab00]" size={18} /> Đơn xin nghỉ của Gia sư
                   </h3>
                   <button
                     onClick={fetchLeavesAndClasses}
-                    className="p-1 bg-slate-950 border border-slate-850 text-slate-400 hover:text-white rounded-lg cursor-pointer transition-all"
+                    className="p-1.5 bg-[#f5f5f9] hover:bg-gray-200 text-[#697a8d] rounded-lg cursor-pointer transition-colors"
+                    title="Làm mới"
                   >
-                    <RefreshCw size={12} />
+                    <RefreshCw size={13} />
                   </button>
                 </div>
 
                 {tutorLeaves.length === 0 ? (
-                  <div className="text-center py-6 text-slate-500 text-xs">Không có đơn xin nghỉ dạy nào.</div>
+                  <div className="text-center py-6 text-[#a1acb8] text-xs">Không có đơn xin nghỉ dạy nào.</div>
                 ) : (
-                  <div className="space-y-4 max-h-[30vh] overflow-y-auto pr-1">
+                  <div className="space-y-3 max-h-[30vh] overflow-y-auto pr-1">
                     {tutorLeaves.map((leave) => (
-                      <div key={leave.id} className="p-4 bg-slate-950/60 border border-slate-850 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                      <div
+                        key={leave.id}
+                        className="p-4 bg-[#f9f9fa] border border-gray-100 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3 hover:border-[#696cff]/40 transition-colors"
+                      >
                         <div>
                           <div className="flex items-center gap-2">
-                            <h4 className="font-bold text-white text-xs">Gia sư: {leave.tutor?.fullName}</h4>
+                            <h4 className="font-bold text-[#566a7f] text-xs">Gia sư: {leave.tutor?.fullName}</h4>
                             {leave.isLateLeave && (
-                              <span className="px-1.5 py-0.5 text-[8px] bg-red-950 border border-red-800 text-red-400 font-bold rounded">
-                                Báo nghỉ trễ (&lt;24h)
+                              <span className="px-1.5 py-0.5 text-[10px] bg-[#ffe0db] text-[#ff3e1d] font-bold rounded">
+                                Báo trễ (&lt;24h)
                               </span>
                             )}
                           </div>
-                          <p className="text-[10px] text-slate-450 mt-1">
-                            Lý do: "{leave.reason}" | Đề xuất bù: <strong className="text-indigo-400">{new Date(leave.rescheduleSuggested).toLocaleString()}</strong>
+                          <p className="text-xs text-[#697a8d] mt-1">
+                            Lý do: "{leave.reason}" | Đề xuất bù:{' '}
+                            <strong className="text-[#696cff]">
+                              {new Date(leave.rescheduleSuggested).toLocaleString('vi-VN')}
+                            </strong>
                           </p>
-                          <div className="mt-2 text-[10px] text-slate-550">
-                            Trạng thái: <strong className={leave.status === 'APPROVED' ? 'text-emerald-450' : 'text-amber-450'}>{leave.status}</strong>
+                          <div className="mt-1 text-xs text-[#a1acb8]">
+                            Trạng thái:{' '}
+                            <strong
+                              className={leave.status === 'APPROVED' ? 'text-[#71dd37]' : 'text-[#ffab00]'}
+                            >
+                              {leave.status === 'APPROVED' ? 'Đã duyệt' : 'Chờ duyệt'}
+                            </strong>
                           </div>
                         </div>
 
                         {leave.status === 'PENDING' && isParentRole && (
                           <button
                             onClick={() => handleApproveLeave(leave.id, 'TUTOR')}
-                            className="px-3 py-1 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-slate-950 text-xs font-bold rounded-lg cursor-pointer transition-all"
+                            className="px-3.5 py-1.5 bg-[#71dd37] hover:bg-[#65c731] text-white text-xs font-bold rounded-lg cursor-pointer transition-all shadow-sm"
                           >
                             Duyệt nghỉ & bù
                           </button>
@@ -310,38 +320,49 @@ export default function LeavesManager() {
               </div>
 
               {/* Đơn nghỉ của Học sinh */}
-              <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 shadow-xl backdrop-blur-md">
-                <h3 className="text-md font-bold flex items-center gap-2 mb-4">
-                  <Calendar className="text-cyan-400" size={18} /> Đơn xin nghỉ của Học sinh
+              <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm space-y-4">
+                <h3 className="text-base font-bold text-[#566a7f] flex items-center gap-2 pb-2 border-b border-gray-100">
+                  <Calendar className="text-[#03c3ec]" size={18} /> Đơn xin nghỉ của Học sinh
                 </h3>
 
                 {studentLeaves.length === 0 ? (
-                  <div className="text-center py-6 text-slate-500 text-xs">Không có đơn xin nghỉ học nào.</div>
+                  <div className="text-center py-6 text-[#a1acb8] text-xs">Không có đơn xin nghỉ học nào.</div>
                 ) : (
-                  <div className="space-y-4 max-h-[30vh] overflow-y-auto pr-1">
+                  <div className="space-y-3 max-h-[30vh] overflow-y-auto pr-1">
                     {studentLeaves.map((leave) => (
-                      <div key={leave.id} className="p-4 bg-slate-950/60 border border-slate-850 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                      <div
+                        key={leave.id}
+                        className="p-4 bg-[#f9f9fa] border border-gray-100 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3 hover:border-[#696cff]/40 transition-colors"
+                      >
                         <div>
                           <div className="flex items-center gap-2">
-                            <h4 className="font-bold text-white text-xs">Học sinh: {leave.student?.fullName}</h4>
+                            <h4 className="font-bold text-[#566a7f] text-xs">Học sinh: {leave.student?.fullName}</h4>
                             {leave.isLateLeave && (
-                              <span className="px-1.5 py-0.5 text-[8px] bg-red-950 border border-red-800 text-red-400 font-bold rounded">
-                                Báo nghỉ trễ (&lt;4h)
+                              <span className="px-1.5 py-0.5 text-[10px] bg-[#ffe0db] text-[#ff3e1d] font-bold rounded">
+                                Báo trễ (&lt;4h)
                               </span>
                             )}
                           </div>
-                          <p className="text-[10px] text-slate-450 mt-1">
-                            Lý do: "{leave.reason}" | Đề xuất bù: <strong className="text-indigo-400">{new Date(leave.rescheduledTo).toLocaleString()}</strong>
+                          <p className="text-xs text-[#697a8d] mt-1">
+                            Lý do: "{leave.reason}" | Đề xuất bù:{' '}
+                            <strong className="text-[#696cff]">
+                              {new Date(leave.rescheduledTo).toLocaleString('vi-VN')}
+                            </strong>
                           </p>
-                          <div className="mt-2 text-[10px] text-slate-550">
-                            Trạng thái: <strong className={leave.status === 'APPROVED' ? 'text-emerald-450' : 'text-amber-450'}>{leave.status}</strong>
+                          <div className="mt-1 text-xs text-[#a1acb8]">
+                            Trạng thái:{' '}
+                            <strong
+                              className={leave.status === 'APPROVED' ? 'text-[#71dd37]' : 'text-[#ffab00]'}
+                            >
+                              {leave.status === 'APPROVED' ? 'Đã duyệt' : 'Chờ duyệt'}
+                            </strong>
                           </div>
                         </div>
 
                         {leave.status === 'PENDING' && isTutorRole && (
                           <button
                             onClick={() => handleApproveLeave(leave.id, 'STUDENT')}
-                            className="px-3 py-1 bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 text-slate-950 text-xs font-bold rounded-lg cursor-pointer transition-all"
+                            className="px-3.5 py-1.5 bg-[#696cff] hover:bg-[#5f61e6] text-white text-xs font-bold rounded-lg cursor-pointer transition-all shadow-sm"
                           >
                             Chốt dạy bù
                           </button>
@@ -352,9 +373,9 @@ export default function LeavesManager() {
                 )}
               </div>
             </div>
-          </>
+          </div>
         )}
-      </main>
-    </div>
+      </div>
+    </PageTemplate>
   );
 }

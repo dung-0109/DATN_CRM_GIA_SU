@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
 import { getProfilesForCurrentPortal } from '../../services/sessionStore';
 import { BookOpen, User, Calendar, DollarSign, Send, ArrowLeft, Loader } from 'lucide-react';
+import PageTemplate from '../../components/PageTemplate';
 
 export default function RequestTutor() {
   const [students, setStudents] = useState<any[]>([]);
@@ -20,7 +21,6 @@ export default function RequestTutor() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Lấy danh sách học sinh (con) của phụ huynh từ phiên của cổng Client
     const fetchStudents = () => {
       try {
         const userProfiles = getProfilesForCurrentPortal();
@@ -58,10 +58,10 @@ export default function RequestTutor() {
         tutorGenderPref,
       });
 
-      setSuccess('Gửi yêu cầu tìm Gia sư thành công! Đội ngũ Sales sẽ duyệt tin và liên hệ.');
+      setSuccess('Gửi yêu cầu tìm Gia sư thành công! Đội ngũ Sales sẽ duyệt tin và điều phối.');
       setTimeout(() => {
         navigate('/client');
-      }, 3000);
+      }, 2500);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Có lỗi xảy ra khi tạo yêu cầu');
     } finally {
@@ -70,84 +70,82 @@ export default function RequestTutor() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-slate-950 text-white p-6 relative overflow-hidden flex flex-col">
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-600/5 blur-[120px]" />
+    <PageTemplate
+      title="Đăng Ký Tìm Gia Sư"
+      subtitle="Tạo yêu cầu tìm gia sư dạy kèm theo nhu cầu học tập của con"
+      badge="Client Portal"
+    >
+      <div className="max-w-2xl mx-auto w-full space-y-6 text-left font-sans text-[#566a7f]">
+        <div className="flex items-center justify-between">
+          <Link
+            to="/client"
+            className="text-xs font-semibold text-[#697a8d] hover:text-[#696cff] bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
+          >
+            <ArrowLeft size={14} /> Quay lại Client Portal
+          </Link>
+        </div>
 
-      <header className="flex justify-between items-center pb-6 border-b border-indigo-900/30 relative z-10 max-w-4xl mx-auto w-full">
-        <button
-          onClick={() => navigate('/client')}
-          className="flex items-center gap-2 text-sm font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer"
-        >
-          <ArrowLeft size={16} /> Quay lại Client Portal
-        </button>
-        <span className="text-sm font-semibold px-3 py-1 rounded-full bg-indigo-950 border border-indigo-800 text-indigo-400">
-          Tạo Đơn Tuyển
-        </span>
-      </header>
-
-      <main className="flex-1 flex justify-center items-center relative z-10 max-w-2xl mx-auto w-full py-12">
-        <div className="w-full bg-slate-900/60 border border-slate-800 rounded-3xl p-8 backdrop-blur-xl shadow-2xl">
-          <h2 className="text-2xl font-extrabold mb-6 tracking-tight flex items-center gap-3">
-            <BookOpen className="text-indigo-400" /> Đăng ký tìm Gia sư dạy kèm
-          </h2>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8 space-y-6">
+          <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
+            <div className="w-10 h-10 rounded-xl bg-[#e7e7ff] text-[#696cff] flex items-center justify-center font-bold">
+              <BookOpen size={20} />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-[#566a7f]">Đăng ký tìm Gia sư dạy kèm</h2>
+              <p className="text-xs text-[#a1acb8]">Trung tâm sẽ tiếp nhận và tiến hành so khớp gia sư phù hợp</p>
+            </div>
+          </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-950/40 border border-red-800/40 rounded-xl text-sm text-red-400">
+            <div className="p-3.5 bg-[#ffe0db] border border-[#ff3e1d]/40 rounded-lg text-xs font-semibold text-[#ff3e1d]">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="mb-6 p-4 bg-emerald-950/40 border border-emerald-800/40 rounded-xl text-sm text-emerald-400">
+            <div className="p-3.5 bg-[#e8fadf] border border-[#71dd37]/40 rounded-lg text-xs font-semibold text-[#71dd37]">
               {success}
             </div>
           )}
 
           {fetchLoading ? (
-            <div className="text-center py-8 text-slate-500">Đang tải biểu mẫu...</div>
+            <div className="text-center py-12 text-[#a1acb8] text-sm">Đang tải biểu mẫu...</div>
           ) : students.length === 0 ? (
-            <div className="py-10 text-center">
-              <User size={40} className="mx-auto mb-4 text-slate-600" />
-              <p className="text-sm font-semibold text-slate-300">Bạn chưa có hồ sơ học sinh nào</p>
-              <p className="mt-2 text-xs text-slate-500 max-w-xs mx-auto">
+            <div className="py-10 text-center space-y-3">
+              <User size={40} className="mx-auto text-[#a1acb8]" />
+              <p className="text-sm font-bold text-[#566a7f]">Bạn chưa có hồ sơ học sinh nào</p>
+              <p className="text-xs text-[#a1acb8] max-w-xs mx-auto">
                 Thêm thông tin con trước khi tạo yêu cầu tìm Gia sư.
               </p>
-              <div className="mt-6 flex gap-2 justify-center">
+              <div className="pt-2 flex gap-3 justify-center">
                 <button
                   onClick={() => navigate('/client/children')}
-                  className="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+                  className="px-4 py-2 bg-[#696cff] hover:bg-[#5f61e6] text-white rounded-lg text-xs font-bold transition-all shadow-[0_2px_4px_0_rgba(105,108,255,0.4)] cursor-pointer"
                 >
                   Thêm hồ sơ học sinh
-                </button>
-                <button
-                  onClick={() => navigate('/client')}
-                  className="px-5 py-2.5 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-all cursor-pointer"
-                >
-                  Quay lại trang chủ
                 </button>
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Chọn học sinh */}
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2">
-                  Chọn con học bài
+                <label className="block text-xs font-semibold text-[#566a7f] mb-1.5">
+                  Chọn con học bài *
                 </label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500">
-                    <User size={18} />
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[#a1acb8]">
+                    <User size={16} />
                   </span>
                   <select
                     value={studentId}
                     onChange={(e) => setStudentId(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 bg-slate-950/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-indigo-500 transition-all text-sm appearance-none cursor-pointer"
+                    className="w-full pl-10 pr-4 py-2.5 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff] cursor-pointer"
                   >
-                    <option value="" disabled className="bg-slate-900">
+                    <option value="" disabled>
                       -- Chọn con --
                     </option>
                     {students.map((std) => (
-                      <option key={std.id} value={std.id} className="bg-slate-900">
+                      <option key={std.id} value={std.id}>
                         {std.fullName}
                       </option>
                     ))}
@@ -155,42 +153,34 @@ export default function RequestTutor() {
                 </div>
               </div>
 
-              {/* Grid Môn học & Cấp học */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-300 mb-2">
-                    Môn học
-                  </label>
+                  <label className="block text-xs font-semibold text-[#566a7f] mb-1.5">Môn học *</label>
                   <input
                     type="text"
                     required
-                    placeholder="Ví dụ: Toán học, Vật lý"
+                    placeholder="Toán học, Tiếng Anh..."
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-950/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-indigo-500 transition-all text-sm"
+                    className="w-full px-3.5 py-2.5 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-300 mb-2">
-                    Cấp lớp
-                  </label>
+                  <label className="block text-xs font-semibold text-[#566a7f] mb-1.5">Cấp lớp *</label>
                   <input
                     type="text"
                     required
-                    placeholder="Ví dụ: Lớp 10, Lớp 12"
+                    placeholder="Lớp 9, Lớp 12..."
                     value={grade}
                     onChange={(e) => setGrade(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-950/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-indigo-500 transition-all text-sm"
+                    className="w-full px-3.5 py-2.5 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff]"
                   />
                 </div>
               </div>
 
-              {/* Lịch học & Số buổi */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-300 mb-2">
-                    Số buổi / tuần
-                  </label>
+                  <label className="block text-xs font-semibold text-[#566a7f] mb-1.5">Số buổi / tuần</label>
                   <input
                     type="number"
                     required
@@ -198,16 +188,14 @@ export default function RequestTutor() {
                     max={7}
                     value={sessionsPerWeek}
                     onChange={(e) => setSessionsPerWeek(parseInt(e.target.value))}
-                    className="w-full px-4 py-3 bg-slate-950/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-indigo-500 transition-all text-sm"
+                    className="w-full px-3.5 py-2.5 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-300 mb-2">
-                    Học phí mong muốn / buổi
-                  </label>
+                  <label className="block text-xs font-semibold text-[#566a7f] mb-1.5">Học phí đề xuất / buổi</label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500">
-                      <DollarSign size={16} />
+                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[#a1acb8]">
+                      <DollarSign size={15} />
                     </span>
                     <input
                       type="number"
@@ -216,72 +204,77 @@ export default function RequestTutor() {
                       step={10000}
                       value={budgetPerSession}
                       onChange={(e) => setBudgetPerSession(parseInt(e.target.value))}
-                      className="w-full pl-11 pr-4 py-3 bg-slate-950/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-indigo-500 transition-all text-sm"
+                      className="w-full pl-9 pr-4 py-2.5 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff]"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Ghi chú lịch rảnh */}
               <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2">
-                  Lịch rảnh đề xuất (Ghi rõ ngày giờ)
+                <label className="block text-xs font-semibold text-[#566a7f] mb-1.5">
+                  Lịch rảnh đề xuất (Ngày và giờ) *
                 </label>
                 <div className="relative">
-                  <span className="absolute top-3.5 left-4 text-slate-500">
-                    <Calendar size={18} />
+                  <span className="absolute top-3 left-3.5 text-[#a1acb8]">
+                    <Calendar size={16} />
                   </span>
                   <textarea
                     required
-                    rows={3}
-                    placeholder="Ví dụ: Tối Thứ 2, Thứ 4 từ 19:00 - 21:00"
+                    rows={2}
+                    placeholder="Ví dụ: Tối Thứ 3, Thứ 6 từ 19:30 - 21:00..."
                     value={scheduleNotes}
                     onChange={(e) => setScheduleNotes(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 bg-slate-950/60 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-indigo-500 transition-all text-sm resize-none"
+                    className="w-full pl-9 pr-4 py-2.5 bg-[#f5f5f9] border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff] resize-none"
                   />
                 </div>
               </div>
 
-              {/* Yêu cầu giới tính */}
               <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2">
+                <label className="block text-xs font-semibold text-[#566a7f] mb-1.5">
                   Yêu cầu giới tính Gia sư
                 </label>
-                <div className="grid grid-cols-3 gap-4">
-                  {['ANY', 'MALE', 'FEMALE'].map((g) => (
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { val: 'ANY', label: 'Không yêu cầu' },
+                    { val: 'MALE', label: 'Nam' },
+                    { val: 'FEMALE', label: 'Nữ' },
+                  ].map((g) => (
                     <button
-                      key={g}
+                      key={g.val}
                       type="button"
-                      onClick={() => setTutorGenderPref(g)}
-                      className={`py-2.5 rounded-xl border text-xs font-semibold transition-all ${
-                        tutorGenderPref === g
-                          ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300'
-                          : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
+                      onClick={() => setTutorGenderPref(g.val)}
+                      className={`py-2 px-3 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
+                        tutorGenderPref === g.val
+                          ? 'bg-[#696cff]/10 border-[#696cff] text-[#696cff]'
+                          : 'bg-[#f5f5f9] border-[#d9dee3] text-[#697a8d] hover:border-gray-400'
                       }`}
                     >
-                      {g === 'ANY' ? 'Không yêu cầu' : g === 'MALE' ? 'Nam' : 'Nữ'}
+                      {g.label}
                     </button>
                   ))}
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 disabled:bg-indigo-800 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-sm cursor-pointer shadow-lg shadow-indigo-600/20"
-              >
-                {loading ? (
-                  <Loader size={18} className="animate-spin" />
-                ) : (
-                  <>
-                    Gửi yêu cầu <Send size={14} />
-                  </>
-                )}
-              </button>
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-2.5 bg-[#696cff] hover:bg-[#5f61e6] active:bg-[#595cd9] disabled:opacity-50 text-white font-bold rounded-lg shadow-[0_2px_4px_0_rgba(105,108,255,0.4)] transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
+                >
+                  {loading ? (
+                    <Loader size={18} className="animate-spin" />
+                  ) : (
+                    <>
+                      <span>Gửi Yêu Cầu Tìm Gia Sư</span>
+                      <Send size={14} />
+                    </>
+                  )}
+                </button>
+              </div>
             </form>
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </PageTemplate>
   );
 }
