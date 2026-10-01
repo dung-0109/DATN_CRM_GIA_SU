@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
+import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { 
   TrendingUp, Users, BookOpen, Wallet, RefreshCw, 
   ShieldAlert, LogOut, Search, Bell, Menu, User 
@@ -9,6 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function AdminCRM() {
   const location = useLocation();
+  const navigate = useNavigate();
   const isDashboard = location.pathname === '/admin-crm' || location.pathname === '/admin-crm/';
 
   const { activeProfile, logout } = useAuth();
@@ -19,6 +20,13 @@ export default function AdminCRM() {
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const handleTabClick = (tab: 'overview' | 'tutors' | 'classes' | 'payouts') => {
+    setActiveTab(tab);
+    if (!isDashboard) {
+      navigate('/admin-crm');
+    }
+  };
 
   useEffect(() => {
     api.get('/api/v1/crm/stats')
@@ -105,25 +113,25 @@ export default function AdminCRM() {
           <div className="px-6 mb-2 text-xs font-bold uppercase tracking-wider text-[#a1acb8]">Menu</div>
           <nav className="space-y-1 px-3">
             <button
-              onClick={() => setActiveTab('overview')}
+              onClick={() => handleTabClick('overview')}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors ${activeTab === 'overview' ? 'bg-[#696cff]/10 text-[#696cff] font-semibold' : 'text-[#697a8d] hover:bg-[#f5f5f9]'}`}
             >
               <TrendingUp size={18} /> <span>Tổng quan</span>
             </button>
             <button
-              onClick={() => setActiveTab('tutors')}
+              onClick={() => handleTabClick('tutors')}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors ${activeTab === 'tutors' ? 'bg-[#696cff]/10 text-[#696cff] font-semibold' : 'text-[#697a8d] hover:bg-[#f5f5f9]'}`}
             >
               <Users size={18} /> <span>Quản lý Gia sư</span>
             </button>
             <button
-              onClick={() => setActiveTab('classes')}
+              onClick={() => handleTabClick('classes')}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors ${activeTab === 'classes' ? 'bg-[#696cff]/10 text-[#696cff] font-semibold' : 'text-[#697a8d] hover:bg-[#f5f5f9]'}`}
             >
               <BookOpen size={18} /> <span>Kanban Lớp học</span>
             </button>
             <button
-              onClick={() => setActiveTab('payouts')}
+              onClick={() => handleTabClick('payouts')}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors ${activeTab === 'payouts' ? 'bg-[#696cff]/10 text-[#696cff] font-semibold' : 'text-[#697a8d] hover:bg-[#f5f5f9]'}`}
             >
               <Wallet size={18} /> <span>Đối soát Kế toán</span>

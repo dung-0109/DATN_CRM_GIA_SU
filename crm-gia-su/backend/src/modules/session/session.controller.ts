@@ -26,4 +26,28 @@ export class SessionController {
   ) {
     return this.sessionService.reviewTrial(parentId, classId, dto);
   }
+
+  // Lấy danh sách khiếu nại (Học vụ, Admin)
+  @Get('disputes')
+  @Roles(UserRole.ADMIN, UserRole.ACADEMIC)
+  async getDisputes() {
+    return this.sessionService.getDisputes();
+  }
+
+  // Giải quyết khiếu nại
+  @Post('disputes/:id/resolve')
+  @Roles(UserRole.ADMIN, UserRole.ACADEMIC)
+  async resolveDispute(
+    @Param('id') sessionId: string,
+    @Body() body: { outcome: string; note: string }
+  ) {
+    return this.sessionService.resolveDispute(sessionId, body.outcome, body.note);
+  }
+
+  // Quét tự động duyệt các buổi học
+  @Post('trigger-auto-confirm')
+  @Roles(UserRole.ADMIN, UserRole.ACADEMIC)
+  async triggerAutoConfirm() {
+    return this.sessionService.triggerAutoConfirm();
+  }
 }

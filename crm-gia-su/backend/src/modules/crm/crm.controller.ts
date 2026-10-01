@@ -123,5 +123,26 @@ export class CrmController {
   async getParentProfile(@CurrentUser('profileId') parentId: string) {
     return this.crmService.getParentProfile(parentId);
   }
+
+  // 11. Thống kê số liệu cho Phụ huynh
+  @Get('parent/stats')
+  @Roles(UserRole.PARENT)
+  async getParentStats(@CurrentUser('profileId') parentId: string) {
+    return this.crmService.getParentStats(parentId);
+  }
+
+  // 12. Lấy danh sách lớp học của Phụ huynh
+  @Get('parent/classes')
+  @Roles(UserRole.PARENT)
+  async getParentClasses(@CurrentUser('profileId') parentId: string) {
+    return this.crmService.getParentClasses(parentId);
+  }
+
+  // 13. Lấy danh sách lớp học của Gia sư
+  @Get('tutor/classes')
+  @Roles(UserRole.TUTOR)
+  async getTutorClasses(@CurrentUser('profileId') tutorId: string) {
+    return this.crmService.getTutorClasses(tutorId);
+  }
 }
 

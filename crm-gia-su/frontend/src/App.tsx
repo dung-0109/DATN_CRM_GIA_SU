@@ -17,6 +17,7 @@ import ParentAttendance from './portals/client/ParentAttendance';
 import AcademicDisputes from './portals/admin-crm/AcademicDisputes';
 import LeavesManager from './portals/shared/LeavesManager';
 import AdminCRM from './portals/admin-crm/AdminCRM';
+import MyRequests from './portals/client/MyRequests';
 
 function App() {
   return (
@@ -65,6 +66,11 @@ function App() {
         <Route path="/client/request-tutor" element={
           <ProtectedRoute allowedRoles={['PARENT']}>
             <RequestTutor />
+          </ProtectedRoute>
+        } />
+        <Route path="/client/requests" element={
+          <ProtectedRoute allowedRoles={['PARENT']}>
+            <MyRequests />
           </ProtectedRoute>
         } />
         <Route path="/client/children" element={

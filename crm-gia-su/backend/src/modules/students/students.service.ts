@@ -11,6 +11,15 @@ export class StudentsService {
   async findAll(parentId: string) {
     return this.prisma.student.findMany({
       where: { parentId, deletedAt: null },
+      include: {
+        classes: {
+          where: { status: { in: ['TRIAL', 'TEACHING'] }, deletedAt: null },
+          include: { tutorRequest: { select: { subject: true } } }
+        },
+        tutorRequests: {
+          where: { status: { in: ['NEW', 'CONSULTING', 'PUBLISHED'] }, deletedAt: null }
+        }
+      },
       orderBy: { createdAt: 'asc' },
     });
   }
@@ -24,6 +33,10 @@ export class StudentsService {
         dateOfBirth: new Date(dto.dateOfBirth),
         school: dto.school || null,
         grade: dto.grade || null,
+        subjectsNeeded: dto.subjectsNeeded || null,
+        learningStyle: dto.learningStyle || null,
+        studentEmail: dto.studentEmail || null,
+        studentPin: dto.studentPin || null,
         notes: dto.notes || null,
       },
     });
@@ -52,6 +65,10 @@ export class StudentsService {
         }),
         ...(dto.school !== undefined && { school: dto.school }),
         ...(dto.grade !== undefined && { grade: dto.grade }),
+        ...(dto.subjectsNeeded !== undefined && { subjectsNeeded: dto.subjectsNeeded }),
+        ...(dto.learningStyle !== undefined && { learningStyle: dto.learningStyle }),
+        ...(dto.studentEmail !== undefined && { studentEmail: dto.studentEmail }),
+        ...(dto.studentPin !== undefined && { studentPin: dto.studentPin }),
         ...(dto.notes !== undefined && { notes: dto.notes }),
       },
     });

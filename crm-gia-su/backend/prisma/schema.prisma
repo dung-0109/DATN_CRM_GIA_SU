@@ -150,9 +150,13 @@ model Student {
   fullName    String   @map("full_name") @db.VarChar(100)
   gender      String   @db.VarChar(10)
   dateOfBirth DateTime @map("date_of_birth") @db.Date
-  school      String?  @db.VarChar(150)
-  grade       String?  @db.VarChar(20)
-  notes       String?  @db.Text
+  school         String?  @db.VarChar(150)
+  grade          String?  @db.VarChar(20)
+  subjectsNeeded String?  @map("subjects_needed") @db.VarChar(255)
+  learningStyle  String?  @map("learning_style") @db.VarChar(255)
+  studentEmail   String?  @map("student_email") @db.VarChar(100)
+  studentPin     String?  @map("student_pin") @db.VarChar(10)
+  notes          String?  @db.Text
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -252,6 +256,10 @@ model TutorRequest {
   sessionsPerWeek  Int           @map("sessions_per_week")
   budgetPerSession Decimal       @map("budget_per_session") @db.Decimal(10, 2)
   tutorGenderPref  String        @map("tutor_gender_pref") @db.VarChar(10)
+  learningMode     String?       @default("OFFLINE") @map("learning_mode") @db.VarChar(20)
+  address          String?       @db.VarChar(255)
+  tutorTypePref    String?       @default("ANY") @map("tutor_type_pref") @db.VarChar(20)
+  requirements     String?       @db.Text
   status           RequestStatus
 
   createdAt DateTime  @default(now()) @map("created_at")

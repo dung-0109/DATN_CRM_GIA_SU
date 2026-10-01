@@ -145,4 +145,120 @@ export class MatchingService {
       };
     });
   }
+
+  async createRequest(parentId: string, dto: any) {
+    const student = await this.prisma.student.findFirst({
+      where: { id: dto.studentId, parentId, deletedAt: null },
+    });
+    if (!student) {
+      throw new BadRequestException('Học sinh không tồn tại hoặc không thuộc quyền quản lý của bạn');
+    }
+
+    return this.prisma.tutorRequest.create({
+      data: {
+        parentId,
+        studentId: dto.studentId,
+        subject: dto.subject,
+        grade: dto.grade,
+        scheduleNotes: dto.scheduleNotes,
+        sessionsPerWeek: dto.sessionsPerWeek,
+        budgetPerSession: dto.budgetPerSession,
+        tutorGenderPref: dto.tutorGenderPref,
+        learningMode: dto.learningMode || 'OFFLINE',
+        address: dto.address,
+        tutorTypePref: dto.tutorTypePref || 'ANY',
+        requirements: dto.requirements,
+        status: RequestStatus.PUBLISHED,
+      },
+      include: {
+        student: { select: { fullName: true, grade: true } },
+      },
+    });
+  }
+
+  async findMyRequests(parentId: string) {
+    return this.prisma.tutorRequest.findMany({
+      where: { parentId, deletedAt: null },
+      include: {
+        student: { select: { fullName: true, grade: true } },
+        classApplications: {
+          include: {
+            tutor: {
+              select: {
+                id: true,
+                fullName: true,
+                gender: true,
+                tutorType: true,
+                qualification: true,
+                ratingAvg: true,
+                karmaScore: true,
+              }
+            }
+          }
+        },
+        _count: { select: { classApplications: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async updateRequest(parentId: string, requestId: string, dto: any) {
+    const request = await this.prisma.tutorRequest.findFirst({
+      where: { id: requestId, parentId, deletedAt: null },
+    });
+    if (!request) {
+      throw new NotFoundException('Yêu cầu không tồn tại hoặc không thuộc quyền quản lý của bạn');
+    }
+    if (request.status === RequestStatus.MATCHED) {
+      throw new BadRequestException('Lớp học đã được ghép gia sư, không thể chỉnh sửa');
+    }
+
+    return this.prisma.tutorRequest.update({
+      where: { id: requestId },
+      data: {
+        subject: dto.subject ?? request.subject,
+        grade: dto.grade ?? request.grade,
+        scheduleNotes: dto.scheduleNotes ?? request.scheduleNotes,
+        sessionsPerWeek: dto.sessionsPerWeek ? Number(dto.sessionsPerWeek) : request.sessionsPerWeek,
+        budgetPerSession: dto.budgetPerSession ? Number(dto.budgetPerSession) : request.budgetPerSession,
+        tutorGenderPref: dto.tutorGenderPref ?? request.tutorGenderPref,
+        learningMode: dto.learningMode ?? request.learningMode,
+        address: dto.address ?? request.address,
+        tutorTypePref: dto.tutorTypePref ?? request.tutorTypePref,
+        requirements: dto.requirements ?? request.requirements,
+      },
+      include: {
+        student: { select: { fullName: true, grade: true } },
+      },
+    });
+  }
+
+  async cancelRequest(parentId: string, requestId: string) {
+    const request = await this.prisma.tutorRequest.findFirst({
+      where: { id: requestId, parentId, deletedAt: null },
+    });
+    if (!request) {
+      throw new NotFoundException('Yêu cầu không tồn tại hoặc không thuộc quyền quản lý của bạn');
+    }
+    if (request.status === RequestStatus.MATCHED) {
+      throw new BadRequestException('Lớp học đã được khớp, vui lòng liên hệ trung tâm để xử lý hủy lớp');
+    }
+
+    return this.prisma.tutorRequest.update({
+      where: { id: requestId },
+      data: {
+        status: RequestStatus.CANCELLED,
+      },
+    });
+  }
+
+  async selectTutorForParent(parentId: string, requestId: string, tutorId: string) {
+    const request = await this.prisma.tutorRequest.findFirst({
+      where: { id: requestId, parentId, deletedAt: null },
+    });
+    if (!request) {
+      throw new NotFoundException('Yêu cầu không tồn tại hoặc không thuộc quyền quản lý của bạn');
+    }
+    return this.assignTutor(requestId, tutorId);
+  }
 }

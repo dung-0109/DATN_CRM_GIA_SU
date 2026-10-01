@@ -33,7 +33,7 @@ export default function TutorPortal() {
   const fetchTutorData = async () => {
     setLoading(true);
     try {
-      const clsRes = await api.get('/api/v1/classes');
+      const clsRes = await api.get('/api/v1/crm/tutor/classes');
       setClasses(clsRes.data);
 
       const bankRes = await api.get('/api/v1/crm/tutor/bank-accounts');

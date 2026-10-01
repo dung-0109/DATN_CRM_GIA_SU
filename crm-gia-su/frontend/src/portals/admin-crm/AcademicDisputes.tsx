@@ -12,7 +12,7 @@ export default function AcademicDisputes() {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.get('/api/v1/disputes');
+      const res = await api.get('/api/v1/sessions/disputes');
       setDisputes(res.data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Không thể tải danh sách khiếu nại');
@@ -28,7 +28,7 @@ export default function AcademicDisputes() {
   const handleResolve = async (disputeId: string, outcome: 'RESOLVED_CONFIRM' | 'RESOLVED_CANCEL') => {
     setResolvingId(disputeId);
     try {
-      const res = await api.post(`/api/v1/disputes/${disputeId}/resolve`, {
+      const res = await api.post(`/api/v1/sessions/disputes/${disputeId}/resolve`, {
         outcome,
         note: `Học vụ xử lý tranh chấp: Chốt ${outcome === 'RESOLVED_CONFIRM' ? 'Buổi học hợp lệ' : 'Huỷ buổi học'}`,
       });

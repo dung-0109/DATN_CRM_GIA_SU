@@ -247,5 +247,43 @@ export class CrmService {
       where: { id: parentId },
     });
   }
+
+  async getParentStats(parentId: string) {
+    const [studentsCount, requestsCount, activeClassesCount, trialClassesCount] = await Promise.all([
+      this.prisma.student.count({ where: { parentId, deletedAt: null } }),
+      this.prisma.tutorRequest.count({ where: { parentId, status: { in: ['NEW', 'CONSULTING', 'MATCHED'] }, deletedAt: null } }),
+      this.prisma.class.count({ where: { parentId, status: 'TEACHING', deletedAt: null } }),
+      this.prisma.class.count({ where: { parentId, status: 'TRIAL', deletedAt: null } }),
+    ]);
+
+    return {
+      studentsCount,
+      requestsCount,
+      activeClassesCount,
+      trialClassesCount,
+    };
+  }
+
+  async getParentClasses(parentId: string) {
+    return this.prisma.class.findMany({
+      where: { parentId, deletedAt: null },
+      include: {
+        student: { select: { fullName: true } },
+        tutor: { select: { fullName: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async getTutorClasses(tutorId: string) {
+    return this.prisma.class.findMany({
+      where: { tutorId, deletedAt: null },
+      include: {
+        student: { select: { fullName: true } },
+        parent: { select: { fullName: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
 }
 

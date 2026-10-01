@@ -31,4 +31,16 @@ export class CreateRequestDto {
   @IsNotEmpty({ message: 'Yêu cầu giới tính gia sư không được để trống' })
   @IsString()
   tutorGenderPref: string; // MALE, FEMALE, ANY
+
+  @IsString()
+  learningMode?: string; // OFFLINE, ONLINE
+
+  @IsString()
+  address?: string;
+
+  @IsString()
+  tutorTypePref?: string; // STUDENT, TEACHER, ANY
+
+  @IsString()
+  requirements?: string;
 }

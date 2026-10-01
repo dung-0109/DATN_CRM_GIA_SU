@@ -89,4 +89,106 @@ export class SessionService {
       };
     });
   }
+
+  async getDisputes() {
+    const disputes = await this.prisma.session.findMany({
+      where: { status: 'DISPUTED', deletedAt: null },
+      include: {
+        class: {
+          include: { student: true, tutor: true, parent: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return disputes.map(d => ({
+      ...d,
+      parent: d.class.parent,
+      reason: d.disputeReason
+    }));
+  }
+
+  async resolveDispute(sessionId: string, outcome: string, note: string) {
+    const session = await this.prisma.session.findUnique({
+      where: { id: sessionId },
+      include: { class: { include: { tutor: true } } }
+    });
+
+    if (!session) throw new NotFoundException('Không tìm thấy khiếu nại');
+    if (session.status !== 'DISPUTED') throw new BadRequestException('Buổi học không trong trạng thái khiếu nại');
+
+    return this.prisma.$transaction(async (tx) => {
+      const updatedSession = await tx.session.update({
+        where: { id: sessionId },
+        data: {
+          status: outcome === 'RESOLVED_CONFIRM' ? 'CONFIRMED' : 'CANCELLED_BY_STUDENT',
+          disputeResolution: outcome as any,
+          tutorNotes: note
+        }
+      });
+
+      if (outcome === 'RESOLVED_CONFIRM' && session.class.tutor) {
+        // Cộng lương
+        await tx.tutor.update({
+          where: { id: session.class.tutor.id },
+          data: { walletBalance: { increment: session.class.tutorWageRate } }
+        });
+        await tx.transaction.create({
+          data: {
+            tutorId: session.class.tutor.id,
+            sessionId: session.id,
+            classId: session.class.id,
+            type: TransactionType.TUTOR_SALARY,
+            amount: session.class.tutorWageRate,
+            status: TransactionStatus.SUCCESSFUL,
+            reference: 'Giải quyết khiếu nại: Chốt lương hợp lệ'
+          }
+        });
+      }
+      return { message: 'Đã giải quyết khiếu nại', session: updatedSession };
+    });
+  }
+
+  async triggerAutoConfirm() {
+    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    const sessions = await this.prisma.session.findMany({
+      where: {
+        status: 'ATTENDED',
+        actualEnd: { lte: fortyEightHoursAgo }
+      },
+      include: { class: true }
+    });
+
+    if (sessions.length === 0) return { message: 'Không có buổi học nào cần tự động duyệt' };
+
+    let count = 0;
+    await this.prisma.$transaction(async (tx) => {
+      for (const s of sessions) {
+        await tx.session.update({
+          where: { id: s.id },
+          data: { status: 'CONFIRMED' }
+        });
+        if (s.class.tutorId) {
+          await tx.tutor.update({
+            where: { id: s.class.tutorId },
+            data: { walletBalance: { increment: s.class.tutorWageRate } }
+          });
+          await tx.transaction.create({
+            data: {
+              tutorId: s.class.tutorId,
+              sessionId: s.id,
+              classId: s.class.id,
+              type: TransactionType.TUTOR_SALARY,
+              amount: s.class.tutorWageRate,
+              status: TransactionStatus.SUCCESSFUL,
+              reference: 'Hệ thống tự động duyệt lương sau 48h'
+            }
+          });
+        }
+        count++;
+      }
+    });
+
+    return { message: `Đã tự động duyệt ${count} buổi học.` };
+  }
 }
