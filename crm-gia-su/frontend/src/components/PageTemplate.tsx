@@ -45,13 +45,7 @@ export default function PageTemplate({ title, subtitle, badge, children }: PageT
 
           {/* Right Actions */}
           <div className="flex items-center gap-3 sm:gap-4">
-            <Link
-              to="/portals"
-              className="text-xs font-semibold text-[#697a8d] hover:text-[#696cff] bg-[#f5f5f9] hover:bg-[#696cff]/10 px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5"
-            >
-              <LayoutDashboard size={14} />
-              <span className="hidden sm:inline">Đổi cổng</span>
-            </Link>
+
 
             {activeProfile && (
               <div className="flex items-center gap-2.5 pl-2 sm:pl-3 border-l border-gray-200">

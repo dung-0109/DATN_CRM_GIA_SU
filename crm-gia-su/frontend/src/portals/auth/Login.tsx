@@ -18,7 +18,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [phoneTouched, setPhoneTouched] = useState(false);
-  const { login } = useAuth();
+  const { login, selectProfile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -40,10 +40,19 @@ export default function Login() {
 
     try {
       const data = await login(phone, password);
-      const portal = roleToPortal(data?.user?.role);
-      const portalPrefix = PORTAL_HOME[portal] ?? '/';
-      const dest = from.startsWith(portalPrefix) ? from : portalPrefix;
-      navigate(dest, { replace: true });
+      
+      if (data?.profiles && data.profiles.length === 1) {
+        // Auto select if only 1 profile
+        const profile = data.profiles[0];
+        await selectProfile(profile.id, profile.type);
+        const portal = roleToPortal(profile.type);
+        const portalPrefix = PORTAL_HOME[portal] ?? '/';
+        const dest = from.startsWith(portalPrefix) ? from : portalPrefix;
+        navigate(dest, { replace: true });
+      } else {
+        // Multiple profiles (or 0 somehow), go to profile-select
+        navigate('/profile-select', { replace: true });
+      }
     } catch (err: any) {
       setError(err);
     } finally {

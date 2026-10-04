@@ -12,6 +12,7 @@ import {
   persistAll,
   clearSession,
   saveSession,
+  getSession,
   migrateLegacySession,
 } from '../services/sessionStore';
 
@@ -132,18 +133,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       const { accessToken, profile } = response.data;
+      
+      // Determine which portal this profile belongs to
+      const targetPortal = roleToPortal(profileType);
 
-      // Cập nhật phiên của CỔNG hiện tại với token mới theo quyền profile
-      saveSession(portal, {
-        ...(session ?? ({ user: null, profiles: [] } as any)),
+      // Get the freshest session data from localStorage
+      const latestSession = getSession(targetPortal);
+
+      // Cập nhật phiên của CỔNG đích với token mới theo quyền profile
+      const newSessionData = {
+        ...(latestSession ?? ({ user: null, profiles: [] } as any)),
         token: accessToken,
         activeProfile: profile,
-      });
+      };
+      saveSession(targetPortal, newSessionData);
+      
       setSessions((prev) => ({
         ...prev,
-        [portal]: prev[portal]
-          ? { ...prev[portal]!, token: accessToken, activeProfile: profile }
-          : prev[portal],
+        [targetPortal]: newSessionData,
       }));
 
       return response.data;
