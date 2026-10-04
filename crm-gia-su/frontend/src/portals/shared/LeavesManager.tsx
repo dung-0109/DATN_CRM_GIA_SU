@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import { ArrowLeft, Loader, Calendar, Plus, RefreshCw } from 'lucide-react';
 import PageTemplate from '../../components/PageTemplate';
+import toast from 'react-hot-toast';
 
 export default function LeavesManager() {
   const [classes, setClasses] = useState<any[]>([]);
@@ -115,10 +116,10 @@ export default function LeavesManager() {
 
     try {
       const res = await api.post(endpoint);
-      alert(res.data.message);
+      toast.success(res.data.message);
       fetchLeavesAndClasses();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Phê duyệt thất bại');
+      toast.error(err.response?.data?.message || 'Phê duyệt thất bại');
     }
   };
 

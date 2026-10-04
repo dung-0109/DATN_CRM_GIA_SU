@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import { Briefcase, Calendar, DollarSign, ArrowLeft, Loader, Send, X } from 'lucide-react';
 import PageTemplate from '../../components/PageTemplate';
+import toast from 'react-hot-toast';
 
 export default function TutorJobs() {
   const [requests, setRequests] = useState<any[]>([]);
@@ -48,7 +49,7 @@ export default function TutorJobs() {
       });
       setApplyingRequest(null);
       fetchRequests();
-      alert('Ứng tuyển thành công! Vui lòng chờ phản hồi từ Sales.');
+      toast.success('Ứng tuyển thành công! Vui lòng chờ phản hồi từ Sales.');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Ứng tuyển thất bại');
     } finally {

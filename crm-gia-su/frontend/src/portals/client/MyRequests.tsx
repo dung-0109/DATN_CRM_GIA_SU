@@ -8,6 +8,7 @@ import {
   Pencil, Ban, X, Check, AlertTriangle, RefreshCw
 } from 'lucide-react';
 import PageTemplate from '../../components/PageTemplate';
+import toast from 'react-hot-toast';
 
 interface TutorApplication {
   id: string;
@@ -159,7 +160,7 @@ export default function MyRequests() {
       setEditingRequest(null);
       await fetchRequests();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Cập nhật yêu cầu thất bại');
+      toast.error(err.response?.data?.message || 'Cập nhật yêu cầu thất bại');
     } finally {
       setSubmittingEdit(false);
     }
@@ -175,7 +176,7 @@ export default function MyRequests() {
       await api.post(`/api/v1/tutor-requests/${req.id}/cancel`);
       await fetchRequests();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Hủy yêu cầu thất bại');
+      toast.error(err.response?.data?.message || 'Hủy yêu cầu thất bại');
     } finally {
       setCancellingId(null);
     }
@@ -189,11 +190,11 @@ export default function MyRequests() {
     setSelectingTutorId(tutorId);
     try {
       await api.post(`/api/v1/tutor-requests/${requestId}/select-tutor`, { tutorId });
-      alert(`Đã chọn Gia sư "${tutorName}" dạy thử thành công! Lớp học đã được tạo.`);
+      toast.success(`Đã chọn Gia sư "${tutorName}" dạy thử thành công! Lớp học đã được tạo.`);
       setSelectedRequest(null);
       await fetchRequests();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Không thể chọn gia sư');
+      toast.error(err.response?.data?.message || 'Không thể chọn gia sư');
     } finally {
       setSelectingTutorId(null);
     }

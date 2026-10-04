@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { Users, Check, AlertTriangle, Loader, Settings, DollarSign, Search, Filter } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function SalesMatching() {
   const [requests, setRequests] = useState<any[]>([]);
@@ -28,6 +29,10 @@ export default function SalesMatching() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('ALL');
 
+  // Pagination
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
+
   const filteredRequests = requests.filter(req => {
     const queryLower = searchQuery.toLowerCase();
     const matchQuery = req.subject.toLowerCase().includes(queryLower) || 
@@ -37,6 +42,9 @@ export default function SalesMatching() {
     const matchStatus = filterStatus === 'ALL' || req.status === filterStatus;
     return matchQuery && matchStatus;
   });
+
+  const paginatedRequests = filteredRequests.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredRequests.length / ITEMS_PER_PAGE);
 
   const fetchRequestsAndClasses = async () => {
     setLoading(true);
@@ -59,10 +67,10 @@ export default function SalesMatching() {
   // 1. Duyệt đăng tin tìm Gia sư (NEW -> PUBLISHED)
   const handlePublish = async (_requestId: string) => {
     try {
-      alert('Không có tính năng này ở bản API hiện tại');
+      toast.error('Không có tính năng này ở bản API hiện tại');
       fetchRequestsAndClasses();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Không thể duyệt đăng tin');
+      toast.error(err.response?.data?.message || 'Không thể duyệt đăng tin');
     }
   };
 
@@ -75,7 +83,7 @@ export default function SalesMatching() {
       const res = await api.get(`/api/v1/matching/requests/${request.id}/suggest`);
       setApplications(res.data);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Không thể tải hồ sơ ứng cử');
+      toast.error(err.response?.data?.message || 'Không thể tải hồ sơ ứng cử');
     } finally {
       setAppLoading(false);
     }
@@ -94,9 +102,9 @@ export default function SalesMatching() {
       setMatchingTutor(null);
       setSelectedRequest(null);
       fetchRequestsAndClasses();
-      alert('Đã chốt gia sư dạy thử và tạo lớp học TRIAL_PENDING thành công!');
+      toast.success('Đã chốt gia sư dạy thử và tạo lớp học TRIAL_PENDING thành công!');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Chốt gia sư thất bại');
+      toast.error(err.response?.data?.message || 'Chốt gia sư thất bại');
     } finally {
       setSubmittingMatch(false);
     }
@@ -120,7 +128,7 @@ export default function SalesMatching() {
       setTrialOutcome('SUCCESS');
       setTrialNote('');
     } catch (err) {
-      alert('Không tìm thấy lớp dạy thử liên quan');
+      toast.error('Không tìm thấy lớp dạy thử liên quan');
     } finally {
       setLoading(false);
     }
@@ -138,9 +146,9 @@ export default function SalesMatching() {
       });
       setTrialClass(null);
       fetchRequestsAndClasses();
-      alert(res.data.message);
+      toast.success(res.data.message);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Quyết toán dạy thử thất bại');
+      toast.error(err.response?.data?.message || 'Quyết toán dạy thử thất bại');
     } finally {
       setSubmittingResolve(false);
     }
@@ -174,7 +182,7 @@ export default function SalesMatching() {
                     placeholder="Tìm môn học, phụ huynh..." 
                     className="w-full pl-9 pr-3 py-2 border border-[#d9dee3] rounded-lg text-sm focus:outline-none focus:border-[#696cff] transition-colors"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
                   />
                 </div>
                 <div className="relative shrink-0">
@@ -182,7 +190,7 @@ export default function SalesMatching() {
                   <select 
                     className="pl-9 pr-8 py-2 border border-[#d9dee3] rounded-lg text-sm appearance-none focus:outline-none focus:border-[#696cff] text-[#566a7f] bg-white cursor-pointer"
                     value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
+                    onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
                   >
                     <option value="ALL">Tất cả trạng thái</option>
                     <option value="NEW">Mới (Chờ duyệt)</option>
@@ -196,64 +204,71 @@ export default function SalesMatching() {
             {/* Bảng yêu cầu tìm gia sư */}
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-[#d9dee3] text-[#a1acb8] text-xs uppercase font-semibold">
-                    <th className="py-4">Môn & Lớp</th>
-                    <th className="py-4">Chi tiết Yêu cầu</th>
-                    <th className="py-4">Phụ huynh</th>
-                    <th className="py-4">Học sinh</th>
-                    <th className="py-4">Trạng Thái</th>
-                    <th className="py-4 text-right">Thao Tác</th>
+                <thead className="bg-[#f8f9fa] text-[#a1acb8] text-xs uppercase font-bold tracking-wider border-b border-[#d9dee3]">
+                  <tr>
+                    <th className="px-6 py-4 rounded-tl-lg">Môn & Lớp</th>
+                    <th className="px-6 py-4">Chi tiết Yêu cầu</th>
+                    <th className="px-6 py-4">Phụ huynh</th>
+                    <th className="px-6 py-4">Học sinh</th>
+                    <th className="px-6 py-4">Trạng Thái</th>
+                    <th className="px-6 py-4 text-center rounded-tr-lg">Thao Tác</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#d9dee3]">
-                  {filteredRequests.length === 0 ? (
+                  {paginatedRequests.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="py-12 text-center text-[#a1acb8]">
                         Không tìm thấy yêu cầu nào phù hợp.
                       </td>
                     </tr>
-                  ) : filteredRequests.map((req) => (
-                    <tr key={req.id} className="hover:bg-[#f9f9f9] transition-colors">
-                      <td className="py-4">
-                        <div className="font-bold text-[#696cff]">{req.subject}</div>
-                        <div className="text-xs text-[#a1acb8]">Khối {req.grade}</div>
+                  ) : paginatedRequests.map((req) => (
+                    <tr key={req.id} className="hover:bg-[#fcfcfd] transition-colors group border-b border-[#f9f9fa]">
+                      <td className="px-6 py-4">
+                        <div className="font-bold text-[#696cff] group-hover:text-[#5f61e6] transition-colors">{req.subject}</div>
+                        <div className="text-xs text-[#a1acb8] font-semibold">Khối {req.grade}</div>
                       </td>
-                      <td className="py-4 text-xs space-y-1">
-                        <div className="flex items-center gap-1.5"><strong className="text-[#566a7f]">💰 Ngân sách:</strong> <span className="text-[#71dd37] font-semibold">{parseInt(req.budgetPerSession).toLocaleString()}đ/buổi</span></div>
-                        <div className="flex items-center gap-1.5"><strong className="text-[#566a7f]">📅 Lịch học:</strong> <span>{req.sessionsPerWeek} buổi/tuần ({req.learningMode === 'OFFLINE' ? 'Tại nhà' : 'Online'})</span></div>
+                      <td className="px-6 py-4 text-xs space-y-1.5">
+                        <div className="flex items-center gap-1.5"><strong className="text-[#566a7f] w-16">Ngân sách:</strong> <span className="text-[#71dd37] font-bold bg-[#e8fadf] px-1.5 py-0.5 rounded">{parseInt(req.budgetPerSession).toLocaleString()}đ/buổi</span></div>
+                        <div className="flex items-center gap-1.5"><strong className="text-[#566a7f] w-16">Lịch học:</strong> <span className="text-[#697a8d]">{req.sessionsPerWeek} buổi/tuần ({req.learningMode === 'OFFLINE' ? 'Tại nhà' : 'Online'})</span></div>
                         {req.learningMode === 'OFFLINE' && req.address && (
-                          <div className="flex items-start gap-1.5"><strong className="text-[#566a7f]">📍 Khu vực:</strong> <span className="text-[#697a8d] line-clamp-1">{req.address}</span></div>
+                          <div className="flex items-start gap-1.5"><strong className="text-[#566a7f] w-16">Khu vực:</strong> <span className="text-[#a1acb8] line-clamp-1">{req.address}</span></div>
                         )}
                       </td>
-                      <td className="py-4 text-[#697a8d] font-medium">
-                        {req.parent?.fullName || 'Ẩn danh'}
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white shadow-sm text-xs" style={{ backgroundColor: `hsl(${req.parent?.fullName?.length || 0 * 40 % 360}, 60%, 55%)` }}>
+                            {(req.parent?.fullName || 'A').charAt(0).toUpperCase()}
+                          </div>
+                          <span className="font-semibold text-[#566a7f]">{req.parent?.fullName || 'Ẩn danh'}</span>
+                        </div>
                       </td>
-                      <td className="py-4 text-[#697a8d]">
-                        {req.student?.fullName || 'Chưa rõ'}
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-md flex items-center justify-center font-bold text-white shadow-sm text-[10px]" style={{ backgroundColor: `hsl(${req.student?.fullName?.length || 0 * 70 % 360}, 50%, 65%)` }}>
+                            {(req.student?.fullName || 'S').charAt(0).toUpperCase()}
+                          </div>
+                          <span className="text-sm text-[#697a8d]">{req.student?.fullName || 'Chưa rõ'}</span>
+                        </div>
                       </td>
-                      <td className="py-4">
+                      <td className="px-6 py-4">
                         <span
-                          className={`px-2 py-1 text-xs font-semibold rounded-md ${
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-full ${
                             req.status === 'PUBLISHED'
                               ? 'bg-[#e8fadf] text-[#71dd37]'
                               : req.status === 'NEW'
                               ? 'bg-[#e1f0ff] text-[#03c3ec]'
                               : req.status === 'MATCHED'
                               ? 'bg-[#e7e7ff] text-[#696cff]'
-                              : 'bg-[#f5f5f9] text-[#a1acb8]'
+                              : 'bg-[#f1f2f4] text-[#a1acb8]'
                           }`}
                         >
-                          {req.status === 'NEW'
-                            ? 'Mới (Chờ duyệt)'
-                            : req.status === 'PUBLISHED'
-                            ? 'Đang Tuyển'
-                            : req.status === 'MATCHED'
-                            ? 'Đã Khớp / Dạy thử'
-                            : req.status}
+                          <div className={`w-1.5 h-1.5 rounded-full ${
+                            req.status === 'PUBLISHED' ? 'bg-[#71dd37]' : req.status === 'NEW' ? 'bg-[#03c3ec]' : req.status === 'MATCHED' ? 'bg-[#696cff]' : 'bg-[#a1acb8]'
+                          }`}></div>
+                          {req.status === 'PUBLISHED' ? 'Đang Tuyển' : req.status === 'NEW' ? 'Chờ duyệt' : req.status === 'MATCHED' ? 'Đã Khớp' : req.status}
                         </span>
                       </td>
-                      <td className="py-4 text-right">
+                      <td className="px-6 py-4 text-center">
                         {req.status === 'NEW' && (
                           <button
                             onClick={() => handlePublish(req.id)}
@@ -286,6 +301,20 @@ export default function SalesMatching() {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-6 pt-4 border-t border-[#d9dee3]">
+                <div className="text-sm text-[#a1acb8]">
+                  Hiển thị <strong>{(page - 1) * ITEMS_PER_PAGE + 1}</strong> - <strong>{Math.min(page * ITEMS_PER_PAGE, filteredRequests.length)}</strong> trên tổng số <strong>{filteredRequests.length}</strong> yêu cầu
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 text-sm border border-[#d9dee3] rounded-md text-[#697a8d] hover:bg-[#f5f5f9] disabled:opacity-50 transition-colors">Trước</button>
+                  <div className="flex items-center px-3 py-1.5 text-sm font-semibold bg-[#e7e7ff] text-[#696cff] rounded-md">{page} / {totalPages}</div>
+                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-1.5 text-sm border border-[#d9dee3] rounded-md text-[#697a8d] hover:bg-[#f5f5f9] disabled:opacity-50 transition-colors">Sau</button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>

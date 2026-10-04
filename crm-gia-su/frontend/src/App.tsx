@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Login from './portals/auth/Login';
 import Register from './portals/auth/Register';
 import ForgotPassword from './portals/auth/ForgotPassword';
@@ -25,6 +26,7 @@ import TutorClassDetails from './portals/tutor/TutorClassDetails';
 function App() {
   return (
     <Router>
+      <Toaster position="top-right" />
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<LandingPage />} />

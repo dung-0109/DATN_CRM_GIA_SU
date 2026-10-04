@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import { ArrowLeft, Loader, CheckCircle2, AlertTriangle, Calendar, Star, XCircle, TrendingDown } from 'lucide-react';
 import PageTemplate from '../../components/PageTemplate';
+import toast from 'react-hot-toast';
 
 export default function ParentAttendance() {
   const [classes, setClasses] = useState<any[]>([]);
@@ -50,7 +51,7 @@ export default function ParentAttendance() {
         reason: decision !== 'ACCEPT' ? reason : undefined,
       });
 
-      alert(res.data.message);
+      toast.success(res.data.message);
       setReviewingClass(null);
       fetchClasses();
     } catch (err: any) {

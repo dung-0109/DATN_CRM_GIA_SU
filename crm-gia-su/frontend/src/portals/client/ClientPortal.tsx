@@ -8,6 +8,7 @@ import {
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import PageTemplate from '../../components/PageTemplate';
+import toast from 'react-hot-toast';
 
 export default function ClientPortal() {
   const { activeProfile } = useAuth();
@@ -98,11 +99,11 @@ export default function ClientPortal() {
         familyNotes: profForm.familyNotes,
       };
       await api.post('/api/v1/crm/parent/profile', payload);
-      alert('Đã cập nhật hồ sơ phụ huynh thành công!');
+      toast.success('Đã cập nhật hồ sơ phụ huynh thành công!');
       setEditingProfile(false);
       fetchWalletAndClasses();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Cập nhật thất bại');
+      toast.error(err.response?.data?.message || 'Cập nhật thất bại');
     } finally {
       setProfileLoading(false);
     }
@@ -130,7 +131,7 @@ export default function ClientPortal() {
         rating: ratingScore,
         feedback: feedbackText,
       });
-      alert(res.data.message || 'Xác nhận buổi học thành công!');
+      toast.success(res.data.message || 'Xác nhận buổi học thành công!');
       setReviewingSession(null);
       setFeedbackText('');
       setRatingScore(5);
@@ -139,7 +140,7 @@ export default function ClientPortal() {
       }
       fetchWalletAndClasses();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Xác nhận buổi học thất bại');
+      toast.error(err.response?.data?.message || 'Xác nhận buổi học thất bại');
     } finally {
       setReviewSubmitting(false);
     }
@@ -153,7 +154,7 @@ export default function ClientPortal() {
       const res = await api.post(`/api/v1/sessions/${disputingSession.id}/dispute`, {
         reason: disputeReasonText,
       });
-      alert(res.data.message || 'Đã gửi khiếu nại buổi học thành công!');
+      toast.success(res.data.message || 'Đã gửi khiếu nại buổi học thành công!');
       setDisputingSession(null);
       setDisputeReasonText('');
       if (selectedClassForJournal) {
@@ -161,7 +162,7 @@ export default function ClientPortal() {
       }
       fetchWalletAndClasses();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Gửi khiếu nại thất bại');
+      toast.error(err.response?.data?.message || 'Gửi khiếu nại thất bại');
     } finally {
       setDisputeSubmitting(false);
     }

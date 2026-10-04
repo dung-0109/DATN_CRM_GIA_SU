@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { ShieldAlert, CheckCircle, XCircle, RefreshCw, Calendar, User, Clock, AlertCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function AcademicDisputes() {
   const [disputes, setDisputes] = useState<any[]>([]);
@@ -32,10 +33,10 @@ export default function AcademicDisputes() {
         outcome,
         note: `Học vụ xử lý tranh chấp: Chốt ${outcome === 'RESOLVED_CONFIRM' ? 'Buổi học hợp lệ' : 'Huỷ buổi học'}`,
       });
-      alert(res.data.message);
+      toast.success(res.data.message);
       fetchDisputes();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Xử lý khiếu nại thất bại');
+      toast.error(err.response?.data?.message || 'Xử lý khiếu nại thất bại');
     } finally {
       setResolvingId(null);
     }

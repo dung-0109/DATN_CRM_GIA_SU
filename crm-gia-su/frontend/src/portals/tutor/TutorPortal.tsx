@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { RefreshCw, Award, Edit3 } from 'lucide-react';
 import api from '../../services/api';
 import PageTemplate from '../../components/PageTemplate';
+import toast from 'react-hot-toast';
 
 export default function TutorPortal() {
   const [classes, setClasses] = useState<any[]>([]);
@@ -64,11 +65,11 @@ export default function TutorPortal() {
     setProfileLoading(true);
     try {
       await api.post('/api/v1/crm/tutor/profile', profForm);
-      alert('Đã cập nhật hồ sơ gia sư thành công!');
+      toast.success('Đã cập nhật hồ sơ gia sư thành công!');
       setEditingProfile(false);
       fetchTutorData();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Cập nhật thất bại');
+      toast.error(err.response?.data?.message || 'Cập nhật thất bại');
     } finally {
       setProfileLoading(false);
     }
@@ -90,7 +91,7 @@ export default function TutorPortal() {
       setNewBank({ bankName: '', accountNumber: '', accountHolder: '' });
       const bankRes = await api.get('/api/v1/crm/tutor/bank-accounts');
       setBankAccounts(bankRes.data);
-      alert('Đã liên kết tài khoản ngân hàng thành công!');
+      toast.success('Đã liên kết tài khoản ngân hàng thành công!');
     } catch (err: any) {
       setBankError(err.response?.data?.message || err.message || 'Thất bại');
     }
@@ -102,9 +103,9 @@ export default function TutorPortal() {
       await api.delete(`/api/v1/crm/tutor/bank-accounts/${id}`);
       const bankRes = await api.get('/api/v1/crm/tutor/bank-accounts');
       setBankAccounts(bankRes.data);
-      alert('Đã huỷ liên kết tài khoản ngân hàng!');
+      toast.success('Đã huỷ liên kết tài khoản ngân hàng!');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Thất bại');
+      toast.error(err.response?.data?.message || 'Thất bại');
     }
   };
 
@@ -116,7 +117,7 @@ export default function TutorPortal() {
         s.slotEnd === newSched.slotEnd
     );
     if (exists) {
-      alert('Khung giờ này đã tồn tại trong lịch đề xuất!');
+      toast.success('Khung giờ này đã tồn tại trong lịch đề xuất!');
       return;
     }
     setSchedules((prev) =>
@@ -139,9 +140,9 @@ export default function TutorPortal() {
     try {
       const res = await api.post('/api/v1/crm/tutor/schedules', { schedules });
       setSchedules(res.data);
-      alert('Đã lưu cấu hình lịch rảnh giảng dạy thành công!');
+      toast.success('Đã lưu cấu hình lịch rảnh giảng dạy thành công!');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Lưu lịch rảnh thất bại');
+      toast.error(err.response?.data?.message || 'Lưu lịch rảnh thất bại');
     }
   };
 
@@ -397,10 +398,10 @@ export default function TutorPortal() {
                           onClick={() => {
                             api.post('/api/v1/finance/deposit', { classId: cls.id, amount: 500000 })
                               .then(() => {
-                                alert('Đã nộp cọc giả lập thành công!');
+                                toast.success('Đã nộp cọc giả lập thành công!');
                                 fetchTutorData();
                               })
-                              .catch((err) => alert(err.response?.data?.message || 'Lỗi nộp cọc'));
+                              .catch((err) => toast.error(err.response?.data?.message || 'Lỗi nộp cọc'));
                           }}
                           className="px-3 py-1.5 bg-[#ffab00] hover:bg-[#e69a00] text-white font-bold rounded-md text-xs cursor-pointer shadow-sm transition-all"
                         >
