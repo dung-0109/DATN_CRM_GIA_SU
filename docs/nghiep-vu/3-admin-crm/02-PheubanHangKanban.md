@@ -51,3 +51,17 @@ stateDiagram-v2
   * *Hủy do lỗi Gia sư:* Dạy kém, đến muộn $\rightarrow$ Tịch thu cọc, phạt điểm Karma.
   * *Hủy do lỗi Phụ huynh:* Gia đình bận, đổi ý $\rightarrow$ Kế toán hoàn 100% cọc (500k) cho gia sư trong 24h.
   * *Khóa học kết thúc:* Học sinh đã thi đỗ chuyển cấp / thi xong đại học.
+
+---
+
+## 3. Chế Độ Xem Kép (Dual View Mode)
+
+Với số lượng lớp học lớn, bảng giám sát được thiết kế với 2 chế độ hiển thị (chuyển đổi bằng nút bấm toggle):
+* **Chế độ Kanban Board (Dạng thẻ):**
+  * Theo dõi trực quan tiến trình của từng lớp theo 4 cột trạng thái.
+  * Mỗi cột được thiết kế thanh cuộn (scrollbar) dọc độc lập, ngăn tình trạng cuộn toàn trang làm mất tiêu đề cột.
+  * Thẻ lớp hiển thị Avatar học sinh & gia sư sinh động, trạng thái lớp, và mức học phí.
+* **Chế độ Danh sách (Table View):**
+  * Hiển thị danh sách lớp học dưới dạng Bảng truyền thống, gọn gàng và dễ theo dõi số liệu.
+  * Tích hợp cơ chế **Phân trang (Pagination)** giúp tải dữ liệu nhanh chóng khi số lượng bản ghi lên tới hàng ngàn lớp.
+  * Phù hợp cho Kế toán hoặc Quản lý khi cần quét, lọc và xem thông tin dạng tổng hợp nhanh gọn.
