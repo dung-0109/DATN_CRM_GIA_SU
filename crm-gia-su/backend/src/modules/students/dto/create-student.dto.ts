@@ -53,6 +53,21 @@ export class CreateStudentDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(50)
+  academicLevel?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  targetGoal?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  personalityTraits?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(500, { message: 'Ghi chú tối đa 500 ký tự' })
   notes?: string;
 }

@@ -174,8 +174,23 @@ export default function TutorJobs() {
 
               <h3 className="text-lg font-bold mb-1 text-[#566a7f]">Ứng tuyển lớp học</h3>
               <p className="text-[#a1acb8] text-xs leading-relaxed mb-4">
-                Bạn đang ứng tuyển dạy lớp <strong className="text-[#696cff]">{applyingRequest.subject}</strong> cho học sinh <strong className="text-[#566a7f]">{applyingRequest.student?.fullName || 'Học viên'}</strong>.
+                Bạn đang ứng tuyển dạy lớp cho học sinh <strong className="text-[#566a7f]">{applyingRequest.student?.fullName || 'Học viên'}</strong>. Vui lòng rà soát lại thông tin lớp học trước khi gửi yêu cầu.
               </p>
+
+              <div className="bg-[#f9f9fa] border border-gray-100 p-3 rounded-lg mb-4 space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-[#a1acb8] font-semibold">Môn học:</span>
+                  <span className="font-bold text-[#696cff]">{applyingRequest.subject} - {applyingRequest.student?.grade || applyingRequest.grade}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-[#a1acb8] font-semibold">Thời lượng:</span>
+                  <span className="font-bold text-[#566a7f]">{applyingRequest.sessionsPerWeek} buổi/tuần</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-[#a1acb8] font-semibold">Mức lương:</span>
+                  <span className="font-bold text-[#71dd37]">{parseInt(applyingRequest.budgetPerSession).toLocaleString()}đ/buổi</span>
+                </div>
+              </div>
 
               {error && (
                 <div className="mb-4 p-3 bg-[#ffe0db] border border-[#ff3e1d]/40 rounded-lg text-xs font-semibold text-[#ff3e1d]">

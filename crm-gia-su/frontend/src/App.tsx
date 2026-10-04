@@ -18,6 +18,9 @@ import AcademicDisputes from './portals/admin-crm/AcademicDisputes';
 import LeavesManager from './portals/shared/LeavesManager';
 import AdminCRM from './portals/admin-crm/AdminCRM';
 import MyRequests from './portals/client/MyRequests';
+import TutorTransactions from './portals/tutor/TutorTransactions';
+import TutorReviews from './portals/tutor/TutorReviews';
+import TutorClassDetails from './portals/tutor/TutorClassDetails';
 
 function App() {
   return (
@@ -106,6 +109,21 @@ function App() {
         <Route path="/tutor/leaves" element={
           <ProtectedRoute allowedRoles={['TUTOR']}>
             <LeavesManager />
+          </ProtectedRoute>
+        } />
+        <Route path="/tutor/transactions" element={
+          <ProtectedRoute allowedRoles={['TUTOR']}>
+            <TutorTransactions />
+          </ProtectedRoute>
+        } />
+        <Route path="/tutor/reviews" element={
+          <ProtectedRoute allowedRoles={['TUTOR']}>
+            <TutorReviews />
+          </ProtectedRoute>
+        } />
+        <Route path="/tutor/classes/:id" element={
+          <ProtectedRoute allowedRoles={['TUTOR']}>
+            <TutorClassDetails />
           </ProtectedRoute>
         } />
       </Routes>

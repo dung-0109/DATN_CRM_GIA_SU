@@ -128,11 +128,15 @@ model User {
 }
 
 model Parent {
-  id       String @id @db.Uuid
-  fullName String @map("full_name") @db.VarChar(100)
-  address  String @db.VarChar(255)
-  district String @db.VarChar(50)
-  province String @db.VarChar(50)
+  id                     String  @id @db.Uuid
+  fullName               String  @map("full_name") @db.VarChar(100)
+  address                String  @db.VarChar(255)
+  district               String  @db.VarChar(50)
+  province               String  @db.VarChar(50)
+  occupation             String? @db.VarChar(100)
+  contactTimePref        String? @map("contact_time_pref") @db.VarChar(50) // MORNING, AFTERNOON, EVENING, ANYTIME
+  preferredContactMethod String? @map("preferred_contact_method") @db.VarChar(50) // CALL, ZALO, EMAIL
+  familyNotes            String? @map("family_notes") @db.Text
 
   // Relations
   user          User           @relation(fields: [id], references: [id])
@@ -140,23 +144,27 @@ model Parent {
   tutorRequests TutorRequest[]
   transactions  Transaction[]
   classes       Class[]
+  reviews       Review[]
 
   @@map("parents")
 }
 
 model Student {
-  id          String   @id @default(uuid()) @db.Uuid
-  parentId    String   @map("parent_id") @db.Uuid
-  fullName    String   @map("full_name") @db.VarChar(100)
-  gender      String   @db.VarChar(10)
-  dateOfBirth DateTime @map("date_of_birth") @db.Date
-  school         String?  @db.VarChar(150)
-  grade          String?  @db.VarChar(20)
-  subjectsNeeded String?  @map("subjects_needed") @db.VarChar(255)
-  learningStyle  String?  @map("learning_style") @db.VarChar(255)
-  studentEmail   String?  @map("student_email") @db.VarChar(100)
-  studentPin     String?  @map("student_pin") @db.VarChar(10)
-  notes          String?  @db.Text
+  id                String   @id @default(uuid()) @db.Uuid
+  parentId          String   @map("parent_id") @db.Uuid
+  fullName          String   @map("full_name") @db.VarChar(100)
+  gender            String   @db.VarChar(10)
+  dateOfBirth       DateTime @map("date_of_birth") @db.Date
+  school            String?  @db.VarChar(150)
+  grade             String?  @db.VarChar(20)
+  subjectsNeeded    String?  @map("subjects_needed") @db.VarChar(255)
+  learningStyle     String?  @map("learning_style") @db.VarChar(255)
+  academicLevel     String?  @map("academic_level") @db.VarChar(50) // WEAK, AVERAGE, GOOD, EXCELLENT
+  targetGoal        String?  @map("target_goal") @db.VarChar(255)
+  personalityTraits String?  @map("personality_traits") @db.VarChar(255)
+  studentEmail      String?  @map("student_email") @db.VarChar(100)
+  studentPin        String?  @map("student_pin") @db.VarChar(10)
+  notes             String?  @db.Text
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -204,6 +212,7 @@ model Tutor {
   tutorBankAccounts TutorBankAccount[]
   classes           Class[]
   transactions      Transaction[]
+  reviews           Review[]
 
   @@map("tutors")
 }
@@ -323,6 +332,7 @@ model Class {
   classSchedules ClassSchedule[]
   sessions       Session[]
   transactions   Transaction[]
+  reviews        Review[]
 
   @@map("classes")
 }
@@ -522,4 +532,21 @@ model Staff {
   subordinates Staff[] @relation("StaffSupervisor")
 
   @@map("staff")
+}
+
+model Review {
+  id        String   @id @default(uuid()) @db.Uuid
+  classId   String   @map("class_id") @db.Uuid
+  tutorId   String   @map("tutor_id") @db.Uuid
+  parentId  String   @map("parent_id") @db.Uuid
+  rating    Int      @default(5)
+  comment   String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  class  Class  @relation(fields: [classId], references: [id])
+  tutor  Tutor  @relation(fields: [tutorId], references: [id])
+  parent Parent @relation(fields: [parentId], references: [id])
+
+  @@map("reviews")
 }

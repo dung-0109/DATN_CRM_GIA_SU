@@ -61,4 +61,16 @@ export class FinanceService {
       }
     });
   }
+
+  async getTutorTransactions(tutorId: string) {
+    return this.prisma.transaction.findMany({
+      where: { tutorId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        class: {
+          select: { student: { select: { fullName: true } }, hourlyRate: true }
+        }
+      }
+    });
+  }
 }

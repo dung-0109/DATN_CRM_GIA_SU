@@ -27,6 +27,38 @@ export class SessionController {
     return this.sessionService.reviewTrial(parentId, classId, dto);
   }
 
+  // API Điểm danh buổi học (Gia sư)
+  @Post('attendance')
+  @Roles(UserRole.TUTOR)
+  async recordAttendance(
+    @CurrentUser('profileId') tutorId: string,
+    @Body() dto: { classId: string; startTime: string; endTime: string; description?: string },
+  ) {
+    return this.sessionService.recordAttendance(tutorId, dto);
+  }
+
+  // API Xác nhận buổi học & Đánh giá (Phụ huynh)
+  @Post(':id/confirm')
+  @Roles(UserRole.PARENT)
+  async confirmSession(
+    @CurrentUser('profileId') parentId: string,
+    @Param('id') sessionId: string,
+    @Body() dto: { rating?: number; feedback?: string },
+  ) {
+    return this.sessionService.parentConfirmSession(parentId, sessionId, dto);
+  }
+
+  // API Khiếu nại buổi học (Phụ huynh)
+  @Post(':id/dispute')
+  @Roles(UserRole.PARENT)
+  async disputeSession(
+    @CurrentUser('profileId') parentId: string,
+    @Param('id') sessionId: string,
+    @Body() dto: { reason: string },
+  ) {
+    return this.sessionService.parentDisputeSession(parentId, sessionId, dto);
+  }
+
   // Lấy danh sách khiếu nại (Học vụ, Admin)
   @Get('disputes')
   @Roles(UserRole.ADMIN, UserRole.ACADEMIC)

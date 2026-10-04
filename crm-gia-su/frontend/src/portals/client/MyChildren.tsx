@@ -14,6 +14,9 @@ interface Student {
   grade: string | null;
   subjectsNeeded: string | null;
   learningStyle: string | null;
+  academicLevel: string | null;
+  targetGoal: string | null;
+  personalityTraits: string | null;
   notes: string | null;
   classes?: any[];
   tutorRequests?: any[];
@@ -27,6 +30,9 @@ const EMPTY_FORM = {
   grade: '',
   subjectsNeeded: '',
   learningStyle: '',
+  academicLevel: 'AVERAGE',
+  targetGoal: '',
+  personalityTraits: '',
   notes: '',
 };
 
@@ -92,6 +98,9 @@ export default function MyChildren() {
       grade: s.grade || '',
       subjectsNeeded: s.subjectsNeeded || '',
       learningStyle: s.learningStyle || '',
+      academicLevel: s.academicLevel || 'AVERAGE',
+      targetGoal: s.targetGoal || '',
+      personalityTraits: s.personalityTraits || '',
       notes: s.notes || '',
     });
     setError(null);
@@ -240,6 +249,19 @@ export default function MyChildren() {
                     </div>
 
                     <div className="mt-4 text-xs text-[#566a7f] space-y-1.5">
+                      <p className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-semibold text-[#697a8d]">Học lực: </span>
+                        {s.academicLevel === 'WEAK' ? (
+                          <span className="px-2 py-0.5 rounded font-bold text-[11px] bg-[#ffe0db] text-[#ff3e1d]">Mất gốc / Yếu</span>
+                        ) : s.academicLevel === 'GOOD' ? (
+                          <span className="px-2 py-0.5 rounded font-bold text-[11px] bg-[#e8fadf] text-[#71dd37]">Học lực Khá</span>
+                        ) : s.academicLevel === 'EXCELLENT' ? (
+                          <span className="px-2 py-0.5 rounded font-bold text-[11px] bg-[#e7e7ff] text-[#696cff]">Giỏi / Xuất sắc</span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded font-bold text-[11px] bg-[#fff8e1] text-[#ffab00]">Học lực Trung bình</span>
+                        )}
+                      </p>
+
                       <p>
                         <span className="font-semibold text-[#697a8d]">Môn cần kèm: </span>
                         {s.subjectsNeeded ? (
@@ -248,10 +270,20 @@ export default function MyChildren() {
                           <span className="text-[#a1acb8] italic">Chưa cập nhật</span>
                         )}
                       </p>
-                      <p>
-                        <span className="font-semibold text-[#697a8d]">Tính cách: </span>
-                        {s.learningStyle || <span className="text-[#a1acb8] italic">Chưa cập nhật</span>}
-                      </p>
+
+                      {s.targetGoal && (
+                        <p>
+                          <span className="font-semibold text-[#697a8d]">Mục tiêu: </span>
+                          <span className="font-medium text-[#566a7f]">{s.targetGoal}</span>
+                        </p>
+                      )}
+
+                      {(s.personalityTraits || s.learningStyle) && (
+                        <p>
+                          <span className="font-semibold text-[#697a8d]">Tính cách: </span>
+                          <span>{s.personalityTraits || s.learningStyle}</span>
+                        </p>
+                      )}
                     </div>
 
                     {s.notes && (
@@ -396,27 +428,55 @@ export default function MyChildren() {
 
                 {/* THÔNG TIN HỌC TẬP ĐỂ MATCHING */}
                 <div>
-                  <h4 className="text-xs font-bold text-[#696cff] uppercase mb-2 border-b border-gray-100 pb-1 mt-4">II. Thông tin học tập & Matching</h4>
+                  <h4 className="text-xs font-bold text-[#696cff] uppercase mb-2 border-b border-gray-100 pb-1 mt-4">II. Thông tin học tập & Tiêu chí Matching</h4>
                   <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-[#566a7f] mb-1">Học lực hiện tại</label>
+                        <select
+                          value={form.academicLevel}
+                          onChange={(e) => setForm({ ...form, academicLevel: e.target.value })}
+                          className="w-full px-3.5 py-2 bg-white border border-[#d9dee3] rounded-lg text-sm text-[#566a7f] focus:outline-none focus:border-[#696cff]"
+                        >
+                          <option value="WEAK">Mất gốc / Yếu kém</option>
+                          <option value="AVERAGE">Trung bình (cần củng cố)</option>
+                          <option value="GOOD">Khá (cần nâng cao)</option>
+                          <option value="EXCELLENT">Giỏi / Luyện thi HSG</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-[#566a7f] mb-1">Môn học cần kèm (Tags)</label>
+                        <input
+                          type="text"
+                          maxLength={255}
+                          placeholder="Toán Hình, Tiếng Anh..."
+                          value={form.subjectsNeeded}
+                          onChange={(e) => setForm({ ...form, subjectsNeeded: e.target.value })}
+                          className="w-full px-3.5 py-2 bg-white border border-[#d9dee3] rounded-lg text-sm text-[#566a7f] focus:outline-none focus:border-[#696cff]"
+                        />
+                      </div>
+                    </div>
+
                     <div>
-                      <label className="block text-xs font-semibold text-[#566a7f] mb-1">Môn học cần cải thiện (Tags)</label>
+                      <label className="block text-xs font-semibold text-[#566a7f] mb-1">Mục tiêu học tập cụ thể</label>
                       <input
                         type="text"
                         maxLength={255}
-                        placeholder="Ví dụ: Toán Hình, Lý thuyết Hóa, Tiếng Anh giao tiếp..."
-                        value={form.subjectsNeeded}
-                        onChange={(e) => setForm({ ...form, subjectsNeeded: e.target.value })}
+                        placeholder="Ví dụ: Thi vào 10 chuyên, Luyện thi THPTQG, Lấy lại gốc cấp tốc..."
+                        value={form.targetGoal}
+                        onChange={(e) => setForm({ ...form, targetGoal: e.target.value })}
                         className="w-full px-3.5 py-2 bg-white border border-[#d9dee3] rounded-lg text-sm text-[#566a7f] focus:outline-none focus:border-[#696cff]"
                       />
                     </div>
+
                     <div>
-                      <label className="block text-xs font-semibold text-[#566a7f] mb-1">Tính cách / Phong cách học</label>
+                      <label className="block text-xs font-semibold text-[#566a7f] mb-1">Tính cách / Đặc điểm tâm lý</label>
                       <input
                         type="text"
                         maxLength={255}
-                        placeholder="Ví dụ: Nhút nhát, Hiếu động, Cần kèm chặt, Tự giác..."
-                        value={form.learningStyle}
-                        onChange={(e) => setForm({ ...form, learningStyle: e.target.value })}
+                        placeholder="Ví dụ: Nhút nhát ngại hỏi, Hiếu động, Cần gia sư kiên nhẫn, Tự giác..."
+                        value={form.personalityTraits || form.learningStyle}
+                        onChange={(e) => setForm({ ...form, personalityTraits: e.target.value, learningStyle: e.target.value })}
                         className="w-full px-3.5 py-2 bg-white border border-[#d9dee3] rounded-lg text-sm text-[#566a7f] focus:outline-none focus:border-[#696cff]"
                       />
                     </div>

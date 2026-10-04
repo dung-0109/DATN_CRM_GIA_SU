@@ -220,6 +220,10 @@ export class CrmService {
       address?: string;
       district?: string;
       province?: string;
+      occupation?: string;
+      contactTimePref?: string;
+      preferredContactMethod?: string;
+      familyNotes?: string;
       newPin?: string;
     },
   ) {
@@ -228,7 +232,10 @@ export class CrmService {
     if (data.address !== undefined) updateData.address = data.address;
     if (data.district !== undefined) updateData.district = data.district;
     if (data.province !== undefined) updateData.province = data.province;
-
+    if (data.occupation !== undefined) updateData.occupation = data.occupation;
+    if (data.contactTimePref !== undefined) updateData.contactTimePref = data.contactTimePref;
+    if (data.preferredContactMethod !== undefined) updateData.preferredContactMethod = data.preferredContactMethod;
+    if (data.familyNotes !== undefined) updateData.familyNotes = data.familyNotes;
 
     return this.prisma.parent.update({
       where: { id: parentId },
@@ -245,6 +252,9 @@ export class CrmService {
   async getParentProfile(parentId: string) {
     return this.prisma.parent.findUnique({
       where: { id: parentId },
+      include: {
+        user: { select: { phone: true, email: true } },
+      },
     });
   }
 
@@ -268,8 +278,10 @@ export class CrmService {
     return this.prisma.class.findMany({
       where: { parentId, deletedAt: null },
       include: {
-        student: { select: { fullName: true } },
-        tutor: { select: { fullName: true } }
+        student: { select: { fullName: true, grade: true } },
+        tutor: { select: { id: true, fullName: true, ratingAvg: true } },
+        tutorRequest: { select: { subject: true, grade: true, scheduleNotes: true, learningMode: true, address: true } },
+        _count: { select: { sessions: true } },
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -279,8 +291,21 @@ export class CrmService {
     return this.prisma.class.findMany({
       where: { tutorId, deletedAt: null },
       include: {
-        student: { select: { fullName: true } },
-        parent: { select: { fullName: true } }
+        student: { select: { fullName: true, grade: true } },
+        parent: { select: { fullName: true } },
+        tutorRequest: { select: { subject: true, grade: true, scheduleNotes: true, learningMode: true, address: true } },
+        _count: { select: { sessions: true } },
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async getTutorReviews(tutorId: string) {
+    return this.prisma.review.findMany({
+      where: { tutorId },
+      include: {
+        parent: { select: { fullName: true } },
+        class: { select: { student: { select: { fullName: true } } } }
       },
       orderBy: { createdAt: 'desc' }
     });

@@ -261,4 +261,61 @@ export class MatchingService {
     }
     return this.assignTutor(requestId, tutorId);
   }
+
+  async getPublishedRequestsForTutors(tutorId?: string) {
+    return this.prisma.tutorRequest.findMany({
+      where: {
+        deletedAt: null,
+        status: { in: [RequestStatus.PUBLISHED, RequestStatus.NEW, RequestStatus.CONSULTING] },
+      },
+      include: {
+        student: { select: { fullName: true, grade: true, school: true } },
+        parent: { select: { fullName: true, district: true, province: true } },
+        classApplications: {
+          select: { tutorId: true, status: true },
+        },
+        _count: { select: { classApplications: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async applyForRequest(tutorId: string, requestId: string, coverLetter?: string) {
+    const request = await this.prisma.tutorRequest.findUnique({
+      where: { id: requestId },
+    });
+    if (!request) {
+      throw new NotFoundException('Không tìm thấy yêu cầu tìm gia sư');
+    }
+    if (request.status === RequestStatus.MATCHED || request.status === RequestStatus.CANCELLED) {
+      throw new BadRequestException('Lớp học đã đóng hoặc đã được ghép gia sư');
+    }
+
+    const existing = await this.prisma.classApplication.findUnique({
+      where: {
+        tutorRequestId_tutorId: {
+          tutorRequestId: requestId,
+          tutorId,
+        },
+      },
+    });
+
+    if (existing) {
+      throw new BadRequestException('Bạn đã nộp đơn ứng tuyển cho lớp học này rồi');
+    }
+
+    const application = await this.prisma.classApplication.create({
+      data: {
+        tutorRequestId: requestId,
+        tutorId,
+        coverLetter: coverLetter || null,
+        status: ApplicationStatus.PENDING,
+      },
+    });
+
+    return {
+      message: 'Ứng tuyển lớp học thành công! Vui lòng chờ trung tâm liên hệ xếp lịch dạy thử.',
+      application,
+    };
+  }
 }

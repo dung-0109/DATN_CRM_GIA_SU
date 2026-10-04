@@ -55,4 +55,22 @@ export class TutorRequestsController {
   ) {
     return this.matchingService.selectTutorForParent(parentId, id, tutorId);
   }
+
+  // Lấy danh sách lớp tuyển gia sư (dành cho Gia sư, Sales, Admin)
+  @Get()
+  @Roles(UserRole.TUTOR, UserRole.ADMIN, UserRole.SALES)
+  async getPublishedRequests(@CurrentUser('profileId') tutorId: string) {
+    return this.matchingService.getPublishedRequestsForTutors(tutorId);
+  }
+
+  // Gia sư nộp đơn ứng tuyển lớp dạy
+  @Post(':id/apply')
+  @Roles(UserRole.TUTOR)
+  async applyRequest(
+    @CurrentUser('profileId') tutorId: string,
+    @Param('id') id: string,
+    @Body('coverLetter') coverLetter?: string,
+  ) {
+    return this.matchingService.applyForRequest(tutorId, id, coverLetter);
+  }
 }

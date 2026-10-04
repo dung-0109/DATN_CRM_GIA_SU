@@ -41,6 +41,21 @@ export class UpdateStudentDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(50)
+  academicLevel?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  targetGoal?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  personalityTraits?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(10)
   studentPin?: string;
 

@@ -5,8 +5,6 @@ import { ArrowLeft, Loader, Calendar, Plus, RefreshCw } from 'lucide-react';
 import PageTemplate from '../../components/PageTemplate';
 
 export default function LeavesManager() {
-  const [role, setRole] = useState('');
-  const [profileType, setProfileType] = useState('');
   const [classes, setClasses] = useState<any[]>([]);
   const [selectedClassId, setSelectedClassId] = useState('');
   const [sessions, setSessions] = useState<any[]>([]);
@@ -25,10 +23,8 @@ export default function LeavesManager() {
   const [success, setSuccess] = useState<string | null>(null);
 
   const getProfileData = () => {
-    const userRole = localStorage.getItem('role') || '';
-    const userProfileType = localStorage.getItem('profileType') || '';
-    setRole(userRole);
-    setProfileType(userProfileType);
+    // No longer rely on legacy localStorage items.
+    // The role is determined dynamically by the current URL path.
   };
 
   const fetchLeavesAndClasses = async () => {
@@ -88,7 +84,7 @@ export default function LeavesManager() {
     setError(null);
     setSuccess(null);
 
-    const isTutor = profileType === 'TUTOR' || role === 'TUTOR';
+    const isTutor = window.location.pathname.startsWith('/tutor');
     const endpoint = isTutor ? '/api/v1/leaves/tutor' : '/api/v1/leaves/student';
     const payload = isTutor
       ? { sessionId: selectedSessionId, reason, rescheduleSuggested: new Date(rescheduleDate).toISOString() }
@@ -126,8 +122,8 @@ export default function LeavesManager() {
     }
   };
 
-  const isTutorRole = profileType === 'TUTOR' || role === 'TUTOR';
-  const isParentRole = profileType === 'PARENT' || role === 'PARENT';
+  const isTutorRole = window.location.pathname.startsWith('/tutor');
+  const isParentRole = window.location.pathname.startsWith('/client');
 
   return (
     <PageTemplate
@@ -171,7 +167,25 @@ export default function LeavesManager() {
               )}
 
               {classes.length === 0 ? (
-                <div className="text-[#a1acb8] text-xs text-center py-6">Chưa có lớp học nào để xin nghỉ.</div>
+                <div className="text-center py-6 px-4 bg-[#f8f9fa] rounded-xl border border-dashed border-gray-200 space-y-3">
+                  <div className="w-10 h-10 rounded-full bg-[#e7e7ff] text-[#696cff] flex items-center justify-center mx-auto">
+                    <Calendar size={20} />
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-xs text-[#566a7f]">Chưa có lớp học nào đang diễn ra</h5>
+                    <p className="text-[11px] text-[#a1acb8] mt-1 leading-relaxed">
+                      Chức năng này dùng để <strong>xin nghỉ và dời lịch một buổi học cụ thể</strong> khi con đã có lớp học cùng gia sư.
+                    </p>
+                  </div>
+                  {!isTutorRole && (
+                    <Link
+                      to="/client/request-tutor"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#696cff] hover:bg-[#5f61e6] text-white text-xs font-bold rounded-lg transition-colors shadow-sm"
+                    >
+                      <Plus size={13} /> Tạo yêu cầu tìm gia sư ngay
+                    </Link>
+                  )}
+                </div>
               ) : (
                 <form onSubmit={handleSubmitLeave} className="space-y-3.5">
                   <div>

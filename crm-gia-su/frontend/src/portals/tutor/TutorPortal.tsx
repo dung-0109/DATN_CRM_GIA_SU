@@ -370,17 +370,22 @@ export default function TutorPortal() {
                           Lương nhận: <strong className="text-[#71dd37]">{parseInt(cls.tutorWageRate || cls.hourlyRate).toLocaleString()}đ/buổi</strong>
                         </p>
                       </div>
-                      <span
-                        className={`px-2.5 py-1 text-xs font-bold rounded-md ${
-                          cls.status === 'DEPOSIT'
-                            ? 'bg-[#fff8e1] text-[#ffab00]'
-                            : cls.status === 'TRIAL'
-                            ? 'bg-[#e7e7ff] text-[#696cff]'
-                            : 'bg-[#e8fadf] text-[#71dd37]'
-                        }`}
-                      >
-                        {cls.status === 'DEPOSIT' ? 'Chờ Nộp Cọc' : cls.status === 'TRIAL' ? 'Đang Dạy Thử' : 'Đang Giảng Dạy'}
-                      </span>
+                      <div className="flex flex-col items-end gap-1.5">
+                        <span
+                          className={`px-2.5 py-1 text-xs font-bold rounded-md ${
+                            cls.status === 'DEPOSIT'
+                              ? 'bg-[#fff8e1] text-[#ffab00]'
+                              : cls.status === 'TRIAL'
+                              ? 'bg-[#e7e7ff] text-[#696cff]'
+                              : 'bg-[#e8fadf] text-[#71dd37]'
+                          }`}
+                        >
+                          {cls.status === 'DEPOSIT' ? 'Chờ Nộp Cọc' : cls.status === 'TRIAL' ? 'Đang Dạy Thử' : 'Đang Giảng Dạy'}
+                        </span>
+                        <Link to={`/tutor/classes/${cls.id}`} className="text-[11px] text-[#696cff] font-semibold hover:underline">
+                          Xem chi tiết &rarr;
+                        </Link>
+                      </div>
                     </div>
 
                     {cls.status === 'DEPOSIT' && (
@@ -437,22 +442,24 @@ export default function TutorPortal() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#566a7f] mb-1.5">Giờ bắt đầu</label>
+                <label className="block text-xs font-semibold text-[#566a7f] mb-1.5">Giờ bắt đầu (24h)</label>
                 <input
                   type="time"
+                  step="1800"
                   value={newSched.slotStart}
                   onChange={(e) => setNewSched((prev) => ({ ...prev, slotStart: e.target.value }))}
-                  className="w-full px-3 py-2 bg-white border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff]"
+                  className="w-full px-3 py-2 bg-white border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff] font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#566a7f] mb-1.5">Giờ kết thúc</label>
+                <label className="block text-xs font-semibold text-[#566a7f] mb-1.5">Giờ kết thúc (24h)</label>
                 <input
                   type="time"
+                  step="1800"
                   value={newSched.slotEnd}
                   onChange={(e) => setNewSched((prev) => ({ ...prev, slotEnd: e.target.value }))}
-                  className="w-full px-3 py-2 bg-white border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff]"
+                  className="w-full px-3 py-2 bg-white border border-[#d9dee3] rounded-lg text-xs text-[#566a7f] focus:outline-none focus:border-[#696cff] font-mono"
                 />
               </div>
 
@@ -511,9 +518,14 @@ export default function TutorPortal() {
           {/* Karma Score Card */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex justify-between items-center relative overflow-hidden">
             <div>
-              <span className="text-[#a1acb8] text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                <Award size={14} className="text-[#71dd37]" /> Điểm Uy Tín (Karma)
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[#a1acb8] text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                  <Award size={14} className="text-[#71dd37]" /> Điểm Uy Tín (Karma)
+                </span>
+                <Link to="/tutor/reviews" className="px-2 py-0.5 bg-[#e8fadf] text-[#71dd37] hover:bg-[#71dd37] hover:text-white rounded text-[10px] font-bold uppercase transition-colors shrink-0">
+                  Xem Đánh Giá
+                </Link>
+              </div>
               <div className="flex items-end gap-2 mt-2">
                 <h2 className="text-4xl font-extrabold text-[#71dd37]">{profileInfo?.karmaScore || 0}</h2>
                 <span className="text-[#a1acb8] font-bold mb-1 text-sm">/ 100</span>
@@ -530,11 +542,16 @@ export default function TutorPortal() {
 
           {/* Linked Bank Accounts */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
-            <div>
-              <h3 className="text-base font-bold text-[#566a7f]">Tài khoản Ngân hàng (Ví)</h3>
-              <p className="text-xs text-[#a1acb8] mt-0.5">
-                Nhận tiền lương giảng dạy và hoàn tiền cọc sau quá trình dạy.
-              </p>
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-base font-bold text-[#566a7f]">Tài khoản Ngân hàng (Ví)</h3>
+                <p className="text-xs text-[#a1acb8] mt-0.5">
+                  Nhận tiền lương giảng dạy và hoàn tiền cọc sau quá trình dạy.
+                </p>
+              </div>
+              <Link to="/tutor/transactions" className="px-2.5 py-1 bg-[#e7e7ff] text-[#696cff] hover:bg-[#696cff] hover:text-white rounded text-[10px] font-bold uppercase transition-colors shrink-0">
+                Lịch sử GD
+              </Link>
             </div>
 
             <div className="space-y-2.5">

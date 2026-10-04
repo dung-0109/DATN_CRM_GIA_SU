@@ -28,4 +28,11 @@ export class FinanceController {
   async getClassTransactions(@Param('classId') classId: string) {
     return this.financeService.getClassTransactions(classId);
   }
+
+  // 3. Gia sư xem lịch sử giao dịch của mình
+  @Get('tutor/transactions')
+  @Roles(UserRole.TUTOR)
+  async getTutorTransactions(@CurrentUser('profileId') tutorId: string) {
+    return this.financeService.getTutorTransactions(tutorId);
+  }
 }

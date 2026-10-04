@@ -114,7 +114,7 @@ export default function ParentAttendance() {
                       Gia sư: <strong className="text-[#696cff]">{cls.tutor?.fullName || 'Chưa rõ'}</strong>
                     </p>
                     <p className="text-xs text-[#71dd37] font-semibold mt-0.5">
-                      Học phí: {cls.hourlyRate.toLocaleString()}đ/buổi
+                      Học phí: {Number(cls.hourlyRate).toLocaleString()}đ/buổi
                     </p>
                   </div>
 

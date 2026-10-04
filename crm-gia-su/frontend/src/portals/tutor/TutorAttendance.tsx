@@ -164,8 +164,20 @@ export default function TutorAttendance() {
             Đang tải danh sách lớp học...
           </div>
         ) : classes.length === 0 ? (
-          <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-12 text-center text-[#a1acb8] text-sm">
-            Bạn chưa có lớp học nào được phân công.
+          <div className="bg-[#f9f9fa] border border-dashed border-gray-200 rounded-xl p-16 flex flex-col items-center justify-center text-center">
+            <div className="w-20 h-20 bg-white rounded-full shadow-sm flex items-center justify-center mb-4 text-[#a1acb8]">
+              <Calendar size={36} />
+            </div>
+            <h3 className="text-lg font-bold text-[#566a7f] mb-2">Chưa có lớp học nào</h3>
+            <p className="text-[#a1acb8] text-sm max-w-sm mb-6">
+              Bạn cần được phân công ít nhất một lớp học đang giảng dạy để có thể thực hiện điểm danh.
+            </p>
+            <Link
+              to="/tutor/jobs"
+              className="px-5 py-2.5 bg-[#696cff] hover:bg-[#5f61e6] text-white font-bold rounded-lg transition-all text-xs shadow-sm"
+            >
+              Tìm lớp học ngay
+            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -279,8 +291,14 @@ export default function TutorAttendance() {
               {sessionLoading ? (
                 <div className="text-center py-12 text-[#a1acb8] text-sm">Đang tải lịch sử học...</div>
               ) : sessions.length === 0 ? (
-                <div className="text-center py-12 text-[#a1acb8] text-xs">
-                  Chưa có buổi học nào được ghi nhận cho lớp này.
+                <div className="flex flex-col items-center justify-center py-16 px-4 bg-[#f9f9fa] border border-dashed border-gray-200 rounded-xl text-center">
+                  <div className="text-gray-300 mb-3">
+                    <Clock size={48} strokeWidth={1.5} />
+                  </div>
+                  <h4 className="text-[#566a7f] font-bold mb-1">Chưa có dữ liệu</h4>
+                  <p className="text-xs text-[#a1acb8]">
+                    Lớp này chưa có buổi học nào được ghi nhận. Hãy tạo điểm danh ở form bên trái.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">

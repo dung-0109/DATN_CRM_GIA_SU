@@ -191,4 +191,123 @@ export class SessionService {
 
     return { message: `Đã tự động duyệt ${count} buổi học.` };
   }
+
+  async recordAttendance(tutorId: string, dto: { classId: string; startTime: string; endTime: string; description?: string }) {
+    const targetClass = await this.prisma.class.findUnique({
+      where: { id: dto.classId },
+    });
+
+    if (!targetClass) {
+      throw new NotFoundException('Không tìm thấy lớp học');
+    }
+
+    if (targetClass.tutorId !== tutorId) {
+      throw new ForbiddenException('Bạn không phải là gia sư của lớp học này');
+    }
+
+    const session = await this.prisma.session.create({
+      data: {
+        classId: dto.classId,
+        scheduledTime: new Date(dto.startTime),
+        actualStart: new Date(dto.startTime),
+        actualEnd: new Date(dto.endTime),
+        status: 'ATTENDED',
+        tutorNotes: dto.description || null,
+      },
+    });
+
+    return {
+      message: 'Ghi nhận điểm danh buổi học thành công! Chờ Phụ huynh phê duyệt.',
+      session,
+    };
+  }
+
+  async parentConfirmSession(parentId: string, sessionId: string, dto: { rating?: number; feedback?: string }) {
+    const session = await this.prisma.session.findUnique({
+      where: { id: sessionId },
+      include: { class: { include: { tutor: true } } },
+    });
+
+    if (!session) {
+      throw new NotFoundException('Không tìm thấy buổi học');
+    }
+
+    if (session.class.parentId !== parentId) {
+      throw new ForbiddenException('Bạn không có quyền thao tác trên buổi học này');
+    }
+
+    if (session.status !== 'ATTENDED') {
+      throw new BadRequestException('Buổi học chưa ở trạng thái chờ duyệt hoặc đã được xác nhận.');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const updatedSession = await tx.session.update({
+        where: { id: sessionId },
+        data: {
+          status: 'CONFIRMED',
+          parentRating: dto.rating ? Number(dto.rating) : null,
+          parentFeedback: dto.feedback || null,
+        },
+      });
+
+      if (session.class.remainingSessions > 0) {
+        await tx.class.update({
+          where: { id: session.classId },
+          data: { remainingSessions: { decrement: 1 } },
+        });
+      }
+
+      if (session.class.tutor) {
+        await tx.tutor.update({
+          where: { id: session.class.tutor.id },
+          data: { walletBalance: { increment: session.class.tutorWageRate } },
+        });
+
+        await tx.transaction.create({
+          data: {
+            tutorId: session.class.tutor.id,
+            sessionId: session.id,
+            classId: session.class.id,
+            type: TransactionType.TUTOR_SALARY,
+            amount: session.class.tutorWageRate,
+            status: TransactionStatus.SUCCESSFUL,
+            reference: `Phụ huynh duyệt buổi học ngày ${new Date(session.scheduledTime).toLocaleDateString('vi-VN')}`,
+          },
+        });
+      }
+
+      return {
+        message: 'Xác nhận buổi học thành công! Đã thanh toán thù lao vào ví gia sư.',
+        session: updatedSession,
+      };
+    });
+  }
+
+  async parentDisputeSession(parentId: string, sessionId: string, dto: { reason: string }) {
+    const session = await this.prisma.session.findUnique({
+      where: { id: sessionId },
+      include: { class: true },
+    });
+
+    if (!session) {
+      throw new NotFoundException('Không tìm thấy buổi học');
+    }
+
+    if (session.class.parentId !== parentId) {
+      throw new ForbiddenException('Bạn không có quyền thao tác trên buổi học này');
+    }
+
+    const updated = await this.prisma.session.update({
+      where: { id: sessionId },
+      data: {
+        status: 'DISPUTED',
+        disputeReason: dto.reason,
+      },
+    });
+
+    return {
+      message: 'Đã gửi khiếu nại buổi học tới bộ phận Học Vụ trung tâm để giải quyết!',
+      session: updated,
+    };
+  }
 }

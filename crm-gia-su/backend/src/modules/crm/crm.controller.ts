@@ -144,5 +144,12 @@ export class CrmController {
   async getTutorClasses(@CurrentUser('profileId') tutorId: string) {
     return this.crmService.getTutorClasses(tutorId);
   }
+
+  // 14. Lấy danh sách đánh giá của Gia sư
+  @Get('tutor/reviews')
+  @Roles(UserRole.TUTOR)
+  async getTutorReviews(@CurrentUser('profileId') tutorId: string) {
+    return this.crmService.getTutorReviews(tutorId);
+  }
 }
 
