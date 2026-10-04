@@ -46,6 +46,10 @@ export class CrmService {
   async getAllTutors() {
     return this.prisma.tutor.findMany({
       where: { deletedAt: null },
+      include: {
+        user: { select: { phone: true, email: true } },
+        tutorBankAccounts: { where: { isDefault: true } },
+      },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -68,6 +72,7 @@ export class CrmService {
         parent: { select: { fullName: true } },
         student: { select: { fullName: true } },
         tutor: { select: { fullName: true } },
+        tutorRequest: { select: { subject: true, grade: true } },
       },
       orderBy: { createdAt: 'desc' },
     });

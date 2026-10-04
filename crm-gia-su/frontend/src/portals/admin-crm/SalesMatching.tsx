@@ -158,7 +158,8 @@ export default function SalesMatching() {
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-[#d9dee3] text-[#a1acb8] text-xs uppercase font-semibold">
-                    <th className="py-4">Môn Học & Lớp</th>
+                    <th className="py-4">Môn & Lớp</th>
+                    <th className="py-4">Chi tiết Yêu cầu</th>
                     <th className="py-4">Phụ huynh</th>
                     <th className="py-4">Học sinh</th>
                     <th className="py-4">Trạng Thái</th>
@@ -168,10 +169,18 @@ export default function SalesMatching() {
                 <tbody className="divide-y divide-[#d9dee3]">
                   {requests.map((req) => (
                     <tr key={req.id} className="hover:bg-[#f9f9f9] transition-colors">
-                      <td className="py-4 font-bold text-[#566a7f]">
-                        {req.subject} ({req.grade})
+                      <td className="py-4">
+                        <div className="font-bold text-[#696cff]">{req.subject}</div>
+                        <div className="text-xs text-[#a1acb8]">Khối {req.grade}</div>
                       </td>
-                      <td className="py-4 text-[#697a8d]">
+                      <td className="py-4 text-xs space-y-1">
+                        <div className="flex items-center gap-1.5"><strong className="text-[#566a7f]">💰 Ngân sách:</strong> <span className="text-[#71dd37] font-semibold">{parseInt(req.budgetPerSession).toLocaleString()}đ/buổi</span></div>
+                        <div className="flex items-center gap-1.5"><strong className="text-[#566a7f]">📅 Lịch học:</strong> <span>{req.sessionsPerWeek} buổi/tuần ({req.learningMode === 'OFFLINE' ? 'Tại nhà' : 'Online'})</span></div>
+                        {req.learningMode === 'OFFLINE' && req.address && (
+                          <div className="flex items-start gap-1.5"><strong className="text-[#566a7f]">📍 Khu vực:</strong> <span className="text-[#697a8d] line-clamp-1">{req.address}</span></div>
+                        )}
+                      </td>
+                      <td className="py-4 text-[#697a8d] font-medium">
                         {req.parent?.fullName || 'Ẩn danh'}
                       </td>
                       <td className="py-4 text-[#697a8d]">
@@ -246,39 +255,54 @@ export default function SalesMatching() {
 
             <div className="flex-1 overflow-y-auto mb-6 pr-2 space-y-4">
               {appLoading ? (
-                <div className="text-center py-8">
-                  <Loader size={24} className="animate-spin text-indigo-500 mx-auto" />
-                  <p className="mt-2 text-slate-500 text-xs">Đang tải danh sách hồ sơ ứng cử...</p>
+                <div className="text-center py-10 space-y-3">
+                  <Loader size={28} className="animate-spin text-[#696cff] mx-auto" />
+                  <p className="text-[#a1acb8] text-xs font-semibold uppercase tracking-wider">Đang phân tích hồ sơ ứng cử...</p>
                 </div>
               ) : applications.length === 0 ? (
-                <div className="text-center py-8 text-slate-500 text-xs">
-                  Chưa có gia sư nào ứng tuyển yêu cầu này.
+                <div className="text-center py-12 px-4 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                  <div className="w-12 h-12 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
+                    <Users size={20} />
+                  </div>
+                  <h4 className="text-[#566a7f] font-bold text-sm mb-1">Chưa có ứng viên</h4>
+                  <p className="text-[#a1acb8] text-xs">Hiện tại chưa có Gia sư nào ứng tuyển hoặc phù hợp với lớp học này.</p>
                 </div>
               ) : (
                 applications.map((app) => (
                   <div
                     key={app.applicationId}
-                    className="p-4 bg-white border border-[#d9dee3] rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative overflow-hidden"
+                    className="p-5 bg-white border border-gray-100 shadow-[0_2px_8px_0_rgba(67,89,113,0.05)] rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-5 relative overflow-hidden group hover:border-[#696cff]/40 hover:shadow-[0_4px_12px_0_rgba(105,108,255,0.15)] transition-all duration-300"
                   >
-                    <div className="absolute top-0 right-0 px-2 py-1 bg-[#e8fadf] text-[#71dd37] text-[10px] font-bold rounded-bl-lg">
-                      Điểm phù hợp: {app.matchScore}%
+                    <div className="absolute top-0 right-0 px-3 py-1.5 bg-gradient-to-l from-[#e8fadf] to-transparent text-[#71dd37] text-[11px] font-extrabold rounded-bl-xl shadow-sm">
+                      Độ phù hợp: {app.matchScore}%
                     </div>
-                    <div>
-                      <h4 className="font-bold text-[#696cff] text-sm">{app.tutorName}</h4>
-                      <p className="text-xs text-[#a1acb8] mt-1">
-                        Trình độ: <strong className="text-[#566a7f]">{app.qualification}</strong> | Điểm Karma: <strong className="text-[#566a7f]">{app.karmaScore}</strong>
-                      </p>
-                      {app.coverLetter && (
-                        <div className="mt-2 p-2.5 bg-[#f5f5f9] rounded-md text-xs text-[#697a8d] italic border-l-2 border-[#696cff]">
-                          "{app.coverLetter}"
+                    <div className="flex items-start gap-4 flex-1">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#696cff] to-[#5f61e6] text-white flex items-center justify-center font-bold shadow-md shadow-[#696cff]/30 shrink-0">
+                        {app.tutorName.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-[#566a7f] text-base group-hover:text-[#696cff] transition-colors">{app.tutorName}</h4>
+                        <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs">
+                          <span className="flex items-center gap-1.5 px-2 py-1 bg-[#f5f5f9] text-[#697a8d] rounded-md font-semibold">
+                            🎓 {app.qualification}
+                          </span>
+                          <span className="flex items-center gap-1.5 px-2 py-1 bg-[#fff8e1] text-[#ffab00] rounded-md font-bold">
+                            ⭐ Karma: {app.karmaScore}
+                          </span>
                         </div>
-                      )}
+                        {app.coverLetter && (
+                          <div className="mt-3 p-3 bg-gray-50 rounded-lg text-xs text-[#697a8d] italic border-l-4 border-[#696cff]/60 relative">
+                            <span className="absolute top-1 left-2 text-2xl text-[#696cff]/20 font-serif leading-none">"</span>
+                            <span className="relative z-10 block pl-4">{app.coverLetter}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <button
                       onClick={() => setMatchingTutor({ tutorId: app.tutorId, fullName: app.tutorName })}
-                      className="px-3.5 py-1.5 bg-[#696cff] hover:bg-[#5f61e6] text-white text-xs font-bold rounded-md transition-all cursor-pointer inline-flex items-center gap-1 shrink-0 shadow-sm"
+                      className="w-full md:w-auto px-5 py-2.5 bg-white border-2 border-[#696cff] hover:bg-[#696cff] text-[#696cff] hover:text-white text-xs font-bold rounded-lg transition-all duration-300 cursor-pointer inline-flex justify-center items-center gap-2 shrink-0 shadow-sm"
                     >
-                      Chọn dạy thử <Check size={12} />
+                      Chọn Gia Sư Này <Check size={14} />
                     </button>
                   </div>
                 ))

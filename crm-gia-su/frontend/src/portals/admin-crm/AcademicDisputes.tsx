@@ -114,40 +114,43 @@ export default function AcademicDisputes() {
 
                 {/* Details grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                  <div className="bg-white p-3 rounded-lg border border-gray-100 space-y-1">
-                    <span className="text-[#a1acb8] font-semibold flex items-center gap-1">
+                  <div className="bg-white p-3.5 rounded-xl border border-gray-100 shadow-[0_2px_4px_0_rgba(67,89,113,0.02)] space-y-1.5 transition-all hover:border-[#696cff]/30">
+                    <span className="text-[#a1acb8] font-semibold flex items-center gap-1.5 uppercase tracking-wider text-[10px]">
                       <User size={12} /> Gia sư phụ trách
                     </span>
-                    <div className="font-bold text-[#696cff] text-sm">
+                    <div className="font-extrabold text-[#696cff] text-sm">
                       {dis.session?.class?.tutor?.fullName || 'Chưa rõ'}
                     </div>
                   </div>
 
-                  <div className="bg-white p-3 rounded-lg border border-gray-100 space-y-1">
-                    <span className="text-[#a1acb8] font-semibold flex items-center gap-1">
+                  <div className="bg-white p-3.5 rounded-xl border border-gray-100 shadow-[0_2px_4px_0_rgba(67,89,113,0.02)] space-y-1.5 transition-all hover:border-[#ffab00]/30">
+                    <span className="text-[#a1acb8] font-semibold flex items-center gap-1.5 uppercase tracking-wider text-[10px]">
                       <User size={12} /> Người gửi (Phụ huynh)
                     </span>
-                    <div className="font-bold text-[#566a7f] text-sm">
+                    <div className="font-extrabold text-[#566a7f] text-sm">
                       {dis.parent?.fullName || 'Ẩn danh'}
                     </div>
                   </div>
 
-                  <div className="bg-white p-3 rounded-lg border border-gray-100 space-y-1">
-                    <span className="text-[#a1acb8] font-semibold flex items-center gap-1">
-                      <Calendar size={12} /> Buổi dạy bị khiếu nại
+                  <div className="bg-white p-3.5 rounded-xl border border-gray-100 shadow-[0_2px_4px_0_rgba(67,89,113,0.02)] space-y-1.5 transition-all hover:border-[#71dd37]/30">
+                    <span className="text-[#a1acb8] font-semibold flex items-center gap-1.5 uppercase tracking-wider text-[10px]">
+                      <Calendar size={12} /> Thời gian buổi dạy
                     </span>
-                    <div className="font-semibold text-[#566a7f]">
+                    <div className="font-bold text-[#566a7f] text-sm">
                       {new Date(dis.session?.startTime).toLocaleString('vi-VN')}
                     </div>
                   </div>
                 </div>
 
                 {/* Reason quote */}
-                <div className="p-3.5 bg-[#fff2ec] border border-[#ffbca9] rounded-lg">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#ff8359] uppercase tracking-wider mb-1">
-                    <ShieldAlert size={14} /> Lý do khiếu nại từ Phụ huynh:
+                <div className="p-4 bg-[#fff2ec] border border-[#ffbca9] rounded-xl relative overflow-hidden">
+                  <div className="absolute -right-4 -top-4 text-[#ff3e1d]/5">
+                    <AlertCircle size={80} />
                   </div>
-                  <p className="text-xs text-[#697a8d] italic leading-relaxed">
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#ff8359] uppercase tracking-wider mb-2 relative z-10">
+                    <ShieldAlert size={16} /> Lý do khiếu nại từ Phụ huynh:
+                  </div>
+                  <p className="text-sm text-[#697a8d] italic leading-relaxed relative z-10 font-medium">
                     "{dis.reason}"
                   </p>
                 </div>

@@ -345,6 +345,7 @@ export default function AdminCRM() {
                       <thead className="bg-[#f9f9fa] text-[#566a7f] font-semibold">
                         <tr>
                           <th className="px-6 py-4">GIA SƯ</th>
+                          <th className="px-6 py-4">LIÊN HỆ</th>
                           <th className="px-6 py-4">TRÌNH ĐỘ</th>
                           <th className="px-6 py-4">VÍ LƯƠNG</th>
                           <th className="px-6 py-4">TRẠNG THÁI</th>
@@ -355,6 +356,10 @@ export default function AdminCRM() {
                         {tutors.map(t => (
                           <tr key={t.id} className="hover:bg-[#f9f9fa] transition-colors">
                             <td className="px-6 py-4 font-semibold text-[#696cff]">{t.fullName}</td>
+                            <td className="px-6 py-4 text-xs">
+                              <div className="text-[#566a7f] font-semibold">{t.user?.phone || 'Chưa cập nhật'}</div>
+                              <div className="text-[#a1acb8]">{t.user?.email || ''}</div>
+                            </td>
                             <td className="px-6 py-4">{t.qualification}</td>
                             <td className="px-6 py-4 font-bold text-[#71dd37]">{t.walletBalance.toLocaleString()}đ</td>
                             <td className="px-6 py-4">
@@ -399,8 +404,8 @@ export default function AdminCRM() {
                           {classes.filter(c => c.status === 'OPEN').map(c => (
                             <div key={c.id} className="bg-white p-4 rounded-lg shadow-[0_1px_3px_0_rgba(67,89,113,0.1)] border border-gray-100 cursor-pointer hover:shadow-md transition-shadow">
                               <div className="flex justify-between items-start mb-2">
-                                <span className="text-xs font-bold text-[#696cff]">ID: {c.id.slice(0,6)}</span>
-                                <span className="text-xs font-semibold text-[#71dd37]">{c.hourlyRate.toLocaleString()}đ/b</span>
+                                <span className="text-xs font-bold text-[#696cff] line-clamp-1">{c.tutorRequest?.subject} (Lớp {c.tutorRequest?.grade})</span>
+                                <span className="text-xs font-semibold text-[#71dd37] whitespace-nowrap ml-2">{c.hourlyRate.toLocaleString()}đ</span>
                               </div>
                               <div className="text-sm text-[#566a7f] font-semibold mb-1">{c.student?.fullName}</div>
                             </div>
@@ -420,8 +425,8 @@ export default function AdminCRM() {
                           {classes.filter(c => c.status === 'DEPOSIT').map(c => (
                             <div key={c.id} className="bg-white p-4 rounded-lg shadow-[0_1px_3px_0_rgba(67,89,113,0.1)] border border-gray-100 cursor-pointer hover:shadow-md transition-shadow">
                               <div className="flex justify-between items-start mb-2">
-                                <span className="text-xs font-bold text-[#696cff]">ID: {c.id.slice(0,6)}</span>
-                                <span className="text-xs font-semibold text-[#ffab00]">Chờ cọc</span>
+                                <span className="text-xs font-bold text-[#696cff] line-clamp-1">{c.tutorRequest?.subject} (Lớp {c.tutorRequest?.grade})</span>
+                                <span className="text-xs font-semibold text-[#ffab00] whitespace-nowrap ml-2">Chờ cọc</span>
                               </div>
                               <div className="text-sm text-[#566a7f] font-semibold mb-1">{c.student?.fullName}</div>
                               <div className="text-xs text-[#a1acb8]">GS: {c.tutor?.fullName}</div>
@@ -442,7 +447,7 @@ export default function AdminCRM() {
                           {classes.filter(c => c.status === 'TRIAL').map(c => (
                             <div key={c.id} className="bg-white p-4 rounded-lg shadow-[0_1px_3px_0_rgba(67,89,113,0.1)] border border-gray-100 cursor-pointer hover:shadow-md transition-shadow">
                               <div className="flex justify-between items-start mb-2">
-                                <span className="text-xs font-bold text-[#696cff]">ID: {c.id.slice(0,6)}</span>
+                                <span className="text-xs font-bold text-[#696cff] line-clamp-1">{c.tutorRequest?.subject} (Lớp {c.tutorRequest?.grade})</span>
                               </div>
                               <div className="text-sm text-[#566a7f] font-semibold mb-1">{c.student?.fullName}</div>
                               <div className="text-xs text-[#a1acb8]">GS: {c.tutor?.fullName}</div>
@@ -463,7 +468,7 @@ export default function AdminCRM() {
                           {classes.filter(c => c.status === 'TEACHING').map(c => (
                             <div key={c.id} className="bg-white p-4 rounded-lg shadow-[0_1px_3px_0_rgba(67,89,113,0.1)] border border-gray-100 cursor-pointer hover:shadow-md transition-shadow">
                               <div className="flex justify-between items-start mb-2">
-                                <span className="text-xs font-bold text-[#696cff]">ID: {c.id.slice(0,6)}</span>
+                                <span className="text-xs font-bold text-[#696cff] line-clamp-1">{c.tutorRequest?.subject} (Lớp {c.tutorRequest?.grade})</span>
                               </div>
                               <div className="text-sm text-[#566a7f] font-semibold mb-1">{c.student?.fullName}</div>
                               <div className="text-xs text-[#a1acb8]">GS: {c.tutor?.fullName}</div>
@@ -506,8 +511,14 @@ export default function AdminCRM() {
                           <tr key={t.id} className="hover:bg-[#f9f9fa] transition-colors">
                             <td className="px-6 py-4 font-semibold text-[#696cff]">{t.fullName}</td>
                             <td className="px-6 py-4">
-                              <div>Agribank</div>
-                              <div className="text-xs text-[#a1acb8]">**********1234</div>
+                              {t.tutorBankAccounts && t.tutorBankAccounts.length > 0 ? (
+                                <>
+                                  <div className="font-semibold text-[#566a7f]">{t.tutorBankAccounts[0].bankName}</div>
+                                  <div className="text-xs text-[#a1acb8] mt-0.5">{t.tutorBankAccounts[0].accountHolder} - {t.tutorBankAccounts[0].accountNumberEncrypted}</div>
+                                </>
+                              ) : (
+                                <div className="text-xs text-[#ff3e1d] italic">Chưa cập nhật</div>
+                              )}
                             </td>
                             <td className="px-6 py-4 font-bold text-[#71dd37] text-base">{t.walletBalance.toLocaleString()}đ</td>
                             <td className="px-6 py-4 text-center">
