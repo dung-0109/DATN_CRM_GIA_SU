@@ -21,6 +21,11 @@ export default function AdminCRM() {
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredTutors = tutors.filter(t => t.fullName.toLowerCase().includes(searchQuery.toLowerCase()) || t.user?.phone?.includes(searchQuery));
+  const filteredParents = parents.filter(p => p.fullName.toLowerCase().includes(searchQuery.toLowerCase()) || p.user?.phone?.includes(searchQuery));
+  const filteredClasses = classes.filter(c => c.id.includes(searchQuery) || c.student?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) || c.tutorRequest?.subject?.toLowerCase().includes(searchQuery.toLowerCase()));
 
   const handleTabClick = (tab: 'overview' | 'tutors' | 'parents' | 'classes' | 'payouts') => {
     setActiveTab(tab);
@@ -186,7 +191,13 @@ export default function AdminCRM() {
               <Menu size={20} />
             </button>
             <Search size={16} className="text-[#a1acb8] mr-2" />
-            <input type="text" placeholder="Tìm kiếm (Ctrl+/)" className="bg-transparent border-none outline-none text-sm w-full text-[#566a7f]" />
+            <input 
+              type="text" 
+              placeholder="Tìm kiếm Gia sư, Phụ huynh, Lớp học... (Ctrl+/)" 
+              className="bg-transparent border-none outline-none text-sm w-full text-[#566a7f]"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
 
           <div className="flex items-center gap-4">
@@ -374,7 +385,7 @@ export default function AdminCRM() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {tutors.map(t => (
+                        {filteredTutors.map(t => (
                           <tr key={t.id} className="hover:bg-[#f9f9fa] transition-colors">
                             <td className="px-6 py-4 font-semibold text-[#696cff]">{t.fullName}</td>
                             <td className="px-6 py-4 text-xs">
@@ -427,7 +438,7 @@ export default function AdminCRM() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {parents.map(p => (
+                        {filteredParents.map(p => (
                           <tr key={p.id} className="hover:bg-[#f9f9fa] transition-colors">
                             <td className="px-6 py-4 font-semibold text-[#696cff]">{p.fullName}</td>
                             <td className="px-6 py-4 text-xs">
@@ -468,10 +479,10 @@ export default function AdminCRM() {
                       <div className="bg-[#f9f9fa] border-t-4 border-[#8592a3] rounded-xl shadow-sm p-4 h-full min-h-[500px]">
                         <div className="flex justify-between items-center mb-4">
                           <h6 className="font-semibold text-[#566a7f]">OPEN</h6>
-                          <span className="bg-[#e7e7ff] text-[#696cff] text-xs font-bold px-2 py-1 rounded-md">{classes.filter(c => c.status === 'OPEN').length}</span>
+                          <span className="bg-[#e7e7ff] text-[#696cff] text-xs font-bold px-2 py-1 rounded-md">{filteredClasses.filter(c => c.status === 'OPEN').length}</span>
                         </div>
                         <div className="space-y-3">
-                          {classes.filter(c => c.status === 'OPEN').map(c => (
+                          {filteredClasses.filter(c => c.status === 'OPEN').map(c => (
                             <div key={c.id} className="bg-white p-4 rounded-lg shadow-[0_1px_3px_0_rgba(67,89,113,0.1)] border border-gray-100 cursor-pointer hover:shadow-md transition-shadow">
                               <div className="flex justify-between items-start mb-2">
                                 <span className="text-xs font-bold text-[#696cff] line-clamp-1">{c.tutorRequest?.subject} (Lớp {c.tutorRequest?.grade})</span>
@@ -489,10 +500,10 @@ export default function AdminCRM() {
                       <div className="bg-[#f9f9fa] border-t-4 border-[#ffab00] rounded-xl shadow-sm p-4 h-full min-h-[500px]">
                         <div className="flex justify-between items-center mb-4">
                           <h6 className="font-semibold text-[#566a7f]">DEPOSIT</h6>
-                          <span className="bg-[#ffe0db] text-[#ff3e1d] text-xs font-bold px-2 py-1 rounded-md">{classes.filter(c => c.status === 'DEPOSIT').length}</span>
+                          <span className="bg-[#ffe0db] text-[#ff3e1d] text-xs font-bold px-2 py-1 rounded-md">{filteredClasses.filter(c => c.status === 'DEPOSIT').length}</span>
                         </div>
                         <div className="space-y-3">
-                          {classes.filter(c => c.status === 'DEPOSIT').map(c => (
+                          {filteredClasses.filter(c => c.status === 'DEPOSIT').map(c => (
                             <div key={c.id} className="bg-white p-4 rounded-lg shadow-[0_1px_3px_0_rgba(67,89,113,0.1)] border border-gray-100 cursor-pointer hover:shadow-md transition-shadow">
                               <div className="flex justify-between items-start mb-2">
                                 <span className="text-xs font-bold text-[#696cff] line-clamp-1">{c.tutorRequest?.subject} (Lớp {c.tutorRequest?.grade})</span>
@@ -511,10 +522,10 @@ export default function AdminCRM() {
                       <div className="bg-[#f9f9fa] border-t-4 border-[#696cff] rounded-xl shadow-sm p-4 h-full min-h-[500px]">
                         <div className="flex justify-between items-center mb-4">
                           <h6 className="font-semibold text-[#566a7f]">TRIAL</h6>
-                          <span className="bg-[#e7e7ff] text-[#696cff] text-xs font-bold px-2 py-1 rounded-md">{classes.filter(c => c.status === 'TRIAL').length}</span>
+                          <span className="bg-[#e7e7ff] text-[#696cff] text-xs font-bold px-2 py-1 rounded-md">{filteredClasses.filter(c => c.status === 'TRIAL').length}</span>
                         </div>
                         <div className="space-y-3">
-                          {classes.filter(c => c.status === 'TRIAL').map(c => (
+                          {filteredClasses.filter(c => c.status === 'TRIAL').map(c => (
                             <div key={c.id} className="bg-white p-4 rounded-lg shadow-[0_1px_3px_0_rgba(67,89,113,0.1)] border border-gray-100 cursor-pointer hover:shadow-md transition-shadow">
                               <div className="flex justify-between items-start mb-2">
                                 <span className="text-xs font-bold text-[#696cff] line-clamp-1">{c.tutorRequest?.subject} (Lớp {c.tutorRequest?.grade})</span>
@@ -532,10 +543,10 @@ export default function AdminCRM() {
                       <div className="bg-[#f9f9fa] border-t-4 border-[#71dd37] rounded-xl shadow-sm p-4 h-full min-h-[500px]">
                         <div className="flex justify-between items-center mb-4">
                           <h6 className="font-semibold text-[#566a7f]">TEACHING</h6>
-                          <span className="bg-[#e8fadf] text-[#71dd37] text-xs font-bold px-2 py-1 rounded-md">{classes.filter(c => c.status === 'TEACHING').length}</span>
+                          <span className="bg-[#e8fadf] text-[#71dd37] text-xs font-bold px-2 py-1 rounded-md">{filteredClasses.filter(c => c.status === 'TEACHING').length}</span>
                         </div>
                         <div className="space-y-3">
-                          {classes.filter(c => c.status === 'TEACHING').map(c => (
+                          {filteredClasses.filter(c => c.status === 'TEACHING').map(c => (
                             <div key={c.id} className="bg-white p-4 rounded-lg shadow-[0_1px_3px_0_rgba(67,89,113,0.1)] border border-gray-100 cursor-pointer hover:shadow-md transition-shadow">
                               <div className="flex justify-between items-start mb-2">
                                 <span className="text-xs font-bold text-[#696cff] line-clamp-1">{c.tutorRequest?.subject} (Lớp {c.tutorRequest?.grade})</span>
@@ -577,7 +588,7 @@ export default function AdminCRM() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {tutors.filter(t => t.walletBalance > 0).map((t) => (
+                        {filteredTutors.filter(t => t.walletBalance > 0).map((t) => (
                           <tr key={t.id} className="hover:bg-[#f9f9fa] transition-colors">
                             <td className="px-6 py-4 font-semibold text-[#696cff]">{t.fullName}</td>
                             <td className="px-6 py-4">

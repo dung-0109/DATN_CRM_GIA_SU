@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { Users, Check, AlertTriangle, Loader, Settings, DollarSign } from 'lucide-react';
+import { Users, Check, AlertTriangle, Loader, Settings, DollarSign, Search, Filter } from 'lucide-react';
 
 export default function SalesMatching() {
   const [requests, setRequests] = useState<any[]>([]);
@@ -24,7 +24,19 @@ export default function SalesMatching() {
   const [trialNote, setTrialNote] = useState('');
   const [submittingResolve, setSubmittingResolve] = useState(false);
 
+  // Filters
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('ALL');
 
+  const filteredRequests = requests.filter(req => {
+    const queryLower = searchQuery.toLowerCase();
+    const matchQuery = req.subject.toLowerCase().includes(queryLower) || 
+                       req.parent?.fullName?.toLowerCase().includes(queryLower) ||
+                       req.student?.fullName?.toLowerCase().includes(queryLower) ||
+                       req.address?.toLowerCase().includes(queryLower);
+    const matchStatus = filterStatus === 'ALL' || req.status === filterStatus;
+    return matchQuery && matchStatus;
+  });
 
   const fetchRequestsAndClasses = async () => {
     setLoading(true);
@@ -149,9 +161,37 @@ export default function SalesMatching() {
           </div>
         ) : (
           <div className="bg-white rounded-xl p-8 shadow-sm">
-            <h2 className="text-2xl font-extrabold mb-6 tracking-tight flex items-center gap-3 text-[#566a7f]">
-              <Settings className="text-[#696cff]" /> Bảng Điều phối & Khớp lớp
-            </h2>
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+              <h2 className="text-2xl font-extrabold tracking-tight flex items-center gap-3 text-[#566a7f]">
+                <Settings className="text-[#696cff]" /> Bảng Điều phối & Khớp lớp
+              </h2>
+              
+              <div className="flex items-center gap-3 w-full md:w-auto">
+                <div className="relative flex-1 md:w-64">
+                  <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a1acb8]" />
+                  <input 
+                    type="text" 
+                    placeholder="Tìm môn học, phụ huynh..." 
+                    className="w-full pl-9 pr-3 py-2 border border-[#d9dee3] rounded-lg text-sm focus:outline-none focus:border-[#696cff] transition-colors"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <div className="relative shrink-0">
+                  <Filter size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a1acb8]" />
+                  <select 
+                    className="pl-9 pr-8 py-2 border border-[#d9dee3] rounded-lg text-sm appearance-none focus:outline-none focus:border-[#696cff] text-[#566a7f] bg-white cursor-pointer"
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                  >
+                    <option value="ALL">Tất cả trạng thái</option>
+                    <option value="NEW">Mới (Chờ duyệt)</option>
+                    <option value="PUBLISHED">Đang Tuyển</option>
+                    <option value="MATCHED">Đã Khớp / Dạy thử</option>
+                  </select>
+                </div>
+              </div>
+            </div>
 
             {/* Bảng yêu cầu tìm gia sư */}
             <div className="overflow-x-auto">
@@ -167,7 +207,13 @@ export default function SalesMatching() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#d9dee3]">
-                  {requests.map((req) => (
+                  {filteredRequests.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-12 text-center text-[#a1acb8]">
+                        Không tìm thấy yêu cầu nào phù hợp.
+                      </td>
+                    </tr>
+                  ) : filteredRequests.map((req) => (
                     <tr key={req.id} className="hover:bg-[#f9f9f9] transition-colors">
                       <td className="py-4">
                         <div className="font-bold text-[#696cff]">{req.subject}</div>
