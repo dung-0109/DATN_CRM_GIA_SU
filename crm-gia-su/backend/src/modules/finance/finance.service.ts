@@ -16,8 +16,8 @@ export class FinanceService {
       throw new NotFoundException('Không tìm thấy lớp học');
     }
 
-    if (targetClass.status !== ClassStatus.OPEN) {
-      throw new BadRequestException('Lớp học này không còn ở trạng thái tuyển gia sư');
+    if (targetClass.status !== ClassStatus.DEPOSIT) {
+      throw new BadRequestException('Lớp học này không ở trạng thái chờ nộp cọc');
     }
 
     return this.prisma.$transaction(async (tx) => {
