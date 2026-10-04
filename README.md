@@ -14,9 +14,9 @@ CRM-Gia sư/
 ├── docs/                              # Toàn bộ tài liệu nghiệp vụ & kỹ thuật
 │   ├── nghiep-vu/                     # Bộ hồ sơ đặc tả nghiệp vụ chi tiết 3 cổng (Đã cải tạo)
 │   │   ├── TongHopNghiepVuCRM.md      # Tài liệu Master tổng hợp toàn bộ 3 cổng
-│   │   ├── 1-client-portal/           # Hồ sơ nghiệp vụ Cổng Phụ huynh & Học sinh (5 tài liệu)
-│   │   ├── 2-tutor-portal/            # Hồ sơ nghiệp vụ Cổng Gia sư (7 tài liệu)
-│   │   └── 3-admin-crm/               # Hồ sơ nghiệp vụ Cổng Quản trị nội bộ CRM (7 tài liệu)
+│   │   ├── 1-client-portal/           # Hồ sơ nghiệp vụ Cổng Phụ huynh & Học sinh (6 tài liệu)
+│   │   ├── 2-tutor-portal/            # Hồ sơ nghiệp vụ Cổng Gia sư (8 tài liệu)
+│   │   └── 3-admin-crm/               # Hồ sơ nghiệp vụ Cổng Quản trị nội bộ CRM (9 tài liệu)
 │   ├── guides/                        # Hướng dẫn sử dụng & vận hành
 │   │   ├── HuongDanSuDung.md          # Quy trình sử dụng cho 3 đối tượng (PH, GS, CRM)
 │   │   ├── HuongDanChayUngDung.md     # Hướng dẫn cài đặt PostgreSQL, Prisma, Node từ A-Z
@@ -86,6 +86,7 @@ Toàn bộ nghiệp vụ đã được cải tạo tối ưu theo quy trình t�
 > 🌟 **TÀI LIỆU MASTER TỔNG HỢP TOÀN BỘ:** [TongHopNghiepVuCRM.md](docs/nghiep-vu/TongHopNghiepVuCRM.md) *(Đọc liền một mạch toàn bộ 3 cổng)*
 
 ### 👨‍👩‍👧 1. Cổng Khách Hàng (`1-client-portal/`)
+* **[MỚI] Tổng quan Dashboard & Thao tác nhanh (Alerts thông minh)**
 * Quản lý tài khoản phụ huynh, hồ sơ các con
 * Đăng tin tìm gia sư miễn phí 100%
 * Trải nghiệm dạy thử và form đánh giá sau dạy thử
@@ -93,6 +94,7 @@ Toàn bộ nghiệp vụ đã được cải tạo tối ưu theo quy trình t�
 * Theo dõi lịch học và nhận xét của gia sư
 
 ### 👨‍🏫 2. Cổng Đối Tác Gia Sư (`2-tutor-portal/`)
+* **[MỚI] Dashboard & Cập nhật Hồ sơ cá nhân (Inline Edit)**
 * Xác minh CCCD/Bằng cấp
 * Sàn lớp ẩn danh và luồng đóng cọc (500k)
 * Điểm uy tín Karma, thưởng phạt
@@ -100,6 +102,9 @@ Toàn bộ nghiệp vụ đã được cải tạo tối ưu theo quy trình t�
 * Quản lý tài khoản ngân hàng nhận tiền hoàn cọc
 
 ### 🏢 3. Cổng Quản Trị Trung Tâm (`3-admin-crm/`)
+* **[MỚI] Chế độ Dual View (Kanban & Bảng danh sách phân trang)**
+* **[MỚI] Quản lý Dữ liệu Người dùng (Tạo thủ công, Bộ lọc)**
+* **[MỚI] Tiêu chuẩn UI/UX Hiện đại (Dynamic Headers, Toast Notifications)**
 * Phễu Kanban giám sát vòng đời lớp học tự động
 * Bộ máy Smart Matching Engine gợi ý Top 5 gia sư
 * Trọng tài đối soát cọc và phán quyết
