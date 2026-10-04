@@ -13,15 +13,16 @@ export default function AdminCRM() {
   const isDashboard = location.pathname === '/admin-crm' || location.pathname === '/admin-crm/';
 
   const { activeProfile, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'tutors' | 'classes' | 'payouts'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'tutors' | 'parents' | 'classes' | 'payouts'>('overview');
   const [triggering, setTriggering] = useState(false);
   const [tutors, setTutors] = useState<any[]>([]);
+  const [parents, setParents] = useState<any[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const handleTabClick = (tab: 'overview' | 'tutors' | 'classes' | 'payouts') => {
+  const handleTabClick = (tab: 'overview' | 'tutors' | 'parents' | 'classes' | 'payouts') => {
     setActiveTab(tab);
     if (!isDashboard) {
       navigate('/admin-crm');
@@ -46,6 +47,18 @@ export default function AdminCRM() {
     }
   };
 
+  const fetchParents = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get('/api/v1/crm/parents');
+      setParents(res.data);
+    } catch (err) {
+      console.error('Không thể tải danh sách phụ huynh', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchClasses = async () => {
     setLoading(true);
     try {
@@ -61,6 +74,8 @@ export default function AdminCRM() {
   useEffect(() => {
     if (activeTab === 'tutors' || activeTab === 'payouts') {
       fetchTutors();
+    } else if (activeTab === 'parents') {
+      fetchParents();
     } else if (activeTab === 'classes') {
       fetchClasses();
     }
@@ -123,6 +138,12 @@ export default function AdminCRM() {
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors ${activeTab === 'tutors' ? 'bg-[#696cff]/10 text-[#696cff] font-semibold' : 'text-[#697a8d] hover:bg-[#f5f5f9]'}`}
             >
               <Users size={18} /> <span>Quản lý Gia sư</span>
+            </button>
+            <button
+              onClick={() => handleTabClick('parents')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors ${activeTab === 'parents' ? 'bg-[#696cff]/10 text-[#696cff] font-semibold' : 'text-[#697a8d] hover:bg-[#f5f5f9]'}`}
+            >
+              <User size={18} /> <span>Quản lý Phụ huynh</span>
             </button>
             <button
               onClick={() => handleTabClick('classes')}
@@ -374,6 +395,55 @@ export default function AdminCRM() {
                               >
                                 {t.status === 'ACTIVE' ? 'Khóa' : 'Kích hoạt'}
                               </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+          {activeTab === 'parents' && (
+              <div className="bg-white rounded-xl shadow-sm border border-[rgba(67,89,113,0.05)] overflow-hidden animate-fadeIn">
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                  <h5 className="text-lg font-semibold text-[#566a7f]">Danh sách Phụ huynh</h5>
+                  <button className="px-3 py-1.5 bg-[#696cff]/10 text-[#696cff] font-semibold text-sm rounded hover:bg-[#696cff]/20 transition-colors">
+                    + Thêm Phụ huynh
+                  </button>
+                </div>
+                {loading ? (
+                  <div className="p-8 text-center text-[#a1acb8]">Đang tải...</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm text-[#697a8d]">
+                      <thead className="bg-[#f9f9fa] text-[#566a7f] font-semibold">
+                        <tr>
+                          <th className="px-6 py-4">PHỤ HUYNH</th>
+                          <th className="px-6 py-4">LIÊN HỆ</th>
+                          <th className="px-6 py-4">ĐỊA CHỈ</th>
+                          <th className="px-6 py-4 text-center">THỐNG KÊ</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {parents.map(p => (
+                          <tr key={p.id} className="hover:bg-[#f9f9fa] transition-colors">
+                            <td className="px-6 py-4 font-semibold text-[#696cff]">{p.fullName}</td>
+                            <td className="px-6 py-4 text-xs">
+                              <div className="text-[#566a7f] font-semibold">{p.user?.phone || 'Chưa cập nhật'}</div>
+                              <div className="text-[#a1acb8]">{p.user?.email || ''}</div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-[#566a7f]">{p.district} - {p.province}</div>
+                              <div className="text-xs text-[#a1acb8]">{p.address}</div>
+                            </td>
+                            <td className="px-6 py-4 text-center">
+                              <div className="text-xs text-[#a1acb8]">
+                                <span className="font-bold text-[#696cff]">{p._count?.classes || 0}</span> lớp học
+                                &nbsp;|&nbsp;
+                                <span className="font-bold text-[#ffab00]">{p._count?.tutorRequests || 0}</span> yêu cầu
+                              </div>
                             </td>
                           </tr>
                         ))}

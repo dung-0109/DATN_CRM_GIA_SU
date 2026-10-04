@@ -25,6 +25,13 @@ export class CrmController {
     return this.crmService.getAllTutors();
   }
 
+  // Lấy danh sách Phụ huynh (Admin, Sales, Học vụ)
+  @Get('parents')
+  @Roles(UserRole.ADMIN, UserRole.SALES, UserRole.ACADEMIC)
+  async getAllParents() {
+    return this.crmService.getAllParents();
+  }
+
   // 2. Cập nhật trạng thái Gia sư: ACTIVE, BANNED, PENDING_REVIEW (Admin, Sales)
   @Post('tutors/:id/status')
   @Roles(UserRole.ADMIN, UserRole.SALES)

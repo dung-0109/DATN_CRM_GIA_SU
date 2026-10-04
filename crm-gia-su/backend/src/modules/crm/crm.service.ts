@@ -54,6 +54,15 @@ export class CrmService {
     });
   }
 
+  async getAllParents() {
+    return this.prisma.parent.findMany({
+      include: {
+        user: { select: { phone: true, email: true, isActive: true } },
+        _count: { select: { classes: true, tutorRequests: true } }
+      },
+    });
+  }
+
   async updateTutorStatus(tutorId: string, status: string) {
     const tutor = await this.prisma.tutor.findUnique({ where: { id: tutorId } });
     if (!tutor) {
