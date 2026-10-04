@@ -32,6 +32,7 @@
    * [4.5. Phân hệ Trọng tài Đối soát Cọc & Lưu vết Kiểm toán Audit Logs](#45-phân-hệ-trọng-tài-đối-soát-cọc--lưu-vết-kiểm-toán-audit-logs)
    * [4.6. Quản lý Ticket Bảo hành 30 Ngày & Báo cáo KPI Vận hành](#46-quản-lý-ticket-bảo-hành-30-ngày--báo-cáo-kpi-vận-hành)
    * [4.7. Quản lý Phân quyền Người dùng (RBAC) & Cấu hình Tham số Vận hành](#47-quản-lý-phân-quyền-người-dùng-rbac--cấu-hình-tham-số-vận-hành)
+   * [4.8. Quản Lý Dữ Liệu Gia Sư & Phụ Huynh (Users Management)](#48-quản-lý-dữ-liệu-gia-sư--phụ-huynh-users-management)
 5. [PHẦN V: QUY CHUẨN TƯƠNG TÁC NGHIỆP VỤ TRÊN GIAO DIỆN WEB](#phần-v-quy-chuẩn-tương-tác-nghiệp-vụ-trên-giao-diện-web)
    * [5.1. Luồng Thanh toán VietQR Động theo Màn hình Thiết bị](#51-luồng-thanh-toán-vietqr-động-theo-màn-hình-thiết-bị)
    * [5.2. Luồng Thông báo Đa kênh Thời gian thực](#52-luồng-thông-báo-đa-kênh-thời-gian-thực)
@@ -360,6 +361,10 @@ stateDiagram-v2
   3. **Học chính thức (`TEACHING`):** Phụ huynh đã bấm chốt nhận trên web, cọc chuyển thành phí môi giới, lớp học đều đặn hàng tuần.
   4. **Đã đóng / Hủy (`CLOSED`):** Lớp hoàn tất khóa học hoặc bị hủy (kèm lý do `cancel_reason`: *Gia sư dạy kém, Phụ huynh bận, v.v.*).
 
+* **Chế độ xem kép (Dual View Mode):**
+  * **Chế độ Kanban Board:** Dành cho việc theo dõi trực quan luồng tiến độ trạng thái (có thanh cuộn độc lập cho từng cột chống tràn trang).
+  * **Chế độ Danh sách (Table View):** Dành cho Kế toán hoặc Quản lý khi cần hiển thị danh sách gọn gàng dưới dạng Bảng, kết hợp tính năng Phân trang giúp dễ dàng quét số lượng dữ liệu lớn.
+
 ---
 
 ## 4.3. Hồ Sơ Khách Hàng 360 Độ & Lịch Sử Lớp Học
@@ -429,6 +434,16 @@ Màn hình chuyên trách của Học vụ và Kế toán khi lớp kết thúc 
 
 ---
 
+## 4.8. Quản Lý Dữ Liệu Gia Sư & Phụ Huynh (Users Management)
+
+Hệ thống Admin CRM cung cấp phân hệ quản trị tài khoản người dùng với các tính năng sau:
+* **Tạo mới người dùng thủ công:** Thông qua cửa sổ "Add User Modal", quản trị viên có thể trực tiếp nhập thông tin (*Họ tên, SĐT, Mật khẩu*) để khởi tạo tài khoản Gia sư hoặc Phụ huynh ngay từ Dashboard mà không cần người dùng tự đăng ký. Hệ thống sẽ tự động khởi tạo các Profile (`parent_profiles`, `tutor_profiles`) tương ứng.
+* **Tìm kiếm & Phân trang dữ liệu:** Hỗ trợ thanh tìm kiếm thời gian thực (Search Bar) bằng Tên hoặc Số điện thoại. Danh sách người dùng được thiết kế dưới dạng Table hiện đại, có phân trang (Pagination) giới hạn số dòng hiển thị giúp tốc độ tải trang nhanh kể cả khi dữ liệu lên tới hàng nghìn hồ sơ.
+* **Bộ lọc trạng thái (Filters):** Cho phép lọc danh sách Gia sư hoặc Phụ huynh theo trạng thái (Tất cả, Đang hoạt động `ACTIVE`, Bị khóa `BANNED`).
+* **Khóa/Mở khóa tài khoản 1 chạm:** Tích hợp nút thao tác nhanh trên mỗi dòng để Block hoặc Unblock tài khoản ngay lập tức.
+
+---
+
 # PHẦN V: QUY CHUẨN TƯƠNG TÁC NGHIỆP VỤ TRÊN GIAO DIỆN WEB
 
 ## 5.1. Luồng Thanh toán VietQR Động theo Màn hình Thiết bị
@@ -438,6 +453,7 @@ Màn hình chuyên trách của Học vụ và Kế toán khi lớp kết thúc 
 
 ## 5.2. Luồng Thông báo Đa kênh Thời gian thực
 
+* **Thông báo dạng Popup xịn xò (Toast Notifications):** 100% các thao tác thành công, thất bại hay cảnh báo trên toàn bộ hệ thống (Web CRM) đều được thay thế bằng các bảng thông báo góc màn hình (`react-hot-toast`), tự động biến mất, loại bỏ hoàn toàn các popup `alert()` gây gián đoạn luồng người dùng.
 * **Thông báo trong Web (In-App Bell):** Hiển thị chấm đỏ và danh sách thông báo thời gian thực khi người dùng đang mở tab web.
 * **Kênh Zalo ZNS / SMS Brandname:** Tự động gửi tin nhắn khi người dùng đóng tab web (Mã OTP đăng nhập, thông báo lớp mới kèm link, link đánh giá dạy thử, thông báo hoàn cọc ngân hàng).
 * **Telegram Bot:** Kênh thông báo lớp mới tức thì cho gia sư có liên kết tài khoản.
