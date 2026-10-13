@@ -1,6 +1,14 @@
 import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
-import { ClassStatus, TransactionType, TransactionStatus } from '@prisma/client';
+import { 
+  ClassStatus, 
+  TransactionType, 
+  TransactionStatus, 
+  SessionStatus, 
+  NotificationType, 
+  RequestStatus, 
+  ApplicationStatus 
+} from '@prisma/client';
 
 @Injectable()
 export class SessionService {
@@ -16,12 +24,18 @@ export class SessionService {
   async reviewTrial(parentId: string, classId: string, dto: any) {
     const targetClass = await this.prisma.class.findUnique({
       where: { id: classId },
-      include: { tutor: true }
+      include: { 
+        tutor: { select: { id: true, karmaScore: true, user: { select: { id: true } } } },
+        tutorRequest: true,
+        student: true,
+      }
     });
 
     if (!targetClass) throw new NotFoundException('Không tìm thấy lớp học');
-    if (targetClass.parentId !== parentId) throw new ForbiddenException('Không có quyền');
-    if (targetClass.status !== ClassStatus.TRIAL) throw new BadRequestException('Lớp không ở trạng thái dạy thử');
+    if (targetClass.parentId !== parentId) throw new ForbiddenException('Bạn không có quyền đánh giá lớp này');
+    if (targetClass.status !== ClassStatus.TRIAL && targetClass.status !== ClassStatus.DEPOSIT) {
+      throw new BadRequestException('Lớp không ở trạng thái dạy thử hoặc chờ đánh giá');
+    }
 
     return this.prisma.$transaction(async (tx) => {
       let newClassStatus: ClassStatus = ClassStatus.TEACHING;
@@ -44,47 +58,151 @@ export class SessionService {
           break;
         case 'SCALE_DOWN':
           newClassStatus = ClassStatus.OPEN;
-          depositAction = TransactionType.DEPOSIT_REFUNDED; // Refund 50% logic would be handled by accountant later
+          depositAction = TransactionType.DEPOSIT_REFUNDED;
           karmaChange = -2;
           break;
         default:
-          throw new BadRequestException('Hành động không hợp lệ');
+          throw new BadRequestException('Hành động đánh giá không hợp lệ');
       }
 
-      // Update class
+      // 1. Cập nhật thông tin Lớp học (Class)
+      const sessionsPerMonth = (targetClass.tutorRequest?.sessionsPerWeek || 2) * 4;
       const updatedClass = await tx.class.update({
         where: { id: classId },
         data: { 
           status: newClassStatus,
+          remainingSessions: newClassStatus === ClassStatus.TEACHING ? sessionsPerMonth : 0,
           tutorId: newClassStatus === ClassStatus.OPEN ? null : targetClass.tutorId,
           cancelReason: newClassStatus !== ClassStatus.TEACHING ? dto.reason : null
         }
       });
 
-      // Update Tutor Karma
+      // 2. Nếu ACCEPT: Chốt lịch học định kỳ & sinh buổi học (Sessions) tự động
+      if (dto.action === 'ACCEPT') {
+        // Cập nhật trạng thái Yêu cầu tìm gia sư sang MATCHED
+        if (targetClass.tutorRequestId) {
+          await tx.tutorRequest.update({
+            where: { id: targetClass.tutorRequestId },
+            data: { status: RequestStatus.MATCHED }
+          });
+        }
+
+        // Lưu danh sách ca học cố định (ClassSchedule)
+        if (dto.schedules && Array.isArray(dto.schedules) && dto.schedules.length > 0) {
+          await tx.classSchedule.deleteMany({ where: { classId } });
+          for (const s of dto.schedules) {
+            await tx.classSchedule.create({
+              data: {
+                classId,
+                dayOfWeek: Number(s.dayOfWeek) || 2,
+                slotStart: s.slotStart || '19:30',
+                slotEnd: s.slotEnd || '21:00',
+                isActive: true
+              }
+            });
+          }
+
+          // Tự động sinh danh sách buổi học (Sessions) cho 4 tuần tiếp theo
+          const startDate = dto.startDate ? new Date(dto.startDate) : new Date(Date.now() + 24 * 60 * 60 * 1000);
+          for (let dayOffset = 0; dayOffset < 28; dayOffset++) {
+            const curDate = new Date(startDate.getTime() + dayOffset * 24 * 60 * 60 * 1000);
+            const vnDay = curDate.getDay() === 0 ? 8 : curDate.getDay() + 1; // 2=T2, ..., 8=CN
+            const matchedSlot = dto.schedules.find((s: any) => Number(s.dayOfWeek) === vnDay);
+
+            if (matchedSlot) {
+              const [h, m] = (matchedSlot.slotStart || '19:30').split(':').map(Number);
+              const sessionTime = new Date(curDate);
+              sessionTime.setHours(h || 19, m || 30, 0, 0);
+
+              await tx.session.create({
+                data: {
+                  classId,
+                  scheduledTime: sessionTime,
+                  status: SessionStatus.SCHEDULED,
+                  tutorNotes: `Buổi học chính thức. Lịch: Thứ ${vnDay === 8 ? 'CN' : vnDay} (${matchedSlot.slotStart} - ${matchedSlot.slotEnd})`,
+                }
+              });
+            }
+          }
+        }
+
+        // Gửi thông báo chúc mừng cho Gia sư
+        if (targetClass.tutor?.user?.id) {
+          await tx.notification.create({
+            data: {
+              userId: targetClass.tutor.user.id,
+              type: NotificationType.CLASS_UPDATE,
+              title: 'Chúc mừng! Phụ huynh đã chốt nhận bạn dạy chính thức',
+              content: `Phụ huynh của em ${targetClass.student?.fullName || 'học sinh'} đã hài lòng với buổi dạy thử và chốt hợp đồng chính thức môn ${targetClass.tutorRequest?.subject || ''}. Lịch dạy cố định đã được cập nhật vào thời khóa biểu.`,
+            }
+          });
+        }
+      }
+
+      // 3. Nếu REJECT_TUTOR: Thu hồi lớp, mở lại cho ứng viên khác & hoàn cọc
+      if (dto.action === 'REJECT_TUTOR') {
+        if (targetClass.tutorRequestId) {
+          await tx.tutorRequest.update({
+            where: { id: targetClass.tutorRequestId },
+            data: { status: RequestStatus.CONSULTING }
+          });
+          if (targetClass.tutorId) {
+            await tx.classApplication.updateMany({
+              where: { tutorRequestId: targetClass.tutorRequestId, tutorId: targetClass.tutorId },
+              data: { status: ApplicationStatus.REJECTED, note: dto.reason }
+            });
+          }
+        }
+
+        // Thông báo cho Gia sư
+        if (targetClass.tutor?.user?.id) {
+          await tx.notification.create({
+            data: {
+              userId: targetClass.tutor.user.id,
+              type: NotificationType.CLASS_UPDATE,
+              title: 'Kết quả buổi dạy thử',
+              content: `Phụ huynh lớp ${targetClass.tutorRequest?.subject || ''} yêu cầu đổi gia sư do chưa phù hợp. Tiền cọc của bạn đã được hoàn lại.`,
+            }
+          });
+        }
+      }
+
+      // 4. Nếu REJECT_PARENT: Hủy lớp
+      if (dto.action === 'REJECT_PARENT') {
+        if (targetClass.tutorRequestId) {
+          await tx.tutorRequest.update({
+            where: { id: targetClass.tutorRequestId },
+            data: { status: RequestStatus.CANCELLED }
+          });
+        }
+      }
+
+      // 5. Cập nhật điểm uy tín Karma của Gia sư nếu có thay đổi
       if (karmaChange !== 0 && targetClass.tutorId) {
         await tx.tutor.update({
           where: { id: targetClass.tutorId },
-          data: { karmaScore: targetClass.tutor!.karmaScore + karmaChange }
+          data: { karmaScore: Math.max(0, targetClass.tutor!.karmaScore + karmaChange) }
         });
       }
 
-      // Create transaction record for deposit resolution
+      // 6. Ghi nhận giao dịch tài chính (FEE_CONFIRMED / DEPOSIT_REFUNDED / FORFEITED)
       if (targetClass.tutorId) {
-         await tx.transaction.create({
-            data: {
-              tutorId: targetClass.tutorId,
-              classId: classId,
-              type: depositAction,
-              amount: 500000,
-              status: TransactionStatus.SUCCESSFUL,
-              reference: `Quyết toán cọc sau dạy thử: ${dto.action}`,
-            },
-         });
+        await tx.transaction.create({
+          data: {
+            tutorId: targetClass.tutorId,
+            classId: classId,
+            type: depositAction,
+            amount: 500000,
+            status: TransactionStatus.SUCCESSFUL,
+            reference: `Quyết toán cọc sau dạy thử: ${dto.action} - ${dto.reason || 'Chốt lớp chính thức'}`,
+          },
+        });
       }
 
       return {
-        message: 'Đánh giá dạy thử thành công',
+        message: dto.action === 'ACCEPT' 
+          ? 'Chúc mừng! Đã chốt nhận gia sư và kích hoạt lịch học chính thức thành công!' 
+          : 'Đã gửi đánh giá và xử lý kết quả dạy thử thành công',
         class: updatedClass
       };
     });
