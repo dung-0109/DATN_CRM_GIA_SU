@@ -11,7 +11,7 @@ import PageTemplate from '../../components/PageTemplate';
 import toast from 'react-hot-toast';
 
 export default function ClientPortal() {
-  const { activeProfile } = useAuth();
+  const { activeProfile, user } = useAuth();
   const isParent = activeProfile?.type === 'PARENT' && !activeProfile?.subType;
 
   const [classes, setClasses] = useState<any[]>([]);
@@ -489,7 +489,7 @@ export default function ClientPortal() {
                   <div className="pt-2 border-t border-gray-100 space-y-2.5 text-xs text-[#566a7f]">
                     <div className="flex items-center gap-2">
                       <Phone size={13} className="text-[#696cff] shrink-0" />
-                      <span>{profileInfo.user?.phone || activeProfile?.phone || 'Chưa có SĐT'}</span>
+                      <span>{profileInfo.user?.phone || user?.phone || 'Chưa có SĐT'}</span>
                     </div>
 
                     {profileInfo.user?.email && (

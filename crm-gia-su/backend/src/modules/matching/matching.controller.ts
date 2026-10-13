@@ -29,4 +29,13 @@ export class MatchingController {
   ) {
     return this.matchingService.assignTutor(requestId, tutorId);
   }
+
+  @Post('requests/:id/propose')
+  @Roles(UserRole.ADMIN, UserRole.SALES, UserRole.ACADEMIC)
+  async proposeTutor(
+    @Param('id') requestId: string,
+    @Body('tutorId') tutorId: string
+  ) {
+    return this.matchingService.proposeTutor(requestId, tutorId);
+  }
 }

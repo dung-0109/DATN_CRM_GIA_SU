@@ -56,6 +56,27 @@ export class TutorRequestsController {
     return this.matchingService.selectTutorForParent(parentId, id, tutorId);
   }
 
+  @Post(':id/reject-proposed-tutor')
+  @Roles(UserRole.PARENT)
+  async rejectProposedTutor(
+    @CurrentUser('profileId') parentId: string,
+    @Param('id') id: string,
+    @Body('reason') reason?: string,
+  ) {
+    return this.matchingService.rejectProposedTutor(parentId, id, reason);
+  }
+
+  @Post(':id/approve-proposed-tutor')
+  @Roles(UserRole.PARENT)
+  async approveProposedTutor(
+    @CurrentUser('profileId') parentId: string,
+    @Param('id') id: string,
+    @Body('trialSchedule') trialSchedule: string,
+    @Body('trialDate') trialDate?: string,
+  ) {
+    return this.matchingService.approveProposedTutor(parentId, id, trialSchedule, trialDate);
+  }
+
   // Lấy danh sách lớp tuyển gia sư (dành cho Gia sư, Sales, Admin)
   @Get()
   @Roles(UserRole.TUTOR, UserRole.ADMIN, UserRole.SALES)

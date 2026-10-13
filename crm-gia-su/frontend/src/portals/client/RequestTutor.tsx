@@ -3,7 +3,8 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import api from '../../services/api';
 import { 
   BookOpen, User, Clock, Send, ArrowLeft, Loader, 
-  MapPin, Check, X, Home, Laptop, Info, CalendarCheck, Handshake
+  MapPin, Check, X, Home, Laptop, Info, CalendarCheck, Handshake,
+  Sparkles, ShieldCheck, Award, PhoneCall, Calendar
 } from 'lucide-react';
 import PageTemplate from '../../components/PageTemplate';
 
@@ -129,17 +130,11 @@ export default function RequestTutor() {
   // Toggle ca rảnh trong ma trận
   const toggleSlot = (slotText: string) => {
     setSelectedSlots((prev) => {
-      let updated: string[];
       if (prev.includes(slotText)) {
-        updated = prev.filter((s) => s !== slotText);
+        return prev.filter((s) => s !== slotText);
       } else {
-        updated = [...prev, slotText];
+        return [...prev, slotText];
       }
-      // Tự cập nhật số buổi nếu có chọn ca
-      if (updated.length > 0 && !flexibleSchedule) {
-        setSessionsPerWeek(Math.min(7, Math.max(1, updated.length)));
-      }
-      return updated;
     });
   };
 
@@ -176,6 +171,17 @@ export default function RequestTutor() {
     if (learningMode === 'OFFLINE' && !address.trim()) {
       setError('Vui lòng nhập địa chỉ học tại nhà để trung tâm điều phối gia sư gần khu vực');
       return;
+    }
+
+    if (!flexibleSchedule) {
+      if (selectedSlots.length === 0) {
+        setError('Vui lòng chọn các ca rảnh của bé trong tuần hoặc chọn chế độ "Hai bên tự thỏa thuận lịch sau"');
+        return;
+      }
+      if (selectedSlots.length < sessionsPerWeek) {
+        setError(`Bạn đã chọn học ${sessionsPerWeek} buổi/tuần ở mục 4, vui lòng chọn ít nhất ${sessionsPerWeek} ca rảnh để gia sư có thể xếp lịch dạy.`);
+        return;
+      }
     }
 
     // Tổng hợp lịch rảnh
@@ -221,6 +227,7 @@ export default function RequestTutor() {
   };
 
   const selectedStudentObj = students.find((s) => s.id === studentId);
+  const estimatedMonthlyCost = (Number(budgetPerSession) || 0) * (Number(sessionsPerWeek) || 0) * 4;
 
   return (
     <PageTemplate
@@ -228,18 +235,25 @@ export default function RequestTutor() {
       subtitle="Tạo yêu cầu tìm gia sư dạy kèm theo nhu cầu học tập của con"
       badge="Client Portal"
     >
-      <div className="max-w-3xl mx-auto w-full space-y-6 text-left font-sans text-[#566a7f]">
-        {/* Navigation Back */}
-        <div className="flex items-center justify-between">
+      <div className="w-full space-y-6 text-left font-sans text-[#566a7f]">
+        {/* Navigation Back & Value Badge */}
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <Link
             to="/client"
-            className="text-xs font-semibold text-[#697a8d] hover:text-[#696cff] bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
+            className="text-xs font-semibold text-[#697a8d] hover:text-[#696cff] bg-white border border-gray-200 px-3.5 py-2 rounded-xl shadow-sm transition-colors flex items-center gap-1.5"
           >
             <ArrowLeft size={14} /> Quay lại Client Portal
           </Link>
+          <div className="text-xs font-medium hidden sm:flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-3.5 py-1.5 rounded-full shadow-sm">
+            <Sparkles size={14} className="text-emerald-500" />
+            <span>Đăng tin 0đ • Học thử 1-2 buổi miễn phí • Bảo hành 30 ngày</span>
+          </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8 space-y-6">
+        {/* 2-Column Responsive Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* CỘT TRÁI (8 / 12): Form Đăng Ký Chính */}
+          <div className="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 space-y-6">
           {/* Header */}
           <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
             <div className="w-11 h-11 rounded-xl bg-[#e7e7ff] text-[#696cff] flex items-center justify-center font-bold shadow-sm">
@@ -430,15 +444,15 @@ export default function RequestTutor() {
                     <label className="block text-xs font-semibold text-[#566a7f] mb-1">
                       Số buổi học / tuần
                     </label>
-                    <div className="flex items-center gap-2">
-                      {[1, 2, 3, 4, 5].map((n) => (
+                    <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+                      {[1, 2, 3, 4, 5, 6, 7].map((n) => (
                         <button
                           key={n}
                           type="button"
                           onClick={() => setSessionsPerWeek(n)}
-                          className={`flex-1 py-2 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
+                          className={`flex-1 min-w-[42px] py-2 sm:py-2.5 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
                             sessionsPerWeek === n
-                              ? 'bg-[#696cff] border-[#696cff] text-white shadow-sm'
+                              ? 'bg-[#696cff] border-[#696cff] text-white shadow-sm ring-2 ring-[#696cff]/20'
                               : 'bg-white border-[#d9dee3] text-[#566a7f] hover:border-gray-300'
                           }`}
                         >
@@ -654,13 +668,19 @@ export default function RequestTutor() {
                     {/* Danh sách các ca đã chọn */}
                     {selectedSlots.length > 0 && (
                       <div className="pt-2">
-                        <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
                           <span className="text-[11px] font-bold text-[#566a7f]">
-                            Đã chọn {selectedSlots.length} ca rảnh:
+                            Đã chọn {selectedSlots.length} ca rảnh (Nhu cầu: {sessionsPerWeek} buổi/tuần):
                           </span>
-                          <span className="text-[10px] text-[#a1acb8]">
-                            Hệ thống đã tự cân đối {sessionsPerWeek} buổi/tuần
-                          </span>
+                          {selectedSlots.length < sessionsPerWeek ? (
+                            <span className="text-[11px] font-semibold text-[#ff3e1d] bg-[#ffe0db] px-2 py-0.5 rounded-md">
+                              ⚠️ Cần chọn thêm ít nhất {sessionsPerWeek - selectedSlots.length} ca rảnh
+                            </span>
+                          ) : (
+                            <span className="text-[11px] font-semibold text-[#71dd37] bg-[#e8fadf] px-2 py-0.5 rounded-md">
+                              ✓ Đủ điều kiện xếp lịch ({selectedSlots.length}/{sessionsPerWeek})
+                            </span>
+                          )}
                         </div>
                         <div className="flex flex-wrap gap-1.5">
                           {selectedSlots.map((s) => (
@@ -804,6 +824,158 @@ export default function RequestTutor() {
               </div>
             </form>
           )}
+          </div>
+
+          {/* CỘT PHẢI (4 / 12): Sticky Live Summary & Trust Box */}
+          <div className="lg:col-span-4 space-y-5 lg:sticky lg:top-20">
+            {/* Card 1: Live Summary Card */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 space-y-4">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-gray-100">
+                <div className="w-9 h-9 rounded-xl bg-[#e7e7ff] text-[#696cff] flex items-center justify-center font-bold shadow-sm">
+                  <BookOpen size={18} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#566a7f]">Tóm tắt Yêu cầu Lớp</h3>
+                  <p className="text-[10px] text-[#a1acb8]">Cập nhật theo biểu mẫu của bạn</p>
+                </div>
+              </div>
+
+              <div className="space-y-2.5 text-xs">
+                <div className="flex items-center justify-between py-1.5 border-b border-gray-50">
+                  <span className="text-[#a1acb8]">Học sinh:</span>
+                  <span className="font-bold text-[#566a7f]">
+                    {selectedStudentObj ? selectedStudentObj.fullName : <span className="text-[#a1acb8] font-normal italic">Chưa chọn con</span>}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between py-1.5 border-b border-gray-50">
+                  <span className="text-[#a1acb8]">Môn học & Lớp:</span>
+                  <span className="font-bold text-[#566a7f] text-right">
+                    {subject ? `${subject}${grade ? ` (${grade})` : ''}` : <span className="text-[#a1acb8] font-normal italic">Chưa nhập</span>}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between py-1.5 border-b border-gray-50">
+                  <span className="text-[#a1acb8]">Đối tượng gia sư:</span>
+                  <span className="font-semibold text-[#566a7f]">
+                    {tutorTypePref === 'STUDENT' ? 'Sinh viên' : tutorTypePref === 'TEACHER' ? 'Giáo viên' : 'Linh hoạt'}
+                    {tutorGenderPref === 'MALE' ? ' (Nam)' : tutorGenderPref === 'FEMALE' ? ' (Nữ)' : ''}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between py-1.5 border-b border-gray-50">
+                  <span className="text-[#a1acb8]">Hình thức học:</span>
+                  <span className="font-semibold text-[#566a7f]">
+                    {learningMode === 'OFFLINE' ? '🏠 Tại nhà (Offline)' : '💻 Học Online'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between py-1.5 border-b border-gray-50">
+                  <span className="text-[#a1acb8]">Tần suất:</span>
+                  <span className="font-bold text-[#696cff]">{sessionsPerWeek} buổi / tuần</span>
+                </div>
+
+                <div className="flex items-center justify-between py-1.5 border-b border-gray-50">
+                  <span className="text-[#a1acb8]">Học phí đề xuất:</span>
+                  <span className="font-bold text-[#566a7f]">{formatVND(budgetPerSession)} / buổi</span>
+                </div>
+              </div>
+
+              {/* Ước tính học phí tháng */}
+              <div className="p-3.5 bg-gradient-to-br from-[#f8f9fa] to-[#e7e7ff]/40 rounded-xl border border-[#696cff]/20 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-[#566a7f]">Dự tính học phí / tháng:</span>
+                  <span className="text-base font-extrabold text-[#696cff]">{formatVND(estimatedMonthlyCost)}</span>
+                </div>
+                <p className="text-[10px] text-[#a1acb8] leading-tight">
+                  (4 tuần × {sessionsPerWeek} buổi × {formatVND(budgetPerSession)}. Phụ huynh thanh toán trực tiếp cho gia sư vào cuối tháng).
+                </p>
+              </div>
+
+              {/* Lịch học / Ca rảnh */}
+              <div className="pt-1">
+                <div className="text-[11px] font-bold text-[#566a7f] mb-1.5">Lịch học mong muốn:</div>
+                {flexibleSchedule ? (
+                  <div className="text-[11px] text-[#696cff] bg-[#e7e7ff]/60 px-3 py-2 rounded-xl flex items-center gap-2">
+                    <Handshake size={14} className="shrink-0" />
+                    <span>Hai bên tự thỏa thuận lịch sau</span>
+                  </div>
+                ) : selectedSlots.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {selectedSlots.slice(0, 4).map((s) => (
+                      <span key={s} className="text-[10px] px-2 py-0.5 rounded-md bg-[#e7e7ff] text-[#696cff] font-medium">
+                        {s}
+                      </span>
+                    ))}
+                    {selectedSlots.length > 4 && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-gray-100 text-gray-500 font-medium">
+                        +{selectedSlots.length - 4} ca khác
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-[11px] text-gray-400 italic">Chưa chọn ca rảnh nào</div>
+                )}
+              </div>
+            </div>
+
+            {/* Card 2: Cam kết & Quyền lợi phụ huynh */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 space-y-3.5">
+              <div className="text-xs font-bold uppercase tracking-wider text-[#566a7f] flex items-center gap-2">
+                <ShieldCheck size={16} className="text-emerald-500" />
+                <span>Quyền Lợi & Bảo Hành</span>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-start gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                    <Check size={12} strokeWidth={3} />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-[#566a7f]">Dạy thử 1 - 2 buổi đánh giá</div>
+                    <p className="text-[11px] text-[#a1acb8] leading-relaxed">
+                      Chỉ chốt lớp khi con hiểu bài và gia đình thực sự hài lòng.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                    <Check size={12} strokeWidth={3} />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-[#566a7f]">Bảo hành đổi gia sư 30 ngày</div>
+                    <p className="text-[11px] text-[#a1acb8] leading-relaxed">
+                      Hỗ trợ đổi gia sư mới miễn phí trong 24h nếu trong tháng đầu phát sinh vấn đề.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                    <Check size={12} strokeWidth={3} />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-[#566a7f]">Gia sư đã xác thực KYC</div>
+                    <p className="text-[11px] text-[#a1acb8] leading-relaxed">
+                      Kiểm duyệt 100% bằng cấp, CCCD và điểm uy tín Karma minh bạch.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Hotline hỗ trợ trực tiếp */}
+            <div className="bg-gradient-to-r from-[#696cff]/10 to-[#e7e7ff]/30 rounded-2xl border border-[#696cff]/20 p-4 text-xs space-y-1.5">
+              <div className="font-bold text-[#696cff] flex items-center gap-1.5">
+                <PhoneCall size={14} />
+                <span>Cần tư vấn hỗ trợ xếp lớp?</span>
+              </div>
+              <p className="text-[11px] text-[#697a8d] leading-relaxed">
+                Đội ngũ Học vụ hỗ trợ từ 8h00 - 22h00 qua Hotline: <strong className="text-[#566a7f]">0123 456 789</strong>.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </PageTemplate>

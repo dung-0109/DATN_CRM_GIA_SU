@@ -8,11 +8,18 @@ export class MatchingService {
 
   async findAllRequests() {
     return this.prisma.tutorRequest.findMany({
-      where: { deletedAt: null, status: RequestStatus.PUBLISHED },
+      where: { deletedAt: null },
       include: {
         parent: { select: { fullName: true } },
         student: { select: { fullName: true, grade: true } },
-        _count: { select: { classApplications: true } }
+        classApplications: {
+          select: {
+            id: true,
+            status: true,
+            tutorId: true,
+          },
+        },
+        _count: { select: { classApplications: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -29,20 +36,20 @@ export class MatchingService {
               include: {
                 classes: {
                   include: {
-                    sessions: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                    sessions: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!request) throw new NotFoundException('Không tìm thấy yêu cầu tìm gia sư');
 
     // Đánh giá điểm phù hợp (Match Score) cho từng gia sư ứng tuyển
-    const scoredTutors = request.classApplications.map(app => {
+    const scoredTutors = request.classApplications.map((app) => {
       const tutor = app.tutor;
       let score = 0;
 
@@ -50,7 +57,10 @@ export class MatchingService {
       score += tutor.karmaScore;
 
       // 2. Điểm học vị / chuyên môn (Tối đa 30 điểm)
-      if (tutor.qualification?.toLowerCase().includes('sư phạm') || tutor.qualification?.toLowerCase().includes('giáo viên')) {
+      if (
+        tutor.qualification?.toLowerCase().includes('sư phạm') ||
+        tutor.qualification?.toLowerCase().includes('giáo viên')
+      ) {
         score += 30;
       } else if (tutor.qualification?.toLowerCase().includes('đại học')) {
         score += 15;
@@ -61,8 +71,8 @@ export class MatchingService {
       let totalSessions = 0;
       let totalDisputes = 0;
 
-      pastClasses.forEach(c => {
-        c.sessions.forEach(s => {
+      pastClasses.forEach((c) => {
+        c.sessions.forEach((s) => {
           totalSessions++;
           if (s.status === 'DISPUTED') totalDisputes++;
         });
@@ -73,17 +83,23 @@ export class MatchingService {
       score += Math.min(successfulSessions * 0.5, 50);
 
       // Trừ điểm nghiêm trọng nếu có lịch sử bị khiếu nại (Trừ 20 điểm mỗi lần)
-      score -= (totalDisputes * 20);
+      score -= totalDisputes * 20;
 
       return {
         applicationId: app.id,
         tutorId: tutor.id,
         tutorName: tutor.fullName,
         qualification: tutor.qualification,
+        occupation: tutor.occupation,
+        gender: tutor.gender,
+        tutorType: tutor.tutorType,
+        ratingAvg: tutor.ratingAvg,
         karmaScore: tutor.karmaScore,
         matchScore: Math.round(score),
         coverLetter: app.coverLetter,
         appliedAt: app.appliedAt,
+        status: app.status,
+        note: app.note,
       };
     });
 
@@ -188,13 +204,49 @@ export class MatchingService {
                 id: true,
                 fullName: true,
                 gender: true,
+                dateOfBirth: true,
                 tutorType: true,
                 qualification: true,
+                occupation: true,
                 ratingAvg: true,
                 karmaScore: true,
-              }
-            }
+                certificatesJson: true,
+                publicProfile: true,
+                tutorSubjects: {
+                  where: { deletedAt: null },
+                  select: {
+                    subject: true,
+                    grade: true,
+                    isVerified: true,
+                  },
+                },
+                _count: {
+                  select: {
+                    classes: true,
+                    reviews: true,
+                  },
+                },
+              },
+            },
           }
+        },
+        classes: {
+          where: { deletedAt: null },
+          select: {
+            id: true,
+            status: true,
+            tutorId: true,
+            hourlyRate: true,
+            remainingSessions: true,
+            cancelReason: true,
+            classSchedules: {
+              where: { deletedAt: null, isActive: true },
+            },
+            sessions: {
+              where: { deletedAt: null },
+              orderBy: { scheduledTime: 'asc' },
+            },
+          },
         },
         _count: { select: { classApplications: true } },
       },
@@ -249,6 +301,161 @@ export class MatchingService {
       data: {
         status: RequestStatus.CANCELLED,
       },
+    });
+  }
+
+  async proposeTutor(requestId: string, tutorId: string) {
+    const request = await this.prisma.tutorRequest.findUnique({
+      where: { id: requestId },
+      include: { classApplications: true },
+    });
+    if (!request) throw new NotFoundException('Yêu cầu không tồn tại');
+    if (request.status === RequestStatus.MATCHED || request.status === RequestStatus.CANCELLED) {
+      throw new BadRequestException('Lớp học đã đóng hoặc đã được ghép gia sư');
+    }
+
+    const application = request.classApplications.find((a) => a.tutorId === tutorId);
+    if (!application) {
+      throw new BadRequestException('Gia sư này chưa ứng tuyển vào lớp');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Chuyển các đơn khác đang SHORTLISTED về PENDING (chỉ giữ 1 người đề xuất tại 1 thời điểm)
+      await tx.classApplication.updateMany({
+        where: {
+          tutorRequestId: requestId,
+          status: ApplicationStatus.SHORTLISTED,
+        },
+        data: { status: ApplicationStatus.PENDING },
+      });
+
+      // 2. Đặt gia sư này thành SHORTLISTED
+      const updatedApp = await tx.classApplication.update({
+        where: { id: application.id },
+        data: { status: ApplicationStatus.SHORTLISTED },
+        include: { tutor: true },
+      });
+
+      // 3. Cập nhật yêu cầu sang CONSULTING (Đang tư vấn / Chờ phụ huynh duyệt)
+      await tx.tutorRequest.update({
+        where: { id: requestId },
+        data: { status: RequestStatus.CONSULTING },
+      });
+
+      return {
+        message: `Đã đề xuất gia sư ${updatedApp.tutor.fullName} cho Phụ huynh xem xét!`,
+        application: updatedApp,
+      };
+    });
+  }
+
+  async rejectProposedTutor(parentId: string, requestId: string, reason?: string) {
+    const request = await this.prisma.tutorRequest.findFirst({
+      where: { id: requestId, parentId, deletedAt: null },
+      include: { classApplications: true },
+    });
+    if (!request) throw new NotFoundException('Yêu cầu không tồn tại hoặc không thuộc quyền quản lý của bạn');
+
+    const proposedApp = request.classApplications.find(
+      (a) => a.status === ApplicationStatus.SHORTLISTED,
+    );
+    if (!proposedApp) {
+      throw new BadRequestException('Hiện không có gia sư nào đang được đề xuất cho yêu cầu này');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Chuyển trạng thái đơn ứng tuyển sang REJECTED
+      await tx.classApplication.update({
+        where: { id: proposedApp.id },
+        data: {
+          status: ApplicationStatus.REJECTED,
+          note: reason || 'Phụ huynh yêu cầu đổi gia sư khác',
+        },
+      });
+
+      // 2. Chuyển trạng thái request về PUBLISHED để Admin tiếp tục chọn ứng viên khác
+      await tx.tutorRequest.update({
+        where: { id: requestId },
+        data: { status: RequestStatus.PUBLISHED },
+      });
+
+      return {
+        message: 'Đã gửi yêu cầu đổi gia sư. Trung tâm sẽ chọn ứng viên khác cho bạn trong thời gian sớm nhất!',
+      };
+    });
+  }
+
+  async approveProposedTutor(parentId: string, requestId: string, trialSchedule: string, trialDate?: string) {
+    const request = await this.prisma.tutorRequest.findFirst({
+      where: { id: requestId, parentId, deletedAt: null },
+      include: { classApplications: true },
+    });
+    if (!request) throw new NotFoundException('Yêu cầu không tồn tại hoặc không thuộc quyền quản lý của bạn');
+
+    const proposedApp = request.classApplications.find(
+      (a) => a.status === ApplicationStatus.SHORTLISTED,
+    );
+    if (!proposedApp) {
+      throw new BadRequestException('Hiện không có gia sư nào đang được đề xuất để duyệt');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Đóng Yêu Cầu Tìm Gia Sư -> MATCHED
+      await tx.tutorRequest.update({
+        where: { id: requestId },
+        data: { status: RequestStatus.MATCHED },
+      });
+
+      // 2. Chuyển đơn của gia sư được chọn sang SELECTED_FOR_TRIAL
+      await tx.classApplication.update({
+        where: { id: proposedApp.id },
+        data: { status: ApplicationStatus.SELECTED_FOR_TRIAL },
+      });
+
+      // 3. Từ chối các đơn còn lại
+      await tx.classApplication.updateMany({
+        where: {
+          tutorRequestId: requestId,
+          id: { not: proposedApp.id },
+        },
+        data: { status: ApplicationStatus.REJECTED },
+      });
+
+      // 4. Tạo Lớp Học (Class) ở trạng thái DEPOSIT
+      const newClass = await tx.class.create({
+        data: {
+          tutorRequestId: requestId,
+          parentId: request.parentId,
+          studentId: request.studentId,
+          tutorId: proposedApp.tutorId,
+          hourlyRate: request.budgetPerSession,
+          tutorWageRate: request.budgetPerSession,
+          remainingSessions: request.sessionsPerWeek * 4,
+          status: ClassStatus.DEPOSIT,
+          cancelReason: `Lịch dạy thử: ${trialSchedule}`,
+        },
+      });
+
+      // 5. Tạo Buổi học Dạy thử (Session)
+      let parsedDate = trialDate ? new Date(trialDate) : new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+      if (isNaN(parsedDate.getTime())) {
+        parsedDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+      }
+
+      const trialSession = await tx.session.create({
+        data: {
+          classId: newClass.id,
+          scheduledTime: parsedDate,
+          status: 'SCHEDULED',
+          tutorNotes: `Buổi dạy thử. Lịch do Phụ huynh chọn: ${trialSchedule}`,
+        },
+      });
+
+      return {
+        message: 'Đã chốt gia sư và xếp lịch dạy thử thành công! Đang chờ gia sư nộp cọc 500k để nhận lớp.',
+        class: newClass,
+        trialSession,
+      };
     });
   }
 
