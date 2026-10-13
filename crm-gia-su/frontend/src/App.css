@@ -1,6 +1,7 @@
-/* Cleared default App styles to prevent conflicts with Tailwind CSS */
+/* Sneat Pro Design System Base */
 body {
   margin: 0;
   padding: 0;
-  background-color: #020617; /* slate-950 */
+  background-color: #f5f5f9;
+  color: #566a7f;
 }

@@ -43,14 +43,16 @@
 
 | Mã Quy tắc | Tình huống nghiệp vụ | Cách hệ thống xử lý | Thông báo hiển thị cho người dùng |
 |---|---|---|---|
-| **BR-CLI-01-01** | **Giới hạn số con tối đa trên 1 tài khoản**: Phụ huynh đã có 5 hồ sơ con nhưng cố gắng tạo thêm con thứ 6. | Hệ thống kiểm tra số lượng học sinh hoạt động của `parentId`. Nếu $\ge 5$ $\rightarrow$ Từ chối thao tác tạo mới. | "Mỗi tài khoản phụ huynh chỉ được quản lý tối đa 5 hồ sơ con. Vui lòng liên hệ Hotline nếu có nhu cầu mở rộng." |
+| **BR-CLI-01-01** | **Quản lý danh sách con linh hoạt**: Phụ huynh thêm hồ sơ học sinh. | Hệ thống cho phép phụ huynh quản lý linh hoạt số lượng học sinh trong gia đình mà không áp đặt giới hạn cứng. | Thêm mới thành công và hiển thị trên giao diện |
 | **BR-CLI-01-02** | **Ràng buộc an toàn khi Xóa (Soft Delete)**: Phụ huynh nhấn xóa hồ sơ con đang có lớp học hoặc yêu cầu tìm gia sư. | Hệ thống kiểm tra: Nếu con đang có lớp học (kể cả lớp đã hoàn thành), hệ thống chỉ đánh dấu xóa mềm (`deletedAt = now()`, `deletedBy = parentId`), không xóa vật lý để giữ toàn vẹn lịch sử đối soát học phí. | "Đã xóa hồ sơ học sinh thành công" |
 | **BR-CLI-01-03** | **Kiểm tra quyền sở hữu hồ sơ (Authorization)**: Người dùng sửa/xóa hồ sơ con nhưng `student.parentId !== currentUser.parentId`. | Backend kiểm tra khóa ngoại `parentId`. Nếu không khớp $\rightarrow$ Trả `HTTP 403 Forbidden`. | "Bạn không có quyền thao tác trên hồ sơ học sinh này" |
-| **BR-CLI-01-04** | **Kiểm tra tính hợp lệ của ngày sinh**: Nhập ngày sinh trong tương lai hoặc tuổi < 4 tuổi / > 30 tuổi. | Frontend và Backend chặn lại nếu `dateOfBirth > now()` hoặc tuổi không nằm trong khoảng hợp lệ. | "Ngày sinh không hợp lệ. Học sinh phải từ 4 tuổi trở lên" |
+| **BR-CLI-01-04** | **Kiểm tra tính hợp lệ của ngày sinh & độ tuổi**: Nhập ngày sinh trong tương lai hoặc tuổi ngoài khoảng 4 - 25 tuổi. | Giới hạn chọn trên lịch (`max = today`). Tự động tính tuổi theo ngày sinh thực tế. Chặn lưu nếu tuổi < 4 hoặc > 25 tuổi. | "Độ tuổi hợp lệ của học sinh là từ 4 đến 25 tuổi (hiện tại: X tuổi)" |
 | **BR-CLI-01-05** | **Đồng bộ danh tính phiên làm việc (Session Sync)**: Sau khi Thêm/Sửa/Xóa thành công học sinh. | Frontend cập nhật danh sách học sinh vào `sessionStore` (`getProfilesForCurrentPortal`), giúp các dropdown chọn con ở trang Đăng tin cập nhật tức thì. | Tự động đồng bộ ngầm không cần tải lại trang |
-| **BR-CLI-01-06** | **Ràng buộc trường bắt buộc**: Để trống Họ tên hoặc Ngày sinh. | Client highlight đỏ trường bị thiếu, ngăn chặn gửi form lên máy chủ. | "Vui lòng nhập đầy đủ Họ tên và Ngày sinh của học sinh" |
+| **BR-CLI-01-06** | **Ràng buộc trường bắt buộc & Cảnh báo tức thời (Inline Validation)**: Để trống trường bắt buộc hoặc chỉ nhập toàn khoảng trắng. | Kiểm tra `trim()`, hiển thị cảnh báo đỏ trực tiếp ngay dưới trường tương ứng (Họ tên, Giới tính, Ngày sinh). | "Họ và tên học sinh không được để trống hoặc chỉ chứa khoảng trắng" |
 | **BR-CLI-01-07** | **Lọc bản ghi xóa mềm**: Phụ huynh tải danh sách con. | Backend lọc nghiêm ngặt điều kiện `where: { parentId, deletedAt: null }`. Không bao giờ trả về bản ghi đã xóa. | Hiển thị chính xác các con đang hoạt động |
-| **BR-CLI-01-08** | **Chuẩn hóa chuỗi dữ liệu**: Người dùng nhập tên thừa dấu cách hoặc định dạng hoa thường lộn xộn. | Hệ thống tự động cắt tỉa khoảng trắng `trim()` trước khi lưu vào CSDL. | Dữ liệu hiển thị chuẩn hóa sạch đẹp |
+| **BR-CLI-01-08** | **Chuẩn hóa chuỗi dữ liệu (Data Sanitization)**: Người dùng nhập tên thừa dấu cách hoặc định dạng hoa thường lộn xộn. | Hệ thống tự động cắt tỉa khoảng trắng `trim()` cho toàn bộ các trường chuỗi trước khi lưu vào CSDL. | Dữ liệu hiển thị chuẩn hóa sạch đẹp |
+| **BR-CLI-01-09** | **Xác nhận thoát khi chưa lưu (Unsaved Guard)**: Người dùng đóng biểu mẫu khi đã có thông tin thay đổi. | Hiển thị Popup xác nhận "Bạn có chắc muốn thoát? Thông tin bạn vừa nhập chưa được lưu." Cho phép chọn "Tiếp tục chỉnh sửa" hoặc "Thoát không lưu". | Tránh mất dữ liệu vô ý khi người dùng click nhầm |
+| **BR-CLI-01-10** | **Xác nhận lưu thành công & Điều hướng Đăng ký gia sư**: Phụ huynh tạo hồ sơ con thành công. | Hiển thị Popup chúc mừng kèm tên bé và nút "Đăng ký gia sư ngay" để tự động truyền `studentId` sang trang tạo yêu cầu tìm gia sư. | Tối ưu luồng trải nghiệm người dùng liền mạch |
 
 ---
 
@@ -69,15 +71,15 @@ flowchart LR
 
     Actor(["👤 Phụ huynh (Parent)"]):::actor
     UC(["UC-CLI-01-01: Thêm mới hồ sơ con"]):::main
-    UC_Val(["Kiểm tra bắt buộc (Tên, Ngày sinh)"]):::sub
-    UC_Quota(["Kiểm tra hạn mức tối đa 5 con"]):::sub
+    UC_Val(["Kiểm tra bắt buộc (Tên, Ngày sinh, Inline Error)"]):::sub
+    UC_Guard(["Xác nhận thoát khi chưa lưu (Unsaved Guard)"]):::sub
     UC_Sync(["Đồng bộ Profile Session"]):::sub
-    UC_Suggest(["Gợi ý Đăng ký Gia sư ngay"]):::sub
+    UC_Suggest(["Popup chúc mừng & Gợi ý Đăng ký Gia sư"]):::sub
 
     Actor --> UC
     UC -.->|include| UC_Val
-    UC -.->|include| UC_Quota
     UC -.->|include| UC_Sync
+    UC -.->|extend| UC_Guard
     UC -.->|extend| UC_Suggest
 ```
 
@@ -85,14 +87,14 @@ flowchart LR
 
 | STT | Hạng mục | Nội dung chi tiết |
 |:---:|---|---|
-| **1** | **Thông tin chung** | - **UC ID**: `UC-CLI-01-01`<br/>- **UC Name**: Thêm mới hồ sơ con (Create Student Profile)<br/>- **Actor**: Phụ huynh (Parent)<br/>- **Mục tiêu**: Bổ sung thông tin học sinh mới vào tài khoản gia đình để chuẩn bị gửi yêu cầu tìm gia sư.<br/>- **Mô tả**: Phụ huynh nhập các thông tin cá nhân và định hướng học tập của con qua form Modal; hệ thống kiểm tra và lưu vào CSDL.<br/>- **Priority**: High (Chức năng cốt lõi) |
+| **1** | **Thông tin chung** | - **UC ID**: `UC-CLI-01-01`<br/>- **UC Name**: Thêm mới hồ sơ con (Create Student Profile)<br/>- **Actor**: Phụ huynh (Parent)<br/>- **Mục tiêu**: Bổ sung thông tin học sinh mới vào tài khoản gia đình để chuẩn bị gửi yêu cầu tìm gia sư.<br/>- **Mô tả**: Phụ huynh nhập các thông tin cá nhân và định hướng học tập của con qua form Modal (hỗ trợ tags môn học, gợi ý mục tiêu và tính cách); hệ thống kiểm tra và lưu vào CSDL.<br/>- **Priority**: High (Chức năng cốt lõi) |
 | **2** | **Trigger** | Phụ huynh nhấn nút **"+ Thêm con"** hoặc **"Thêm con ngay"** tại màn hình Con của tôi (`/client/children`). |
-| **3** | **Pre-condition** | 1. Đã đăng nhập vào Client Portal với vai trò `PARENT`.<br/>2. Số lượng con hiện có của tài khoản < 5 con (`BR-CLI-01-01`). |
-| **4** | **Post-condition** | 1. Bản ghi học sinh mới được tạo trong bảng `students` liên kết với `parentId`.<br/>2. Thẻ hồ sơ của con xuất hiện trên danh sách với trạng thái *"Chưa đăng ký gia sư"*.<br/>3. Danh sách học sinh trong phiên làm việc (Session) được cập nhật ngay lập tức. |
-| **5** | **Main Flow** | 1. Phụ huynh nhấn nút **"+ Thêm con"**.<br/>2. Giao diện mở Modal form nhập liệu với các giá trị mặc định (`gender = 'MALE'`, `academicLevel = 'AVERAGE'`).<br/>3. Phụ huynh điền: Họ tên, Giới tính, Ngày sinh, Trường, Lớp, Học lực, Môn cần kèm, Mục tiêu, Tính cách, Ghi chú.<br/>4. Phụ huynh nhấn **"Lưu hồ sơ mới"**.<br/>5. Client kiểm tra hợp lệ dữ liệu (Họ tên không rỗng, Ngày sinh hợp lệ).<br/>6. Gửi request `POST /api/v1/students` kèm payload dữ liệu.<br/>7. Backend kiểm tra hạn mức $\le 5$ con và lưu bản ghi mới vào CSDL.<br/>8. Backend trả về `HTTP 201 Created` kèm thông tin học sinh vừa tạo.<br/>9. Giao diện đóng Modal, gọi `fetchStudents()` làm mới danh sách và hiển thị Toast thông báo thành công. |
-| **6** | **Alternative / Exception Flow** | - **AF-01 (Hủy bỏ nhập liệu)**: Phụ huynh bấm nút "Hủy" hoặc biểu tượng `X` $\rightarrow$ Đóng modal ngay, giữ nguyên dữ liệu cũ.<br/>- **EF-01 (Vượt quá hạn mức 5 con)**: Nếu tài khoản đã có 5 con $\rightarrow$ Backend trả lỗi `400 Bad Request`, giao diện báo lỗi *"Tối đa 5 hồ sơ con"*.<br/>- **EF-02 (Thiếu trường bắt buộc)**: Để trống Họ tên hoặc Ngày sinh $\rightarrow$ Giao diện cảnh báo *"Vui lòng nhập đủ thông tin"* và không gửi request.<br/>- **EF-03 (Lỗi kết nối máy chủ)**: Mạng lỗi hoặc HTTP 500 $\rightarrow$ Toast hiển thị *"Không thể lưu hồ sơ học sinh"*. |
-| **7** | **Business Rules & Validation** | - `BR-CLI-01-01`: Giới hạn tối đa 5 con/phụ huynh.<br/>- `BR-CLI-01-04`: Ngày sinh không được trong tương lai.<br/>- `fullName`: Độ dài từ 2 đến 100 ký tự.<br/>- `gender`: Thuộc tập `['MALE', 'FEMALE', 'OTHER']`. |
-| **8** | **Acceptance Criteria** | - **AC-01**: Bấm "+ Thêm con" mở modal < 200ms.<br/>- **AC-02**: Nhập thông tin hợp lệ và bấm Lưu $\rightarrow$ Modal đóng, thẻ học sinh mới xuất hiện trên giao diện ngay.<br/>- **AC-03**: Thẻ con mới có nút bấm trực tiếp "Đăng ký gia sư" liên kết đúng `studentId`. |
+| **3** | **Pre-condition** | Đã đăng nhập vào Client Portal với vai trò `PARENT`. |
+| **4** | **Post-condition** | 1. Bản ghi học sinh mới được tạo trong bảng `students` liên kết với `parentId`.<br/>2. Thẻ hồ sơ của con xuất hiện trên danh sách với trạng thái *"Chưa đăng ký gia sư"*.<br/>3. Hiển thị Popup thành công mời đăng ký gia sư ngay.<br/>4. Danh sách học sinh trong phiên làm việc (Session) được cập nhật ngay lập tức. |
+| **5** | **Main Flow** | 1. Phụ huynh nhấn nút **"+ Thêm con"**.<br/>2. Giao diện mở Modal form nhập liệu với các giá trị mặc định (`gender = 'MALE'`, `academicLevel = 'AVERAGE'`).<br/>3. Phụ huynh điền: Họ tên, Giới tính, Ngày sinh, Trường, Lớp, Học lực, Môn cần kèm (dạng tags), Mục tiêu (chip gợi ý), Tính cách (chip gợi ý), Ghi chú.<br/>4. Phụ huynh nhấn **"Lưu hồ sơ con mới"**.<br/>5. Client kiểm tra hợp lệ dữ liệu (Họ tên $\ge 2$ ký tự, Ngày sinh hợp lệ 4 - 25 tuổi, hiển thị inline error nếu sai).<br/>6. Gửi request `POST /api/v1/students` kèm payload dữ liệu đã được `trim()`.<br/>7. Backend xác thực và lưu bản ghi mới vào CSDL.<br/>8. Backend trả về `HTTP 201 Created` kèm thông tin học sinh vừa tạo.<br/>9. Giao diện đóng Modal, gọi `fetchStudents()` làm mới danh sách, Toast báo thành công và hiển thị Popup chúc mừng điều hướng Đăng ký gia sư. |
+| **6** | **Alternative / Exception Flow** | - **AF-01 (Xác nhận thoát khi chưa lưu)**: Phụ huynh bấm nút "Hủy bỏ", biểu tượng `X` hoặc click backdrop khi đã nhập dữ liệu $\rightarrow$ Hiển thị Popup cảnh báo mất dữ liệu. Chọn "Tiếp tục chỉnh sửa" để giữ form hoặc "Thoát không lưu" để đóng modal.<br/>- **EF-01 (Thiếu trường bắt buộc hoặc sai định dạng)**: Báo lỗi inline đỏ ngay dưới từng trường (Họ tên, Giới tính, Ngày sinh), chặn gửi request.<br/>- **EF-02 (Tuổi ngoài khoảng 4 - 25)**: Báo lỗi inline "Độ tuổi hợp lệ của học sinh là từ 4 đến 25 tuổi", chặn lưu.<br/>- **EF-03 (Lỗi kết nối máy chủ)**: Mạng lỗi hoặc HTTP 500 $\rightarrow$ Toast hiển thị thông báo lỗi từ máy chủ. |
+| **7** | **Business Rules & Validation** | - `BR-CLI-01-04`: Độ tuổi từ 4 đến 25 tuổi, ngày sinh không ở tương lai.<br/>- `BR-CLI-01-06`: Ràng buộc bắt buộc và kiểm tra khoảng trắng `trim()`.<br/>- `BR-CLI-01-09`: Popup bảo vệ dữ liệu chưa lưu.<br/>- `BR-CLI-01-10`: Popup thành công và điều hướng thông minh. |
+| **8** | **Acceptance Criteria** | - **AC-01**: Bấm "+ Thêm con" mở modal < 200ms.<br/>- **AC-02**: Nhập thông tin hợp lệ và bấm Lưu $\rightarrow$ Modal đóng, hiển thị Popup hỏi đăng ký gia sư ngay.<br/>- **AC-03**: Bấm "Đăng ký gia sư" trên Popup hoặc trên Thẻ hồ sơ đều truyền chính xác `studentId` sang trang `/client/request-tutor?studentId=...`. |
 
 ---
 

@@ -16,19 +16,22 @@
 
 ## 2. Dữ liệu nghiệp vụ đầu vào (Input Data & Parameters)
 
-### 2.1. Dữ liệu biểu mẫu Đánh giá Dạy thử (Trial Review Form Data)
+### 2.1. Dữ liệu biểu mẫu Đánh giá Dạy thử & Chốt lịch chính thức (Trial Review Form Data)
 | Tên trường | Kiểu dữ liệu | Tính chất | Ý nghĩa nghiệp vụ & Ràng buộc thực tế từ Code |
 |---|---|---|---|
 | `Quyết định đánh giá` (action) | Enum / String | Bắt buộc | Nhận 1 trong 4 giá trị: `ACCEPT`, `REJECT_TUTOR`, `REJECT_PARENT`, `SCALE_DOWN`. |
+| `Danh sách ca học cố định` (schedules) | Array of Objects | Bắt buộc khi `ACCEPT` | Phụ huynh tick chọn các ca cố định trong tuần (VD: Thứ 2, Thứ 4: 19:30 - 21:00) từ các ca rảnh đã đăng ký. |
+| `Ngày bắt đầu buổi học` (startDate) | Date (YYYY-MM-DD) | Bắt buộc khi `ACCEPT` | Ngày diễn ra buổi học chính thức đầu tiên. |
+| `Ghi chú dặn dò` (notes) | Văn bản (Text) | Tùy chọn | Dặn dò gia sư về tài liệu, thời gian hoặc lưu ý đặc biệt cho con. |
 | `Lý do phản hồi` (reason) | Văn bản (Text) | Bắt buộc (khi từ chối) | Bắt buộc khi `action !== 'ACCEPT'`. Nhập chi tiết nguyên nhân vi phạm của gia sư hoặc lý do thay đổi của gia đình. Tối đa 500 ký tự. |
 | `Mã lớp học` (classId) | UUID | URL Param | Định danh lớp học trong bảng `classes` cần đánh giá. |
 
 ### 2.2. Ma trận tác động Nghiệp vụ theo Quyết định (Decision Impact Matrix)
 | Hành động (`action`) | Trạng thái Lớp mới (`status`) | Biến động Karma Gia sư | Loại Giao dịch Cọc (`TransactionType`) | Giá trị Cọc (VNĐ) | Hành vi nghiệp vụ hệ thống |
 |---|---|---|---|---|---|
-| `ACCEPT` | `TEACHING` | Không đổi ($0$) | `FEE_CONFIRMED` | 500,000 đ | Chốt lớp chính thức. Tiền cọc 500k của gia sư chuyển thành Doanh thu Phí môi giới của trung tâm. |
-| `REJECT_TUTOR` | `OPEN` | Trừ 5 điểm ($-5$) | `DEPOSIT_REFUNDED` | 500,000 đ | Thu hồi lớp khỏi gia sư (`tutorId = null`). Hoàn cọc 100% cho gia sư, trừ điểm Karma và đưa lớp quay lại sàn tuyển mới. |
-| `REJECT_PARENT` | `CLOSED` | Không đổi ($0$) | `FORFEITED` | 500,000 đ | Đóng lớp học hoàn toàn. Tịch thu cọc của gia sư do gia đình tự ý hủy ngang hợp đồng đã cam kết. |
+| `ACCEPT` | `TEACHING` | Không đổi ($0$) | `FEE_CONFIRMED` | 500,000 đ | **Chốt lớp chính thức**: Lưu `ClassSchedule`, tự động sinh các `Session` (`SCHEDULED`) trong 4 tuần tới, gửi thông báo chúc mừng cho Gia sư. **Gia sư không cần duyệt lại**. Tiền cọc chuyển thành phí nhận lớp. |
+| `REJECT_TUTOR` | `OPEN` | Trừ 5 điểm ($-5$) | `DEPOSIT_REFUNDED` | 500,000 đ | Thu hồi lớp khỏi gia sư (`tutorId = null`). Hoàn cọc 100% cho gia sư, trừ 5 điểm Karma, gửi thông báo lý do cho gia sư và đưa lớp quay lại tìm ứng viên mới. |
+| `REJECT_PARENT` | `CLOSED` | Không đổi ($0$) | `FORFEITED` | 500,000 đ | Đóng lớp học hoàn toàn (`CANCELLED`). Tịch thu cọc của gia sư do gia đình tự ý hủy ngang hợp đồng đã cam kết. |
 | `SCALE_DOWN` | `OPEN` | Trừ 2 điểm ($-2$) | `DEPOSIT_REFUNDED` | 250,000 đ | Hoàn lại 50% tiền cọc cho gia sư, trừ nhẹ 2 điểm Karma và mở lại lớp điều chỉnh quy mô. |
 
 ---
@@ -110,11 +113,11 @@ flowchart LR
 
 | STT | Hạng mục | Nội dung chi tiết |
 |:---:|---|---|
-| **1** | **Thông tin chung** | - **UC ID**: `UC-CLI-03-02`<br/>- **UC Name**: Phê duyệt nhận lớp chính thức (Accept Tutor & Formalize Class)<br/>- **Actor**: Phụ huynh (Parent)<br/>- **Mục tiêu**: Xác nhận hài lòng với kết quả buổi dạy thử và chuyển lớp học sang giai đoạn giảng dạy chính thức lâu dài.<br/>- **Mô tả**: Chọn radio "Hài lòng — Chốt gia sư này", gửi lên máy chủ để cập nhật trạng thái lớp và chuyển cọc thành phí.<br/>- **Priority**: Critical (Quyết định kết thúc phễu bán hàng) |
-| **2** | **Trigger** | Phụ huynh chọn radio **"Hài lòng — Chốt gia sư này"** và bấm nút **"Gửi Đánh Giá"** trong Modal phản hồi. |
-| **3** | **Pre-condition** | 1. Modal đánh giá đang mở cho lớp học có `status === 'TRIAL'`.<br/>2. Lớp học thuộc quyền quản lý của phụ huynh đang đăng nhập. |
-| **4** | **Post-condition** | 1. `class.status` cập nhật thành `TEACHING`.<br/>2. Tạo bản ghi giao dịch `FEE_CONFIRMED` số tiền 500,000 đ ghi nhận doanh thu phí môi giới.<br/>3. Lớp học chuyển sang danh sách lớp học chính thức trên Dashboard phụ huynh.<br/>4. Toast hiển thị thông báo thành công. |
-| **5** | **Main Flow** | 1. Phụ huynh nhấn nút **"Viết Đánh Giá"** tại dòng lớp học.<br/>2. Modal mở ra, mặc định tích chọn radio **"Hài lòng — Chốt gia sư này"** (`decision = 'ACCEPT'`).<br/>3. Phụ huynh bấm nút **"Gửi Đánh Giá"**.<br/>4. Client gửi request `POST /api/v1/sessions/class/:classId/trial-review` với body `{ action: 'ACCEPT' }`.<br/>5. Backend kiểm tra quyền sở hữu (`BR-CLI-03-01`) và trạng thái lớp (`BR-CLI-03-02`).<br/>6. Backend thực hiện giao dịch: Cập nhật `class.status = TEACHING`, tạo Transaction `FEE_CONFIRMED`.<br/>7. Backend trả về `HTTP 200 OK` kèm `{ message: "Đánh giá dạy thử thành công", class }`.<br/>8. Modal đóng lại, nạp lại danh sách lớp dạy thử (lớp vừa chốt biến mất khỏi danh sách chờ). |
+| **1** | **Thông tin chung** | - **UC ID**: `UC-CLI-03-02`<br/>- **UC Name**: Phê duyệt nhận lớp chính thức & Chốt thời khóa biểu cố định (Accept Tutor & Formalize Class Schedule)<br/>- **Actor**: Phụ huynh (Parent)<br/>- **Mục tiêu**: Xác nhận hài lòng với kết quả buổi dạy thử, chốt các ca học cố định trong tuần và kích hoạt lớp học chính thức ngay lập tức mà không cần gia sư phải duyệt lại.<br/>- **Mô tả**: Chọn option "Hài lòng — Chốt gia sư này", tick chọn đúng số ca học/tuần từ danh sách ca rảnh đã đăng ký, chọn ngày bắt đầu buổi học đầu tiên và gửi đánh giá.<br/>- **Priority**: Critical (Hoàn thành phễu chuyển đổi tuyển dụng gia sư) |
+| **2** | **Trigger** | Phụ huynh nhấn nút **"⭐ Đánh giá & Chốt dạy chính thức"** tại thẻ lớp trên `/client/requests` hoặc nút **"Viết Đánh Giá"** trên `/client/attendance`. |
+| **3** | **Pre-condition** | 1. Modal đánh giá đang mở cho lớp học có `status === 'TRIAL'` hoặc `status === 'DEPOSIT'`.<br/>2. Lớp học thuộc quyền quản lý của phụ huynh đang đăng nhập. |
+| **4** | **Post-condition** | 1. `class.status` cập nhật thành `TEACHING`, `tutorRequest.status = 'MATCHED'`.<br/>2. Tạo mới danh sách `ClassSchedule` cố định theo các ca phụ huynh đã chọn.<br/>3. Hệ thống tự động sinh các bản ghi `Session` với `status = 'SCHEDULED'` cho 4 tuần tiếp theo (khoảng 8-12 buổi tùy số buổi/tuần).<br/>4. Tạo bản ghi giao dịch `FEE_CONFIRMED` số tiền 500,000 đ ghi nhận doanh thu trung tâm.<br/>5. Tự động gửi `Notification` thông báo và chúc mừng cho Gia sư.<br/>6. Lớp học chuyển sang huy hiệu "Đang học chính thức" và cập nhật Thời khóa biểu của cả hai bên. |
+| **5** | **Main Flow** | 1. Phụ huynh nhấn nút **"Đánh giá & Chốt dạy chính thức"**.<br/>2. Modal mở ra, mặc định chọn **"Hài lòng — Chốt gia sư này"** (`ACCEPT`).<br/>3. Giao diện hiển thị danh sách các ca rảnh đã đăng ký. Phụ huynh tick chọn các ca học cố định (đúng bằng số buổi/tuần).<br/>4. Phụ huynh chọn ngày bắt đầu buổi học chính thức đầu tiên (`startDate`) và nhập lời dặn dò.<br/>5. Bấm **"Xác nhận Chốt Dạy Chính Thức"**.<br/>6. Client gửi request `POST /api/v1/sessions/class/:classId/trial-review` với payload `{ action: 'ACCEPT', schedules, startDate, notes }`.<br/>7. Backend chạy Prisma Transaction: cập nhật lớp `TEACHING`, lưu lịch tuần, tự động sinh các `Session`, chuyển cọc sang `FEE_CONFIRMED`, tạo thông báo cho gia sư.<br/>8. Backend trả về `HTTP 200 OK`. Modal đóng lại, toast thông báo thành công và làm mới giao diện. |
 | **6** | **Alternative / Exception Flow** | - **EF-01 (Lỗi kết nối máy chủ)**: Mất mạng $\rightarrow$ Nút submit dừng xoay loading, hiển thị lỗi màu đỏ trên Modal: *"Đánh giá dạy thử thất bại"*. |
 | **7** | **Business Rules & Validation** | - `BR-CLI-03-04`: Toàn bộ logic cập nhật trạng thái và tạo giao dịch cọc phải nằm trong 1 Prisma Transaction duy nhất. |
 | **8** | **Acceptance Criteria** | - **AC-01**: Sau khi chốt nhận, lớp học lập tức xuất hiện trên Dashboard với Badge "Đang học chính thức" (`TEACHING`).<br/>- **AC-02**: Bảng `transactions` sinh ra đúng 01 bản ghi `type: 'FEE_CONFIRMED'`, `amount: 500000`. |
