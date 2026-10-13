@@ -43,8 +43,14 @@ export class AuthService {
     // Lấy các profile khả dụng để hiển thị ở frontend
     const profiles = await this.buildProfilesPayload(user);
 
-    // Tạo token tạm thời (chưa trỏ đến profile cụ thể)
-    const payload = { sub: user.id, role: user.role };
+    // Tạo token kèm profileId mặc định theo vai trò để có thể truy cập ngay các cổng
+    const defaultProfileId = user.tutorProfile?.id || user.parentProfile?.id || user.staffProfile?.id || user.id;
+    const payload = { 
+      sub: user.id, 
+      role: user.role, 
+      profileId: defaultProfileId, 
+      profileType: user.role 
+    };
     const token = await this.jwtService.signAsync(payload);
 
     return {

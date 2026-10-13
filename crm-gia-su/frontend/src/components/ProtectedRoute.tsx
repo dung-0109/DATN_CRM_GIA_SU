@@ -13,8 +13,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white font-medium">
-        Đang tải thông tin xác thực...
+      <div className="min-h-screen bg-[#f5f5f9] flex items-center justify-center text-[#566a7f] font-medium">
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 border-2 border-[#696cff] border-t-transparent rounded-full animate-spin"></div>
+          <span>Đang tải thông tin xác thực...</span>
+        </div>
       </div>
     );
   }
