@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { Users, Check, AlertTriangle, Loader, Settings, DollarSign, Search, Filter } from 'lucide-react';
+import { 
+  Users, Check, AlertTriangle, Loader, Settings, DollarSign, 
+  Search, Filter, Sparkles, Clock, CheckCircle, RefreshCw, Eye 
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function SalesMatching() {
@@ -12,12 +15,7 @@ export default function SalesMatching() {
   const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
   const [applications, setApplications] = useState<any[]>([]);
   const [appLoading, setAppLoading] = useState(false);
-
-  // States cho chốt gia sư dạy thử
-  const [matchingTutor, setMatchingTutor] = useState<any | null>(null);
-  const [hourlyRate, setHourlyRate] = useState(150000);
-  const [tutorWageRate, setTutorWageRate] = useState(120000);
-  const [submittingMatch, setSubmittingMatch] = useState(false);
+  const [proposingTutorId, setProposingTutorId] = useState<string | null>(null);
 
   // States cho quyết toán dạy thử
   const [trialClass, setTrialClass] = useState<any | null>(null);
@@ -33,12 +31,12 @@ export default function SalesMatching() {
   const [page, setPage] = useState(1);
   const ITEMS_PER_PAGE = 8;
 
-  const filteredRequests = requests.filter(req => {
+  const filteredRequests = requests.filter((req: any) => {
     const queryLower = searchQuery.toLowerCase();
-    const matchQuery = req.subject.toLowerCase().includes(queryLower) || 
-                       req.parent?.fullName?.toLowerCase().includes(queryLower) ||
-                       req.student?.fullName?.toLowerCase().includes(queryLower) ||
-                       req.address?.toLowerCase().includes(queryLower);
+    const matchQuery = (req.subject || '').toLowerCase().includes(queryLower) || 
+                       (req.parent?.fullName || '').toLowerCase().includes(queryLower) ||
+                       (req.student?.fullName || '').toLowerCase().includes(queryLower) ||
+                       (req.address || '').toLowerCase().includes(queryLower);
     const matchStatus = filterStatus === 'ALL' || req.status === filterStatus;
     return matchQuery && matchStatus;
   });
@@ -50,9 +48,8 @@ export default function SalesMatching() {
     setLoading(true);
     setError(null);
     try {
-      // Lấy danh sách yêu cầu tìm gia sư
       const reqResponse = await api.get('/api/v1/matching/requests');
-      setRequests(reqResponse.data);
+      setRequests(reqResponse.data || []);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Không thể tải dữ liệu điều hành');
     } finally {
@@ -89,24 +86,20 @@ export default function SalesMatching() {
     }
   };
 
-  // 3. Giao dạy thử
-  const handleMatchSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedRequest || !matchingTutor) return;
-
-    setSubmittingMatch(true);
+  // Đề xuất 1 Gia sư cho Phụ huynh duyệt (Agency Curation Model)
+  const handleProposeTutor = async (tutorId: string, tutorName: string) => {
+    if (!selectedRequest) return;
+    setProposingTutorId(tutorId);
     try {
-      await api.post(`/api/v1/matching/requests/${selectedRequest.id}/assign`, {
-        tutorId: matchingTutor.tutorId,
-      });
-      setMatchingTutor(null);
-      setSelectedRequest(null);
+      const res = await api.post(`/api/v1/matching/requests/${selectedRequest.id}/propose`, { tutorId });
+      toast.success(res.data?.message || `Đã gửi đề xuất gia sư ${tutorName} cho Phụ huynh duyệt!`);
+      const refreshApp = await api.get(`/api/v1/matching/requests/${selectedRequest.id}/suggest`);
+      setApplications(refreshApp.data);
       fetchRequestsAndClasses();
-      toast.success('Đã chốt gia sư dạy thử và tạo lớp học TRIAL_PENDING thành công!');
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Chốt gia sư thất bại');
+      toast.error(err.response?.data?.message || 'Không thể gửi đề xuất cho phụ huynh');
     } finally {
-      setSubmittingMatch(false);
+      setProposingTutorId(null);
     }
   };
 
@@ -195,6 +188,7 @@ export default function SalesMatching() {
                     <option value="ALL">Tất cả trạng thái</option>
                     <option value="NEW">Mới (Chờ duyệt)</option>
                     <option value="PUBLISHED">Đang Tuyển</option>
+                    <option value="CONSULTING">Chờ PH Duyệt Đề Xuất</option>
                     <option value="MATCHED">Đã Khớp / Dạy thử</option>
                   </select>
                 </div>
@@ -257,15 +251,25 @@ export default function SalesMatching() {
                               ? 'bg-[#e8fadf] text-[#71dd37]'
                               : req.status === 'NEW'
                               ? 'bg-[#e1f0ff] text-[#03c3ec]'
+                              : req.status === 'CONSULTING'
+                              ? 'bg-[#fff2d6] text-[#ffab00]'
                               : req.status === 'MATCHED'
                               ? 'bg-[#e7e7ff] text-[#696cff]'
                               : 'bg-[#f1f2f4] text-[#a1acb8]'
                           }`}
                         >
                           <div className={`w-1.5 h-1.5 rounded-full ${
-                            req.status === 'PUBLISHED' ? 'bg-[#71dd37]' : req.status === 'NEW' ? 'bg-[#03c3ec]' : req.status === 'MATCHED' ? 'bg-[#696cff]' : 'bg-[#a1acb8]'
+                            req.status === 'PUBLISHED' 
+                              ? 'bg-[#71dd37]' 
+                              : req.status === 'NEW' 
+                              ? 'bg-[#03c3ec]' 
+                              : req.status === 'CONSULTING'
+                              ? 'bg-[#ffab00]'
+                              : req.status === 'MATCHED' 
+                              ? 'bg-[#696cff]' 
+                              : 'bg-[#a1acb8]'
                           }`}></div>
-                          {req.status === 'PUBLISHED' ? 'Đang Tuyển' : req.status === 'NEW' ? 'Chờ duyệt' : req.status === 'MATCHED' ? 'Đã Khớp' : req.status}
+                          {req.status === 'PUBLISHED' ? 'Đang Tuyển' : req.status === 'NEW' ? 'Chờ duyệt' : req.status === 'CONSULTING' ? 'Chờ PH Duyệt' : req.status === 'MATCHED' ? 'Đã Khớp' : req.status}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-center">
@@ -278,12 +282,16 @@ export default function SalesMatching() {
                           </button>
                         )}
 
-                        {req.status === 'PUBLISHED' && (
+                        {(req.status === 'PUBLISHED' || req.status === 'CONSULTING') && (
                           <button
                             onClick={() => handleViewApplicants(req)}
-                            className="px-3 py-1.5 bg-[#696cff] hover:bg-[#5f61e6] text-white text-xs font-bold rounded-md cursor-pointer transition-all inline-flex items-center gap-1 shadow-sm"
+                            className="px-3 py-1.5 bg-[#696cff] hover:bg-[#5f61e6] text-white text-xs font-bold rounded-md cursor-pointer transition-all inline-flex items-center gap-1.5 shadow-sm"
                           >
-                            Ứng cử viên <Users size={12} />
+                            <span>Ứng cử viên</span>
+                            <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.2 rounded-full font-extrabold">
+                              {req.classApplications?.length || req._count?.classApplications || 0}
+                            </span>
+                            <Users size={12} />
                           </button>
                         )}
 
@@ -346,39 +354,97 @@ export default function SalesMatching() {
                 applications.map((app) => (
                   <div
                     key={app.applicationId}
-                    className="p-5 bg-white border border-gray-100 shadow-[0_2px_8px_0_rgba(67,89,113,0.05)] rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-5 relative overflow-hidden group hover:border-[#696cff]/40 hover:shadow-[0_4px_12px_0_rgba(105,108,255,0.15)] transition-all duration-300"
+                    className={`p-5 bg-white border rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-5 relative overflow-hidden group transition-all duration-300 ${
+                      app.status === 'SHORTLISTED'
+                        ? 'border-[#ffab00] shadow-[0_4px_16px_0_rgba(255,171,0,0.15)] bg-[#fffdfa]'
+                        : app.status === 'SELECTED_FOR_TRIAL'
+                        ? 'border-[#71dd37] shadow-[0_4px_16px_0_rgba(113,221,55,0.15)] bg-[#fafff8]'
+                        : app.status === 'REJECTED'
+                        ? 'border-[#ff3e1d]/30 bg-[#fffafa]'
+                        : 'border-gray-100 shadow-[0_2px_8px_0_rgba(67,89,113,0.05)] hover:border-[#696cff]/40 hover:shadow-[0_4px_12px_0_rgba(105,108,255,0.15)]'
+                    }`}
                   >
-                    <div className="absolute top-0 right-0 px-3 py-1.5 bg-gradient-to-l from-[#e8fadf] to-transparent text-[#71dd37] text-[11px] font-extrabold rounded-bl-xl shadow-sm">
+                    <div className="absolute top-0 right-0 px-3 py-1 bg-gradient-to-l from-[#e8fadf] to-transparent text-[#71dd37] text-[11px] font-extrabold rounded-bl-xl shadow-sm">
                       Độ phù hợp: {app.matchScore}%
                     </div>
+
                     <div className="flex items-start gap-4 flex-1">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#696cff] to-[#5f61e6] text-white flex items-center justify-center font-bold shadow-md shadow-[#696cff]/30 shrink-0">
                         {app.tutorName.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-bold text-[#566a7f] text-base group-hover:text-[#696cff] transition-colors">{app.tutorName}</h4>
-                        <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs">
-                          <span className="flex items-center gap-1.5 px-2 py-1 bg-[#f5f5f9] text-[#697a8d] rounded-md font-semibold">
-                            🎓 {app.qualification}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="font-bold text-[#566a7f] text-base group-hover:text-[#696cff] transition-colors">{app.tutorName}</h4>
+                          {app.status === 'SHORTLISTED' && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#fff2d6] text-[#ffab00] border border-[#ffab00]/40 flex items-center gap-1">
+                              <Sparkles size={11} /> Đang đề xuất cho PH
+                            </span>
+                          )}
+                          {app.status === 'SELECTED_FOR_TRIAL' && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#e8fadf] text-[#71dd37] border border-[#71dd37]/40 flex items-center gap-1">
+                              <CheckCircle size={11} /> PH đã chốt dạy thử
+                            </span>
+                          )}
+                          {app.status === 'REJECTED' && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#ffe0db] text-[#ff3e1d] border border-[#ff3e1d]/30">
+                              PH yêu cầu đổi người khác
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs">
+                          <span className="flex items-center gap-1 px-2 py-0.5 bg-[#f5f5f9] text-[#697a8d] rounded-md font-semibold">
+                            🎓 {app.qualification || 'Cử nhân'}
                           </span>
-                          <span className="flex items-center gap-1.5 px-2 py-1 bg-[#fff8e1] text-[#ffab00] rounded-md font-bold">
+                          <span className="flex items-center gap-1 px-2 py-0.5 bg-[#e7e7ff] text-[#696cff] rounded-md font-semibold">
+                            {app.tutorType === 'TEACHER' ? 'Giáo viên' : 'Sinh viên'}
+                          </span>
+                          <span className="flex items-center gap-1 px-2 py-0.5 bg-[#fff8e1] text-[#ffab00] rounded-md font-bold">
                             ⭐ Karma: {app.karmaScore}
                           </span>
                         </div>
+
+                        {app.status === 'REJECTED' && app.note && (
+                          <div className="mt-2 p-2 bg-[#ffe0db]/40 border border-[#ff3e1d]/20 rounded-md text-xs text-[#ff3e1d]">
+                            <strong>Lý do PH từ chối:</strong> {app.note}
+                          </div>
+                        )}
+
                         {app.coverLetter && (
-                          <div className="mt-3 p-3 bg-gray-50 rounded-lg text-xs text-[#697a8d] italic border-l-4 border-[#696cff]/60 relative">
+                          <div className="mt-2.5 p-2.5 bg-gray-50 rounded-lg text-xs text-[#697a8d] italic border-l-4 border-[#696cff]/60 relative">
                             <span className="absolute top-1 left-2 text-2xl text-[#696cff]/20 font-serif leading-none">"</span>
                             <span className="relative z-10 block pl-4">{app.coverLetter}</span>
                           </div>
                         )}
                       </div>
                     </div>
-                    <button
-                      onClick={() => setMatchingTutor({ tutorId: app.tutorId, fullName: app.tutorName })}
-                      className="w-full md:w-auto px-5 py-2.5 bg-white border-2 border-[#696cff] hover:bg-[#696cff] text-[#696cff] hover:text-white text-xs font-bold rounded-lg transition-all duration-300 cursor-pointer inline-flex justify-center items-center gap-2 shrink-0 shadow-sm"
-                    >
-                      Chọn Gia Sư Này <Check size={14} />
-                    </button>
+
+                    {/* Actions */}
+                    <div className="w-full md:w-auto flex flex-col sm:flex-row md:flex-col items-stretch gap-2 shrink-0">
+                      {app.status === 'SHORTLISTED' ? (
+                        <div className="px-4 py-2.5 bg-[#fff2d6] text-[#ffab00] border border-[#ffab00]/50 rounded-lg text-xs font-bold text-center flex items-center justify-center gap-1.5 shadow-sm">
+                          <Clock size={13} className="animate-spin" /> Chờ PH duyệt hồ sơ...
+                        </div>
+                      ) : app.status === 'SELECTED_FOR_TRIAL' ? (
+                        <div className="px-4 py-2.5 bg-[#e8fadf] text-[#71dd37] border border-[#71dd37]/50 rounded-lg text-xs font-bold text-center flex items-center justify-center gap-1.5">
+                          <CheckCircle size={13} /> PH đã chốt dạy thử
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleProposeTutor(app.tutorId, app.tutorName)}
+                          disabled={proposingTutorId === app.tutorId}
+                          className="px-4 py-2.5 bg-[#696cff] hover:bg-[#5f61e6] text-white text-xs font-bold rounded-lg transition-all cursor-pointer inline-flex justify-center items-center gap-1.5 shadow-sm"
+                        >
+                          {proposingTutorId === app.tutorId ? (
+                            <Loader size={13} className="animate-spin" />
+                          ) : (
+                            <>
+                              <Sparkles size={13} /> {app.status === 'REJECTED' ? 'Đề xuất lại cho PH' : 'Đề xuất cho PH duyệt'}
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))
               )}
@@ -390,79 +456,6 @@ export default function SalesMatching() {
             >
               Đóng lại
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Modal nhập đơn giá khớp lớp dạy thử */}
-      {matchingTutor && (
-        <div className="fixed inset-0 z-50 bg-[#233446]/40 flex items-center justify-center p-4 backdrop-blur-sm font-sans">
-          <div className="bg-white border-0 rounded-xl max-w-sm w-full p-6 text-left shadow-2xl relative">
-            <h3 className="text-lg font-bold mb-2 text-[#566a7f]">Chốt Gia sư Dạy thử</h3>
-            <p className="text-[#a1acb8] text-xs mb-6">
-              Thiết lập đơn giá cho Gia sư: <strong className="text-[#696cff]">{matchingTutor.fullName}</strong>
-            </p>
-
-            <form onSubmit={handleMatchSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-[#566a7f] mb-2">
-                  Đơn giá học phí Phụ huynh (đ/buổi)
-                </label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-[#a1acb8]">
-                    <DollarSign size={14} />
-                  </span>
-                  <input
-                    type="number"
-                    required
-                    min={50000}
-                    value={hourlyRate}
-                    onChange={(e) => setHourlyRate(parseInt(e.target.value))}
-                    className="w-full pl-9 pr-4 py-2.5 bg-[#f5f5f9] border border-[#d9dee3] rounded-md text-[#566a7f] focus:outline-none focus:border-[#696cff] transition-all text-xs"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#566a7f] mb-2">
-                  Đơn giá lương Gia sư nhận (đ/buổi)
-                </label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-[#a1acb8]">
-                    <DollarSign size={14} />
-                  </span>
-                  <input
-                    type="number"
-                    required
-                    min={50000}
-                    value={tutorWageRate}
-                    onChange={(e) => setTutorWageRate(parseInt(e.target.value))}
-                    className="w-full pl-9 pr-4 py-2.5 bg-[#f5f5f9] border border-[#d9dee3] rounded-md text-[#566a7f] focus:outline-none focus:border-[#696cff] transition-all text-xs"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-4 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setMatchingTutor(null)}
-                  className="flex-1 py-2 bg-[#f5f5f9] hover:bg-[#d9dee3] font-semibold rounded-md text-xs cursor-pointer transition-all text-[#566a7f]"
-                >
-                  Quay lại
-                </button>
-                <button
-                  type="submit"
-                  disabled={submittingMatch}
-                  className="flex-1 py-2 bg-[#696cff] hover:bg-[#5f61e6] active:bg-[#4d4fc4] disabled:bg-[#a1acb8] text-white font-bold rounded-md transition-all duration-200 flex items-center justify-center gap-1 text-xs cursor-pointer shadow-sm"
-                >
-                  {submittingMatch ? (
-                    <Loader size={14} className="animate-spin" />
-                  ) : (
-                    'Khớp lớp & Gửi'
-                  )}
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

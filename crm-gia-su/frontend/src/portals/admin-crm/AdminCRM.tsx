@@ -972,8 +972,11 @@ export default function AdminCRM() {
                           });
                           toast.success(`Đã thêm ${addUserModal.role === 'TUTOR' ? 'Gia sư' : 'Phụ huynh'} mới thành công!`);
                           setAddUserModal({ isOpen: false, role: 'TUTOR' });
-                          setNewUserForm({ fullName: '', phone: '', password: '' });
-                          fetchData();
+                          if (addUserModal.role === 'TUTOR') {
+                            fetchTutors();
+                          } else {
+                            fetchParents();
+                          }
                         } catch (err: any) {
                           toast.error(err.response?.data?.message || 'Có lỗi xảy ra khi tạo người dùng');
                         } finally {
