@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { ClassStatus, RequestStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
@@ -258,12 +258,18 @@ export class CrmService {
   }
 
   async getTutorProfile(tutorId: string) {
+    if (!tutorId) {
+      throw new BadRequestException('Không tìm thấy định danh Gia sư');
+    }
     return this.prisma.tutor.findUnique({
       where: { id: tutorId },
     });
   }
 
   async getParentProfile(parentId: string) {
+    if (!parentId) {
+      throw new BadRequestException('Không tìm thấy định danh Phụ huynh');
+    }
     return this.prisma.parent.findUnique({
       where: { id: parentId },
       include: {
