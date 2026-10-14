@@ -83,12 +83,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await api.post('/api/v1/auth/login', { phone, password });
       const { accessToken, user: userData, profiles: userProfiles } = response.data;
 
+      const primaryProfile =
+        userProfiles?.find((p: any) => p.type === userData?.role && !p.subType) ||
+        userProfiles?.find((p: any) => p.type === userData?.role) ||
+        userProfiles?.[0] ||
+        null;
+
       const targetPortal = roleToPortal(userData?.role);
       saveSession(targetPortal, {
         token: accessToken,
         user: userData,
         profiles: userProfiles ?? [],
-        activeProfile: null, // Yêu cầu chọn profile sau khi đăng nhập
+        activeProfile: primaryProfile,
       });
       setSessions((prev) => ({
         ...prev,
@@ -96,7 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           token: accessToken,
           user: userData,
           profiles: userProfiles ?? [],
-          activeProfile: null,
+          activeProfile: primaryProfile,
         },
       }));
 
@@ -171,7 +177,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user: session?.user ?? null,
         token: session?.token ?? null,
         profiles: session?.profiles ?? [],
-        activeProfile: session?.activeProfile ?? null,
+        activeProfile: session?.activeProfile ?? (
+          session?.profiles?.find((p: any) => p.type === session?.user?.role && !p.subType) ||
+          session?.profiles?.find((p: any) => p.type === session?.user?.role) ||
+          session?.profiles?.[0] ||
+          null
+        ),
         currentPortal: portal,
         isLoading: false,
         login,

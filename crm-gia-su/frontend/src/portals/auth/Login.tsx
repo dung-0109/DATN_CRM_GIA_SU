@@ -25,7 +25,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = (location.state as any)?.from?.pathname || '/profile-select';
+  const from = (location.state as any)?.from?.pathname || '';
 
   const livePhoneError = phoneTouched && phone.length > 0 ? validatePhone(phone) : null;
 
@@ -44,18 +44,27 @@ export default function Login() {
     try {
       const data = await login(phone, password);
       
-      if (data?.profiles && data.profiles.length === 1) {
-        // Auto select if only 1 profile
-        const profile = data.profiles[0];
-        await selectProfile(profile.id, profile.type);
-        const portal = roleToPortal(profile.type);
-        const portalPrefix = PORTAL_HOME[portal] ?? '/';
-        const dest = from.startsWith(portalPrefix) ? from : portalPrefix;
-        navigate(dest, { replace: true });
-      } else {
-        // Multiple profiles (or 0 somehow), go to profile-select
-        navigate('/profile-select', { replace: true });
+      // Tự động chọn profile chính của tài khoản (Phụ huynh, Gia sư hoặc Quản trị viên)
+      const userRole = data?.user?.role;
+      const primaryProfile =
+        data?.profiles?.find((p: any) => p.type === userRole && !p.subType) ||
+        data?.profiles?.find((p: any) => p.type === userRole) ||
+        data?.profiles?.[0];
+
+      if (primaryProfile) {
+        try {
+          await selectProfile(primaryProfile.id, primaryProfile.type);
+        } catch (profileErr) {
+          console.warn('Auto selectProfile warning:', profileErr);
+        }
       }
+
+      // Điều hướng trực tiếp vào Cổng tương ứng: PARENT -> /client, TUTOR -> /tutor, STAFF -> /admin-crm
+      const targetRole = primaryProfile?.type || userRole;
+      const portal = roleToPortal(targetRole);
+      const portalPrefix = PORTAL_HOME[portal] ?? '/';
+      const dest = from && from !== '/profile-select' && from.startsWith(portalPrefix) ? from : portalPrefix;
+      navigate(dest, { replace: true });
     } catch (err: any) {
       setError(err);
     } finally {

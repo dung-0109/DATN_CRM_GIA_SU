@@ -1,13 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { LogOut, Loader } from 'lucide-react';
 
 export default function ProfileSelect() {
-  const { profiles, selectProfile, logout } = useAuth();
+  const { user, profiles, selectProfile, logout } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Tự động chuyển thẳng tới /client nếu là tài khoản Phụ huynh
+  useEffect(() => {
+    if (user?.role === 'PARENT') {
+      const parentProfile =
+        profiles.find((p: any) => p.type === 'PARENT' && !p.subType) ||
+        profiles.find((p: any) => p.type === 'PARENT');
+      if (parentProfile) {
+        selectProfile(parentProfile.id, parentProfile.type)
+          .catch(() => {})
+          .finally(() => {
+            navigate('/client', { replace: true });
+          });
+      } else {
+        navigate('/client', { replace: true });
+      }
+    }
+  }, [user, profiles]);
 
   const handleProfileClick = async (profile: any) => {
     setError(null);
