@@ -56,31 +56,6 @@ const POPULAR_SUBJECTS = [
   'Vật Lý',
   'Hóa Học',
   'Sinh Học',
-  'Lịch Sử',
-  'Địa Lý',
-  'Tin Học',
-  'Rèn chữ đẹp',
-  'Tiếng Việt',
-  'Khoa học tự nhiên',
-];
-
-const GOAL_SUGGESTIONS = [
-  'Lấy lại kiến thức căn bản',
-  'Thi vào 10 trường công lập',
-  'Luyện thi Chuyên / Chọn',
-  'Luyện thi Đại học / ĐGNL',
-  'Bồi dưỡng Học sinh giỏi',
-  'Nâng cao điểm số trên lớp',
-  'Rèn luyện tính tự giác học tập',
-];
-
-const PERSONALITY_SUGGESTIONS = [
-  'Nhút nhát, ngại hỏi',
-  'Hiếu động, hay mất tập trung',
-  'Tiếp thu nhanh nhưng hay ẩu',
-  'Cần gia sư kiên nhẫn & động viên',
-  'Tự giác, chăm chỉ',
-  'Cần gia sư nghiêm khắc, kỷ luật',
 ];
 
 export default function MyChildren() {
@@ -312,23 +287,6 @@ export default function MyChildren() {
     setSelectedSubjects((prev) => prev.filter((item) => item !== sub));
   };
 
-  // Gợi ý mục tiêu
-  const handleSelectGoalSuggestion = (goal: string) => {
-    setForm((prev) => {
-      if (!prev.targetGoal) return { ...prev, targetGoal: goal };
-      if (prev.targetGoal.includes(goal)) return prev;
-      return { ...prev, targetGoal: `${prev.targetGoal}; ${goal}` };
-    });
-  };
-
-  // Gợi ý tính cách
-  const handleSelectPersonalitySuggestion = (trait: string) => {
-    setForm((prev) => {
-      if (!prev.personalityTraits) return { ...prev, personalityTraits: trait };
-      if (prev.personalityTraits.includes(trait)) return prev;
-      return { ...prev, personalityTraits: `${prev.personalityTraits}; ${trait}` };
-    });
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -413,39 +371,30 @@ export default function MyChildren() {
 
   return (
     <PageTemplate
-      title={modalOpen ? (editingId ? 'Cập Nhật Hồ Sơ Con' : 'Thêm Hồ Sơ Học Sinh Mới') : 'Hồ Sơ Các Con'}
-      subtitle={
-        modalOpen
-          ? 'Thông tin chi tiết giúp trung tâm ghép nối gia sư phù hợp nhất cho bé'
-          : 'Quản lý danh sách con cái và tiến độ học kèm cùng gia sư'
-      }
+      title={modalOpen ? (editingId ? 'Cập Nhật Hồ Sơ Con' : 'Thêm Hồ Sơ Con') : 'Hồ Sơ Các Con'}
+      subtitle={modalOpen ? '' : 'Quản lý danh sách con cái và tiến độ học kèm cùng gia sư'}
       badge="Phụ Huynh"
     >
       <div className="w-full space-y-4 text-left font-sans text-slate-700">
         {modalOpen ? (
-          /* TRANG THÊM / CẬP NHẬT HỒ SƠ CON (FULL-PAGE FORM VIEW) */
-          <div className="space-y-4">
-            {/* Top Navigation & Status Bar */}
-            <div className="flex items-center justify-between flex-wrap gap-2">
+          /* TRANG THÊM / CẬP NHẬT HỒ SƠ CON - GỌN GÀNG, ĐƠN GIẢN */
+          <div className="space-y-3.5">
+            {/* Top Navigation */}
+            <div className="flex items-center justify-between">
               <button
                 type="button"
                 onClick={handleRequestClose}
                 className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-indigo-600 bg-white px-3 py-1.5 rounded-lg border border-slate-200/80 shadow-2xs transition-colors cursor-pointer"
               >
-                <ArrowLeft size={14} /> Quay lại danh sách con
+                <ArrowLeft size={14} /> Quay lại danh sách
               </button>
 
-              <div className="flex items-center gap-3">
-                <span className="text-[11px] text-slate-400 italic">
-                  <span className="text-rose-500 font-bold">*</span> Thông tin bắt buộc phải điền
+              {isDirty && (
+                <span className="text-amber-700 font-medium bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded text-[11px] inline-flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                  Chưa lưu thay đổi
                 </span>
-                {isDirty && (
-                  <span className="text-amber-700 font-medium bg-amber-50 border border-amber-200/60 px-2.5 py-0.5 rounded-md text-xs inline-flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                    Có thay đổi chưa lưu
-                  </span>
-                )}
-              </div>
+              )}
             </div>
 
             {globalError && (
@@ -455,24 +404,20 @@ export default function MyChildren() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                {/* CỘT TRÁI (5 cols): THÔNG TIN CƠ BẢN CỦA CON */}
-                <div className="lg:col-span-5 space-y-4">
-                  <div className="bg-white border border-slate-200/80 rounded-xl p-4.5 shadow-2xs space-y-3.5">
-                    <div className="pb-2.5 border-b border-slate-100 flex items-center justify-between">
-                      <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-[11px] border border-indigo-100">
-                          1
-                        </span>
-                        Thông Tin Cơ Bản Của Con
-                      </h4>
-                    </div>
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
+                {/* CỘT TRÁI (5 cols): THÔNG TIN CỦA CON */}
+                <div className="lg:col-span-5">
+                  <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-2xs space-y-3">
+                    <h3 className="text-xs font-bold text-slate-800 pb-2 border-b border-slate-100 flex items-center gap-1.5">
+                      <span className="w-1.5 h-3.5 bg-indigo-600 rounded-full inline-block"></span>
+                      Thông tin của con
+                    </h3>
 
                     {/* Họ và tên */}
                     <div>
                       <label className="block text-xs font-medium text-slate-700 mb-1">
-                        Họ và tên của bé <span className="text-rose-500 font-bold">*</span>
+                        Họ và tên con <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -510,10 +455,10 @@ export default function MyChildren() {
                     </div>
 
                     {/* Giới tính & Ngày sinh */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-slate-700 mb-1">
-                          Giới tính <span className="text-rose-500 font-bold">*</span>
+                          Giới tính <span className="text-rose-500">*</span>
                         </label>
                         <select
                           value={form.gender}
@@ -527,33 +472,17 @@ export default function MyChildren() {
                               }));
                             }
                           }}
-                          onBlur={() => {
-                            setTouched((prev) => ({ ...prev, gender: true }));
-                            setErrors((prev) => ({
-                              ...prev,
-                              gender: validateField('gender', form.gender),
-                            }));
-                          }}
-                          className={`w-full px-3 py-2 bg-white border rounded-lg text-xs text-slate-800 focus:outline-none transition-colors ${
-                            errors.gender && touched.gender
-                              ? 'border-rose-400 focus:border-rose-500'
-                              : 'border-slate-200 focus:border-indigo-500'
-                          }`}
+                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-indigo-500"
                         >
                           <option value="MALE">Nam</option>
                           <option value="FEMALE">Nữ</option>
                           <option value="OTHER">Khác</option>
                         </select>
-                        {errors.gender && touched.gender && (
-                          <p className="text-[11px] text-rose-600 font-medium mt-1 flex items-center gap-1">
-                            <AlertCircle size={12} /> {errors.gender}
-                          </p>
-                        )}
                       </div>
 
                       <div>
                         <label className="block text-xs font-medium text-slate-700 mb-1">
-                          Ngày sinh <span className="text-rose-500 font-bold">*</span>
+                          Ngày sinh <span className="text-rose-500">*</span>
                         </label>
                         <input
                           type="date"
@@ -583,11 +512,10 @@ export default function MyChildren() {
                               : 'border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
                           }`}
                         />
-                        {/* Hiển thị tính tuổi tự động */}
                         {form.dateOfBirth && currentDobAge !== null && currentDobAge >= 4 && currentDobAge <= 25 && (
                           <div className="mt-1">
-                            <span className="text-[11px] font-medium text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 inline-flex items-center gap-1">
-                              🎂 <strong>{currentDobAge} tuổi</strong>
+                            <span className="text-[11px] font-medium text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 inline-block">
+                              🎂 {currentDobAge} tuổi
                             </span>
                           </div>
                         )}
@@ -600,15 +528,15 @@ export default function MyChildren() {
                     </div>
 
                     {/* Trường & Lớp */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-slate-700 mb-1">
-                          Trường đang học <span className="text-slate-400 font-normal">(Tùy chọn)</span>
+                          Trường học
                         </label>
                         <input
                           type="text"
                           maxLength={150}
-                          placeholder="Ví dụ: THCS Cầu Giấy..."
+                          placeholder="Ví dụ: THCS Cầu Giấy"
                           value={form.school}
                           onChange={(e) => setForm({ ...form, school: e.target.value })}
                           className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
@@ -617,78 +545,65 @@ export default function MyChildren() {
 
                       <div>
                         <label className="block text-xs font-medium text-slate-700 mb-1">
-                          Lớp hiện tại <span className="text-slate-400 font-normal">(Tùy chọn)</span>
+                          Khối lớp
                         </label>
                         <input
                           type="text"
                           maxLength={20}
-                          placeholder="Ví dụ: Lớp 5, Lớp 9..."
+                          placeholder="Ví dụ: Lớp 6"
                           value={form.grade}
                           onChange={(e) => setForm({ ...form, grade: e.target.value })}
                           className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
                         />
                       </div>
                     </div>
-
-                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 text-[11px] text-slate-500 leading-relaxed">
-                      💡 <strong>Gợi ý:</strong> Thông tin ngày sinh và khối lớp giúp trung tâm tự động phân loại lộ trình và lọc hồ sơ gia sư có chứng chỉ sư phạm phù hợp nhất với con.
-                    </div>
                   </div>
                 </div>
 
-                {/* CỘT PHẢI (7 cols): NHU CẦU HỌC TẬP & TIÊU CHÍ GHÉP GIA SƯ */}
-                <div className="lg:col-span-7 space-y-4">
-                  <div className="bg-white border border-slate-200/80 rounded-xl p-4.5 shadow-2xs space-y-3.5">
-                    <div className="pb-2.5 border-b border-slate-100 flex items-center justify-between">
-                      <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-[11px] border border-indigo-100">
-                          2
-                        </span>
-                        Nhu Cầu Học Tập & Tiêu Chí Ghép Gia Sư
-                      </h4>
-                    </div>
+                {/* CỘT PHẢI (7 cols): NHU CẦU HỌC TẬP */}
+                <div className="lg:col-span-7">
+                  <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-2xs space-y-3">
+                    <h3 className="text-xs font-bold text-slate-800 pb-2 border-b border-slate-100 flex items-center gap-1.5">
+                      <span className="w-1.5 h-3.5 bg-indigo-600 rounded-full inline-block"></span>
+                      Nhu cầu học tập
+                    </h3>
 
-                    {/* Học lực hiện tại */}
+                    {/* Học lực */}
                     <div>
                       <label className="block text-xs font-medium text-slate-700 mb-1">
-                        Học lực hiện tại của bé
+                        Học lực của con
                       </label>
                       <select
                         value={form.academicLevel}
                         onChange={(e) => setForm({ ...form, academicLevel: e.target.value })}
                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-indigo-500"
                       >
-                        <option value="WEAK">Mất gốc / Yếu kém (cần kèm sát từ đầu)</option>
-                        <option value="AVERAGE">Trung bình (cần củng cố kiến thức cơ bản)</option>
-                        <option value="GOOD">Khá (cần rèn luyện phương pháp nâng cao)</option>
-                        <option value="EXCELLENT">Giỏi / Luyện thi HSG, Chuyên</option>
+                        <option value="WEAK">Yếu / Mất gốc</option>
+                        <option value="AVERAGE">Trung bình</option>
+                        <option value="GOOD">Khá</option>
+                        <option value="EXCELLENT">Giỏi</option>
                       </select>
                     </div>
 
-                    {/* Chọn môn học */}
+                    {/* Môn học cần kèm */}
                     <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-xs font-medium text-slate-700 flex items-center gap-1.5">
-                          <Tag size={13} className="text-indigo-600" /> Môn học cần kèm
-                        </label>
-                        <span className="text-[11px] text-slate-400">
-                          Đã chọn: <strong className="text-indigo-600">{selectedSubjects.length}</strong> môn
-                        </span>
-                      </div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                        Môn cần học kèm
+                      </label>
 
-                      {/* Các tag môn đã chọn */}
+                      {/* Tag môn đã chọn */}
                       {selectedSubjects.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mb-2.5 p-2 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                        <div className="flex flex-wrap gap-1.5 mb-2 p-1.5 bg-slate-50 rounded-lg border border-slate-200">
                           {selectedSubjects.map((sub) => (
                             <span
                               key={sub}
-                              className="inline-flex items-center gap-1 bg-indigo-600 text-white text-xs font-medium px-2.5 py-0.5 rounded-md shadow-2xs"
+                              className="inline-flex items-center gap-1 bg-indigo-600 text-white text-xs font-medium px-2 py-0.5 rounded shadow-2xs"
                             >
                               <span>{sub}</span>
                               <button
                                 type="button"
                                 onClick={() => removeSubject(sub)}
-                                className="hover:bg-white/20 rounded-full p-0.5 cursor-pointer transition-colors"
+                                className="hover:bg-white/20 rounded p-0.5 cursor-pointer"
                               >
                                 <X size={11} />
                               </button>
@@ -697,121 +612,91 @@ export default function MyChildren() {
                         </div>
                       )}
 
-                      {/* Môn học phổ biến bấm chọn nhanh */}
-                      <div className="space-y-1.5">
-                        <p className="text-[11px] text-slate-400">Bấm để chọn nhanh các môn phổ biến:</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {POPULAR_SUBJECTS.map((sub) => {
-                            const isSelected = selectedSubjects.includes(sub);
-                            return (
-                              <button
-                                key={sub}
-                                type="button"
-                                onClick={() => toggleSubject(sub)}
-                                className={`text-xs px-2.5 py-1 rounded-lg border transition-all cursor-pointer inline-flex items-center gap-1 ${
-                                  isSelected
-                                    ? 'bg-indigo-50 border-indigo-300 text-indigo-700 font-semibold'
-                                    : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-300 hover:text-indigo-600'
-                                }`}
-                              >
-                                {isSelected && <Check size={11} />}
-                                {sub}
-                              </button>
-                            );
-                          })}
+                      {/* 6 môn chính + ô nhập */}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {POPULAR_SUBJECTS.map((sub) => {
+                          const isSelected = selectedSubjects.includes(sub);
+                          return (
+                            <button
+                              key={sub}
+                              type="button"
+                              onClick={() => toggleSubject(sub)}
+                              className={`text-xs px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'bg-indigo-50 border-indigo-300 text-indigo-700 font-semibold'
+                                  : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-300 hover:text-indigo-600'
+                              }`}
+                            >
+                              {isSelected ? `✓ ${sub}` : `+ ${sub}`}
+                            </button>
+                          );
+                        })}
+
+                        <div className="inline-flex items-center gap-1">
+                          <input
+                            type="text"
+                            placeholder="Môn khác..."
+                            value={customSubjectInput}
+                            onChange={(e) => setCustomSubjectInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddCustomSubject();
+                              }
+                            }}
+                            className="w-28 px-2.5 py-1 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleAddCustomSubject()}
+                            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded-lg transition-colors cursor-pointer"
+                          >
+                            Thêm
+                          </button>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Nhập thêm môn tùy chỉnh */}
-                      <div className="mt-2.5 flex gap-2">
+                    {/* Mục tiêu & Tính cách */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-700 mb-1">
+                          Mục tiêu học tập
+                        </label>
                         <input
                           type="text"
-                          placeholder="Hoặc nhập tên môn khác rồi bấm Thêm..."
-                          value={customSubjectInput}
-                          onChange={(e) => setCustomSubjectInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              handleAddCustomSubject();
-                            }
-                          }}
-                          className="flex-1 px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
+                          maxLength={255}
+                          placeholder="Ví dụ: Luyện thi vào 10, lấy gốc..."
+                          value={form.targetGoal}
+                          onChange={(e) => setForm({ ...form, targetGoal: e.target.value })}
+                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
                         />
-                        <button
-                          type="button"
-                          onClick={() => handleAddCustomSubject()}
-                          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded-lg transition-colors cursor-pointer"
-                        >
-                          + Thêm môn
-                        </button>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-slate-700 mb-1">
+                          Tính cách của con
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={255}
+                          placeholder="Ví dụ: Nhút nhát, hiếu động..."
+                          value={form.personalityTraits}
+                          onChange={(e) => setForm({ ...form, personalityTraits: e.target.value })}
+                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
+                        />
                       </div>
                     </div>
 
-                    {/* Mục tiêu học tập */}
+                    {/* Ghi chú thêm */}
                     <div>
                       <label className="block text-xs font-medium text-slate-700 mb-1">
-                        Mục tiêu học tập cụ thể
-                      </label>
-                      <input
-                        type="text"
-                        maxLength={255}
-                        placeholder="Ví dụ: Thi vào 10 chuyên, Luyện thi THPTQG, Lấy lại gốc cấp tốc..."
-                        value={form.targetGoal}
-                        onChange={(e) => setForm({ ...form, targetGoal: e.target.value })}
-                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
-                      />
-                      <div className="mt-1.5 flex flex-wrap gap-1">
-                        <span className="text-[10px] text-slate-400 mr-1 self-center">Gợi ý 1 chạm:</span>
-                        {GOAL_SUGGESTIONS.map((g) => (
-                          <button
-                            key={g}
-                            type="button"
-                            onClick={() => handleSelectGoalSuggestion(g)}
-                            className="text-[10px] px-2 py-0.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 rounded transition-colors cursor-pointer"
-                          >
-                            + {g}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Đặc điểm tính cách */}
-                    <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
-                        Đặc điểm tính cách & Tâm lý của con
-                      </label>
-                      <input
-                        type="text"
-                        maxLength={255}
-                        placeholder="Ví dụ: Nhút nhát ngại hỏi, Hiếu động, Cần gia sư kiên nhẫn..."
-                        value={form.personalityTraits}
-                        onChange={(e) => setForm({ ...form, personalityTraits: e.target.value })}
-                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
-                      />
-                      <div className="mt-1.5 flex flex-wrap gap-1">
-                        <span className="text-[10px] text-slate-400 mr-1 self-center">Gợi ý 1 chạm:</span>
-                        {PERSONALITY_SUGGESTIONS.map((p) => (
-                          <button
-                            key={p}
-                            type="button"
-                            onClick={() => handleSelectPersonalitySuggestion(p)}
-                            className="text-[10px] px-2 py-0.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 rounded transition-colors cursor-pointer"
-                          >
-                            + {p}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Ghi chú thêm cho Giáo vụ */}
-                    <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
-                        Ghi chú thêm cho Giáo vụ / Tư vấn viên
+                        Ghi chú thêm
                       </label>
                       <textarea
                         rows={2}
                         maxLength={500}
-                        placeholder="Yêu cầu riêng về phong cách dạy, thời gian rảnh, dặn dò khác..."
+                        placeholder="Yêu cầu riêng về gia sư, lịch học hoặc dặn dò..."
                         value={form.notes}
                         onChange={(e) => setForm({ ...form, notes: e.target.value })}
                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 resize-none"
@@ -822,29 +707,29 @@ export default function MyChildren() {
               </div>
 
               {/* ACTION FOOTER */}
-              <div className="bg-white border border-slate-200/80 rounded-xl px-5 py-3.5 flex items-center justify-between shadow-2xs">
+              <div className="bg-white border border-slate-200/80 rounded-xl px-4 py-3 flex items-center justify-between shadow-2xs">
                 <button
                   type="button"
                   onClick={handleRequestClose}
-                  className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-medium rounded-lg transition-colors cursor-pointer"
+                  className="px-4 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-medium rounded-lg transition-colors cursor-pointer"
                 >
-                  Hủy bỏ / Quay lại
+                  Hủy bỏ
                 </button>
 
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-50 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer inline-flex items-center gap-2"
+                  className="px-5 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-50 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer inline-flex items-center gap-2"
                 >
                   {submitting ? (
                     <>
                       <Loader size={14} className="animate-spin" />
-                      <span>Đang lưu hồ sơ...</span>
+                      <span>Đang lưu...</span>
                     </>
                   ) : editingId ? (
                     'Cập nhật hồ sơ'
                   ) : (
-                    'Lưu hồ sơ con mới'
+                    'Lưu hồ sơ con'
                   )}
                 </button>
               </div>
