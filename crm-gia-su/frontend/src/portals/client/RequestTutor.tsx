@@ -16,6 +16,8 @@ interface Student {
   school?: string;
   subjectsNeeded?: string;
   learningStyle?: string;
+  personalityTraits?: string;
+  notes?: string;
 }
 
 const DAYS = [
@@ -87,6 +89,15 @@ export default function RequestTutor() {
           if (fullAddr) setAddress(fullAddr);
         }
 
+        // Helper dựng yêu cầu từ hồ sơ con
+        const buildStudentRequirements = (s: Student) => {
+          const parts: string[] = [];
+          if (s.learningStyle) parts.push(`Bộ sách đang học: ${s.learningStyle}`);
+          if (s.personalityTraits) parts.push(`Tính cách của con: ${s.personalityTraits}`);
+          if (s.notes) parts.push(`Lưu ý riêng: ${s.notes}`);
+          return parts.join('\n');
+        };
+
         // Tự động bind học sinh từ URL (?studentId=...)
         const paramStudentId = searchParams.get('studentId');
         if (paramStudentId && studentList.length > 0) {
@@ -97,9 +108,8 @@ export default function RequestTutor() {
             if (matched.subjectsNeeded) {
               setSubject(matched.subjectsNeeded.split(',')[0].trim());
             }
-            if (matched.learningStyle) {
-              setRequirements(`Tính cách / Phong cách học của con: ${matched.learningStyle}`);
-            }
+            const autoReq = buildStudentRequirements(matched);
+            if (autoReq) setRequirements(autoReq);
           }
         }
       } catch (err) {
@@ -121,9 +131,11 @@ export default function RequestTutor() {
       if (chosen.subjectsNeeded) {
         setSubject(chosen.subjectsNeeded.split(',')[0].trim());
       }
-      if (chosen.learningStyle) {
-        setRequirements(`Tính cách / Phong cách học của con: ${chosen.learningStyle}`);
-      }
+      const parts: string[] = [];
+      if (chosen.learningStyle) parts.push(`Bộ sách đang học: ${chosen.learningStyle}`);
+      if (chosen.personalityTraits) parts.push(`Tính cách của con: ${chosen.personalityTraits}`);
+      if (chosen.notes) parts.push(`Lưu ý riêng: ${chosen.notes}`);
+      if (parts.length > 0) setRequirements(parts.join('\n'));
     }
   };
 

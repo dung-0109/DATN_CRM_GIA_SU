@@ -888,9 +888,16 @@ export default function ClientPortal() {
                           </div>
 
                           <div className="p-2.5 bg-slate-50 rounded-lg text-xs space-y-1 text-slate-600">
-                            <div>🎯 Mục tiêu: <strong className="text-slate-700 font-medium">{stu.targetGoal || 'Ôn tập nâng cao'}</strong></div>
-                            <div>📚 Môn cần kèm: <strong className="text-slate-700 font-medium">{stu.subjectsNeeded || 'Chưa cập nhật'}</strong></div>
-                            <div>💡 Học lực: <strong className="text-slate-700 font-medium">{stu.academicLevel || 'Trung bình - Khá'}</strong></div>
+                            {stu.learningStyle && (
+                              <div>📚 Bộ sách: <strong className="text-slate-700 font-medium">{stu.learningStyle}</strong></div>
+                            )}
+                            {stu.personalityTraits && (
+                              <div>🌱 Tính cách: <strong className="text-slate-700 font-medium">{stu.personalityTraits}</strong></div>
+                            )}
+                            <div>💡 Học lực: <strong className="text-slate-700 font-medium">{stu.academicLevel === 'EXCELLENT' ? 'Giỏi / Xuất sắc' : stu.academicLevel === 'GOOD' ? 'Khá' : stu.academicLevel === 'WEAK' ? 'Yếu / Mất gốc' : 'Trung bình'}</strong></div>
+                            {stu.subjectsNeeded && (
+                              <div>📝 Môn cần kèm: <strong className="text-slate-700 font-medium">{stu.subjectsNeeded}</strong></div>
+                            )}
                           </div>
                         </div>
 
