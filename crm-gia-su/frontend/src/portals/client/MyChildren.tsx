@@ -413,272 +413,66 @@ export default function MyChildren() {
 
   return (
     <PageTemplate
-      title="Hồ Sơ Các Con"
-      subtitle="Quản lý danh sách con cái và tiến độ học kèm cùng gia sư"
+      title={modalOpen ? (editingId ? 'Cập Nhật Hồ Sơ Con' : 'Thêm Hồ Sơ Học Sinh Mới') : 'Hồ Sơ Các Con'}
+      subtitle={
+        modalOpen
+          ? 'Thông tin chi tiết giúp trung tâm ghép nối gia sư phù hợp nhất cho bé'
+          : 'Quản lý danh sách con cái và tiến độ học kèm cùng gia sư'
+      }
       badge="Phụ Huynh"
     >
       <div className="w-full space-y-4 text-left font-sans text-slate-700">
-        {/* Simple Clean Header Action Bar */}
-        <div className="flex justify-between items-center bg-white rounded-xl border border-slate-200/80 px-4 py-3 shadow-2xs">
-          <div>
-            <h2 className="text-sm font-semibold text-slate-800">
-              Danh Sách Học Sinh ({students.length})
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Thông tin chi tiết về lực học, môn cần kèm và lịch học của từng con
-            </p>
-          </div>
-
-          <button
-            onClick={openAddModal}
-            className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-medium rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-2xs"
-          >
-            <Plus size={14} /> Thêm Hồ Sơ Con
-          </button>
-        </div>
-
-        {globalError && !modalOpen && (
-          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-medium text-rose-700 flex items-center gap-2">
-            <AlertCircle size={15} className="shrink-0" />
-            <span>{globalError}</span>
-          </div>
-        )}
-
-        {loading ? (
-          <div className="text-center py-16 text-slate-400 text-xs flex flex-col items-center gap-2 bg-white rounded-xl border border-slate-200/80">
-            <Loader size={20} className="animate-spin text-indigo-600" />
-            <span>Đang tải danh sách học sinh...</span>
-          </div>
-        ) : students.length === 0 ? (
-          <div className="py-14 text-center bg-white border border-slate-200/80 rounded-xl shadow-2xs space-y-2.5">
-            <Users size={40} className="mx-auto text-slate-300" />
-            <p className="text-sm font-semibold text-slate-700">Chưa có hồ sơ học sinh nào</p>
-            <p className="text-xs text-slate-400 max-w-xs mx-auto">
-              Thêm thông tin con cái để bắt đầu đăng ký tìm gia sư dạy kèm phù hợp nhất.
-            </p>
-            <button
-              onClick={openAddModal}
-              className="mt-2 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg shadow-2xs cursor-pointer inline-flex items-center gap-1.5"
-            >
-              <Plus size={14} /> Thêm con ngay
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            {students.map((s) => {
-              const classCount = s.classes?.length || 0;
-              const requestCount = s.tutorRequests?.length || 0;
-              const hasClasses = classCount > 0;
-              const hasRequests = requestCount > 0;
-              const age = calculateAge(s.dateOfBirth);
-              const displayName = s.fullName.trim().replace(/\b\w/g, (c: string) => c.toUpperCase());
-              const subjectsList = s.subjectsNeeded ? s.subjectsNeeded.split(/[,;]+/).map((item: string) => item.trim()).filter(Boolean) : [];
-
-              return (
-                <div
-                  key={s.id}
-                  className="bg-white border border-slate-200/80 hover:border-slate-300 rounded-xl p-4 shadow-2xs flex flex-col justify-between space-y-3 transition-all"
-                >
-                  <div className="space-y-2.5">
-                    {/* Card Header: Name, Grade & Status */}
-                    <div className="flex items-start justify-between gap-2.5">
-                      <div className="flex items-start gap-2.5">
-                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
-                          s.gender === 'MALE' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-rose-50 text-rose-700 border border-rose-100'
-                        }`}>
-                          {displayName.slice(0, 2).toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-slate-800 text-sm">
-                              {displayName}
-                            </h3>
-                            <span className="text-[10px] text-slate-500 font-medium px-1.5 py-0.2 rounded bg-slate-100">
-                              {genderLabel(s.gender)} {age !== null ? `• ${age} tuổi` : ''}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-400 mt-0.5">
-                            {s.school ? `${s.school}` : 'Trường chưa cập nhật'} {s.grade ? `• ${s.grade}` : ''}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Status Badge */}
-                      <span className="shrink-0">
-                        {hasClasses ? (
-                          <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            Đang học {classCount} lớp
-                          </span>
-                        ) : hasRequests ? (
-                          <span className="text-[11px] font-medium text-amber-700 bg-amber-50 border border-amber-200/60 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                            Đang tìm {requestCount} lớp
-                          </span>
-                        ) : (
-                          <span className="text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                            Chưa có lớp học
-                          </span>
-                        )}
-                      </span>
-                    </div>
-
-                    {/* Compact Details Box */}
-                    <div className="p-2.5 bg-slate-50/80 rounded-lg border border-slate-100 text-xs text-slate-600 space-y-1.5">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-slate-400 font-medium">Học lực:</span>
-                        {s.academicLevel === 'WEAK' ? (
-                          <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-rose-50 text-rose-700 border border-rose-200/60">
-                            Yếu / Cần lấy lại gốc
-                          </span>
-                        ) : s.academicLevel === 'GOOD' ? (
-                          <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                            Học lực Khá
-                          </span>
-                        ) : s.academicLevel === 'EXCELLENT' ? (
-                          <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-indigo-50 text-indigo-700 border border-indigo-200/60">
-                            Giỏi / Xuất sắc
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-amber-50 text-amber-700 border border-amber-200/60">
-                            Học lực Trung bình
-                          </span>
-                        )}
-                      </div>
-
-                      {subjectsList.length > 0 && (
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-slate-400 font-medium">Môn cần kèm:</span>
-                          {subjectsList.map((sub: string, idx: number) => (
-                            <span key={idx} className="px-2 py-0.5 bg-white border border-slate-200 text-indigo-600 font-medium rounded text-[11px]">
-                              {sub}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      {s.targetGoal && (
-                        <div className="text-slate-600">
-                          <span className="text-slate-400 font-medium">Mục tiêu: </span>
-                          <span>{s.targetGoal}</span>
-                        </div>
-                      )}
-
-                      {(s.personalityTraits || s.learningStyle) && (
-                        <div className="text-slate-600">
-                          <span className="text-slate-400 font-medium">Tính cách: </span>
-                          <span>{s.personalityTraits || s.learningStyle}</span>
-                        </div>
-                      )}
-
-                      {s.notes && (
-                        <div className="text-[11px] text-slate-500 italic pt-0.5">
-                          Lưu ý: {s.notes}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Card Actions */}
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => openEditModal(s)}
-                        className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                        title="Chỉnh sửa hồ sơ"
-                      >
-                        <Pencil size={14} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(s.id, s.fullName)}
-                        disabled={deletingId === s.id}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                        title="Xóa hồ sơ"
-                      >
-                        {deletingId === s.id ? (
-                          <Loader size={14} className="animate-spin" />
-                        ) : (
-                          <Trash2 size={14} />
-                        )}
-                      </button>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        navigate(`/client/request-tutor?studentId=${s.id}`);
-                      }}
-                      className="px-3 py-1.5 text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 font-medium text-xs rounded-lg transition-colors cursor-pointer flex items-center gap-1 border border-indigo-100"
-                    >
-                      <Plus size={13} /> Tìm gia sư cho con
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Modal Form Thêm / Cập nhật học sinh */}
-        {modalOpen && (
-          <div
-            className="fixed inset-0 z-50 bg-[#233446]/40 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) handleRequestClose();
-            }}
-          >
-            <div className="bg-white border-0 rounded-2xl max-w-xl w-full p-6 text-left shadow-2xl relative max-h-[92vh] overflow-y-auto custom-scrollbar">
+        {modalOpen ? (
+          /* TRANG THÊM / CẬP NHẬT HỒ SƠ CON (FULL-PAGE FORM VIEW) */
+          <div className="space-y-4">
+            {/* Top Navigation & Status Bar */}
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <button
                 type="button"
                 onClick={handleRequestClose}
-                className="absolute top-4 right-4 text-[#a1acb8] hover:text-[#566a7f] cursor-pointer p-1 rounded-lg hover:bg-gray-100 transition-colors"
-                title="Đóng biểu mẫu"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-indigo-600 bg-white px-3 py-1.5 rounded-lg border border-slate-200/80 shadow-2xs transition-colors cursor-pointer"
               >
-                <X size={20} />
+                <ArrowLeft size={14} /> Quay lại danh sách con
               </button>
 
-              <div className="flex items-start justify-between pr-8 mb-4">
-                <div>
-                  <h3 className="text-xl font-bold text-[#566a7f]">
-                    {editingId ? 'Cập nhật hồ sơ học sinh' : 'Thêm hồ sơ học sinh mới'}
-                  </h3>
-                  <p className="text-[#a1acb8] text-xs mt-1">
-                    Thông tin càng chi tiết giúp hệ thống ghép nối gia sư phù hợp nhất cho bé.
-                  </p>
-                </div>
-              </div>
-
-              {/* Chú thích thông tin bắt buộc */}
-              <div className="mb-4 pb-2 border-b border-gray-100 flex items-center justify-between text-[11px]">
-                <span className="text-[#a1acb8] italic">
-                  <span className="text-[#ff3e1d] font-bold">*</span> Thông tin bắt buộc phải điền
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] text-slate-400 italic">
+                  <span className="text-rose-500 font-bold">*</span> Thông tin bắt buộc phải điền
                 </span>
                 {isDirty && (
-                  <span className="text-[#ffab00] font-medium bg-[#fff2d6] px-2 py-0.5 rounded-full text-[10px]">
+                  <span className="text-amber-700 font-medium bg-amber-50 border border-amber-200/60 px-2.5 py-0.5 rounded-md text-xs inline-flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                     Có thay đổi chưa lưu
                   </span>
                 )}
               </div>
+            </div>
 
-              {globalError && (
-                <div className="mb-4 p-3 bg-[#ffe0db] border border-[#ff3e1d]/40 rounded-lg text-xs font-semibold text-[#ff3e1d] flex items-center gap-2">
-                  <AlertCircle size={15} className="shrink-0" />
-                  <span>{globalError}</span>
-                </div>
-              )}
+            {globalError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-700 flex items-center gap-2">
+                <AlertCircle size={15} className="shrink-0" />
+                <span>{globalError}</span>
+              </div>
+            )}
 
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {/* I. THÔNG TIN CƠ BẢN */}
-                <div>
-                  <h4 className="text-xs font-bold text-[#696cff] uppercase mb-3 flex items-center gap-1.5 pb-1 border-b border-gray-100">
-                    <span className="w-1.5 h-3.5 bg-[#696cff] rounded-full inline-block"></span>
-                    I. Thông tin cơ bản
-                  </h4>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                {/* CỘT TRÁI (5 cols): THÔNG TIN CƠ BẢN CỦA CON */}
+                <div className="lg:col-span-5 space-y-4">
+                  <div className="bg-white border border-slate-200/80 rounded-xl p-4.5 shadow-2xs space-y-3.5">
+                    <div className="pb-2.5 border-b border-slate-100 flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-[11px] border border-indigo-100">
+                          1
+                        </span>
+                        Thông Tin Cơ Bản Của Con
+                      </h4>
+                    </div>
 
-                  <div className="space-y-3.5">
                     {/* Họ và tên */}
                     <div>
-                      <label className="block text-xs font-semibold text-[#566a7f] mb-1">
-                        Họ và tên của bé <span className="text-[#ff3e1d] font-bold">*</span>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        Họ và tên của bé <span className="text-rose-500 font-bold">*</span>
                       </label>
                       <input
                         type="text"
@@ -702,24 +496,24 @@ export default function MyChildren() {
                             fullName: validateField('fullName', form.fullName),
                           }));
                         }}
-                        className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-sm text-[#566a7f] focus:outline-none transition-all ${
+                        className={`w-full px-3 py-2 bg-white border rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none transition-colors ${
                           errors.fullName && touched.fullName
-                            ? 'border-[#ff3e1d] focus:border-[#ff3e1d] focus:ring-1 focus:ring-[#ff3e1d]'
-                            : 'border-[#d9dee3] focus:border-[#696cff] focus:ring-1 focus:ring-[#696cff]'
+                            ? 'border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500'
+                            : 'border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
                         }`}
                       />
                       {errors.fullName && touched.fullName && (
-                        <p className="text-[11px] text-[#ff3e1d] font-medium mt-1 flex items-center gap-1">
+                        <p className="text-[11px] text-rose-600 font-medium mt-1 flex items-center gap-1">
                           <AlertCircle size={12} /> {errors.fullName}
                         </p>
                       )}
                     </div>
 
                     {/* Giới tính & Ngày sinh */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-semibold text-[#566a7f] mb-1">
-                          Giới tính <span className="text-[#ff3e1d] font-bold">*</span>
+                        <label className="block text-xs font-medium text-slate-700 mb-1">
+                          Giới tính <span className="text-rose-500 font-bold">*</span>
                         </label>
                         <select
                           value={form.gender}
@@ -740,10 +534,10 @@ export default function MyChildren() {
                               gender: validateField('gender', form.gender),
                             }));
                           }}
-                          className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-sm text-[#566a7f] focus:outline-none transition-all ${
+                          className={`w-full px-3 py-2 bg-white border rounded-lg text-xs text-slate-800 focus:outline-none transition-colors ${
                             errors.gender && touched.gender
-                              ? 'border-[#ff3e1d] focus:border-[#ff3e1d]'
-                              : 'border-[#d9dee3] focus:border-[#696cff]'
+                              ? 'border-rose-400 focus:border-rose-500'
+                              : 'border-slate-200 focus:border-indigo-500'
                           }`}
                         >
                           <option value="MALE">Nam</option>
@@ -751,15 +545,15 @@ export default function MyChildren() {
                           <option value="OTHER">Khác</option>
                         </select>
                         {errors.gender && touched.gender && (
-                          <p className="text-[11px] text-[#ff3e1d] font-medium mt-1 flex items-center gap-1">
+                          <p className="text-[11px] text-rose-600 font-medium mt-1 flex items-center gap-1">
                             <AlertCircle size={12} /> {errors.gender}
                           </p>
                         )}
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold text-[#566a7f] mb-1">
-                          Ngày sinh <span className="text-[#ff3e1d] font-bold">*</span>
+                        <label className="block text-xs font-medium text-slate-700 mb-1">
+                          Ngày sinh <span className="text-rose-500 font-bold">*</span>
                         </label>
                         <input
                           type="date"
@@ -783,26 +577,22 @@ export default function MyChildren() {
                               dateOfBirth: validateField('dateOfBirth', form.dateOfBirth),
                             }));
                           }}
-                          className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-sm text-[#566a7f] focus:outline-none transition-all ${
+                          className={`w-full px-3 py-2 bg-white border rounded-lg text-xs text-slate-800 focus:outline-none transition-colors ${
                             errors.dateOfBirth && touched.dateOfBirth
-                              ? 'border-[#ff3e1d] focus:border-[#ff3e1d] focus:ring-1 focus:ring-[#ff3e1d]'
-                              : 'border-[#d9dee3] focus:border-[#696cff] focus:ring-1 focus:ring-[#696cff]'
+                              ? 'border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500'
+                              : 'border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
                           }`}
                         />
-
-                        {/* Hiển thị tính tuổi tự động và cảnh báo */}
-                        {form.dateOfBirth && (
+                        {/* Hiển thị tính tuổi tự động */}
+                        {form.dateOfBirth && currentDobAge !== null && currentDobAge >= 4 && currentDobAge <= 25 && (
                           <div className="mt-1">
-                            {currentDobAge !== null && currentDobAge >= 4 && currentDobAge <= 25 ? (
-                              <span className="text-[11px] font-semibold text-[#696cff] bg-[#e7e7ff] px-2 py-0.5 rounded-md inline-flex items-center gap-1">
-                                🎂 Tuổi hiện tại: <strong>{currentDobAge} tuổi</strong>
-                              </span>
-                            ) : null}
+                            <span className="text-[11px] font-medium text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 inline-flex items-center gap-1">
+                              🎂 <strong>{currentDobAge} tuổi</strong>
+                            </span>
                           </div>
                         )}
-
                         {errors.dateOfBirth && touched.dateOfBirth && (
-                          <p className="text-[11px] text-[#ff3e1d] font-medium mt-1 flex items-center gap-1">
+                          <p className="text-[11px] text-rose-600 font-medium mt-1 flex items-center gap-1">
                             <AlertCircle size={12} /> {errors.dateOfBirth}
                           </p>
                         )}
@@ -810,10 +600,10 @@ export default function MyChildren() {
                     </div>
 
                     {/* Trường & Lớp */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-semibold text-[#566a7f] mb-1">
-                          Trường đang học <span className="text-[#a1acb8] font-normal">(Tùy chọn)</span>
+                        <label className="block text-xs font-medium text-slate-700 mb-1">
+                          Trường đang học <span className="text-slate-400 font-normal">(Tùy chọn)</span>
                         </label>
                         <input
                           type="text"
@@ -821,44 +611,52 @@ export default function MyChildren() {
                           placeholder="Ví dụ: THCS Cầu Giấy..."
                           value={form.school}
                           onChange={(e) => setForm({ ...form, school: e.target.value })}
-                          className="w-full px-3.5 py-2.5 bg-white border border-[#d9dee3] rounded-xl text-sm text-[#566a7f] focus:outline-none focus:border-[#696cff]"
+                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold text-[#566a7f] mb-1">
-                          Lớp hiện tại <span className="text-[#a1acb8] font-normal">(Tùy chọn)</span>
+                        <label className="block text-xs font-medium text-slate-700 mb-1">
+                          Lớp hiện tại <span className="text-slate-400 font-normal">(Tùy chọn)</span>
                         </label>
                         <input
                           type="text"
                           maxLength={20}
-                          placeholder="Ví dụ: Lớp 5, Lớp 9, Lớp 12..."
+                          placeholder="Ví dụ: Lớp 5, Lớp 9..."
                           value={form.grade}
                           onChange={(e) => setForm({ ...form, grade: e.target.value })}
-                          className="w-full px-3.5 py-2.5 bg-white border border-[#d9dee3] rounded-xl text-sm text-[#566a7f] focus:outline-none focus:border-[#696cff]"
+                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
                         />
                       </div>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 text-[11px] text-slate-500 leading-relaxed">
+                      💡 <strong>Gợi ý:</strong> Thông tin ngày sinh và khối lớp giúp trung tâm tự động phân loại lộ trình và lọc hồ sơ gia sư có chứng chỉ sư phạm phù hợp nhất với con.
                     </div>
                   </div>
                 </div>
 
-                {/* II. THÔNG TIN HỌC TẬP & MATCHING */}
-                <div>
-                  <h4 className="text-xs font-bold text-[#696cff] uppercase mb-3 flex items-center gap-1.5 pb-1 border-b border-gray-100">
-                    <span className="w-1.5 h-3.5 bg-[#696cff] rounded-full inline-block"></span>
-                    II. Thông tin học tập & Tiêu chí Matching
-                  </h4>
+                {/* CỘT PHẢI (7 cols): NHU CẦU HỌC TẬP & TIÊU CHÍ GHÉP GIA SƯ */}
+                <div className="lg:col-span-7 space-y-4">
+                  <div className="bg-white border border-slate-200/80 rounded-xl p-4.5 shadow-2xs space-y-3.5">
+                    <div className="pb-2.5 border-b border-slate-100 flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-[11px] border border-indigo-100">
+                          2
+                        </span>
+                        Nhu Cầu Học Tập & Tiêu Chí Ghép Gia Sư
+                      </h4>
+                    </div>
 
-                  <div className="space-y-3.5">
-                    {/* Học lực */}
+                    {/* Học lực hiện tại */}
                     <div>
-                      <label className="block text-xs font-semibold text-[#566a7f] mb-1">
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
                         Học lực hiện tại của bé
                       </label>
                       <select
                         value={form.academicLevel}
                         onChange={(e) => setForm({ ...form, academicLevel: e.target.value })}
-                        className="w-full px-3.5 py-2.5 bg-white border border-[#d9dee3] rounded-xl text-sm text-[#566a7f] focus:outline-none focus:border-[#696cff]"
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-indigo-500"
                       >
                         <option value="WEAK">Mất gốc / Yếu kém (cần kèm sát từ đầu)</option>
                         <option value="AVERAGE">Trung bình (cần củng cố kiến thức cơ bản)</option>
@@ -867,24 +665,24 @@ export default function MyChildren() {
                       </select>
                     </div>
 
-                    {/* Chọn môn học dạng Tags */}
+                    {/* Chọn môn học */}
                     <div>
-                      <label className="block text-xs font-semibold text-[#566a7f] mb-1.5 flex items-center justify-between">
-                        <span className="flex items-center gap-1">
-                          <Tag size={14} className="text-[#696cff]" /> Môn học cần kèm (chọn tags)
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-medium text-slate-700 flex items-center gap-1.5">
+                          <Tag size={13} className="text-indigo-600" /> Môn học cần kèm
+                        </label>
+                        <span className="text-[11px] text-slate-400">
+                          Đã chọn: <strong className="text-indigo-600">{selectedSubjects.length}</strong> môn
                         </span>
-                        <span className="text-[11px] text-[#a1acb8] font-normal">
-                          Đã chọn: {selectedSubjects.length} môn
-                        </span>
-                      </label>
+                      </div>
 
-                      {/* Các tag đã chọn */}
+                      {/* Các tag môn đã chọn */}
                       {selectedSubjects.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mb-2.5 p-2 bg-[#f5f5f9] rounded-xl border border-dashed border-[#d9dee3]">
+                        <div className="flex flex-wrap gap-1.5 mb-2.5 p-2 bg-slate-50 rounded-lg border border-dashed border-slate-200">
                           {selectedSubjects.map((sub) => (
                             <span
                               key={sub}
-                              className="inline-flex items-center gap-1 bg-[#696cff] text-white text-xs font-semibold px-2.5 py-1 rounded-lg shadow-sm"
+                              className="inline-flex items-center gap-1 bg-indigo-600 text-white text-xs font-medium px-2.5 py-0.5 rounded-md shadow-2xs"
                             >
                               <span>{sub}</span>
                               <button
@@ -892,16 +690,16 @@ export default function MyChildren() {
                                 onClick={() => removeSubject(sub)}
                                 className="hover:bg-white/20 rounded-full p-0.5 cursor-pointer transition-colors"
                               >
-                                <X size={12} />
+                                <X size={11} />
                               </button>
                             </span>
                           ))}
                         </div>
                       )}
 
-                      {/* Gợi ý tags phổ biến */}
+                      {/* Môn học phổ biến bấm chọn nhanh */}
                       <div className="space-y-1.5">
-                        <p className="text-[11px] text-[#a1acb8]">Môn học phổ biến (bấm để chọn nhanh):</p>
+                        <p className="text-[11px] text-slate-400">Bấm để chọn nhanh các môn phổ biến:</p>
                         <div className="flex flex-wrap gap-1.5">
                           {POPULAR_SUBJECTS.map((sub) => {
                             const isSelected = selectedSubjects.includes(sub);
@@ -912,11 +710,11 @@ export default function MyChildren() {
                                 onClick={() => toggleSubject(sub)}
                                 className={`text-xs px-2.5 py-1 rounded-lg border transition-all cursor-pointer inline-flex items-center gap-1 ${
                                   isSelected
-                                    ? 'bg-[#696cff]/15 border-[#696cff] text-[#696cff] font-bold'
-                                    : 'bg-white border-[#d9dee3] text-[#697a8d] hover:border-[#696cff]/60 hover:text-[#696cff]'
+                                    ? 'bg-indigo-50 border-indigo-300 text-indigo-700 font-semibold'
+                                    : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-300 hover:text-indigo-600'
                                 }`}
                               >
-                                {isSelected && <Check size={12} />}
+                                {isSelected && <Check size={11} />}
                                 {sub}
                               </button>
                             );
@@ -937,21 +735,21 @@ export default function MyChildren() {
                               handleAddCustomSubject();
                             }
                           }}
-                          className="flex-1 px-3 py-1.5 text-xs bg-white border border-[#d9dee3] rounded-lg text-[#566a7f] focus:outline-none focus:border-[#696cff]"
+                          className="flex-1 px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
                         />
                         <button
                           type="button"
                           onClick={() => handleAddCustomSubject()}
-                          className="px-3 py-1.5 bg-[#f5f5f9] hover:bg-gray-200 text-[#566a7f] font-semibold text-xs rounded-lg transition-colors cursor-pointer"
+                          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded-lg transition-colors cursor-pointer"
                         >
-                          + Thêm
+                          + Thêm môn
                         </button>
                       </div>
                     </div>
 
-                    {/* Mục tiêu học tập + Gợi ý */}
+                    {/* Mục tiêu học tập */}
                     <div>
-                      <label className="block text-xs font-semibold text-[#566a7f] mb-1">
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
                         Mục tiêu học tập cụ thể
                       </label>
                       <input
@@ -960,16 +758,16 @@ export default function MyChildren() {
                         placeholder="Ví dụ: Thi vào 10 chuyên, Luyện thi THPTQG, Lấy lại gốc cấp tốc..."
                         value={form.targetGoal}
                         onChange={(e) => setForm({ ...form, targetGoal: e.target.value })}
-                        className="w-full px-3.5 py-2.5 bg-white border border-[#d9dee3] rounded-xl text-sm text-[#566a7f] focus:outline-none focus:border-[#696cff]"
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
                       />
                       <div className="mt-1.5 flex flex-wrap gap-1">
-                        <span className="text-[10px] text-[#a1acb8] mr-1 self-center">Gợi ý:</span>
+                        <span className="text-[10px] text-slate-400 mr-1 self-center">Gợi ý 1 chạm:</span>
                         {GOAL_SUGGESTIONS.map((g) => (
                           <button
                             key={g}
                             type="button"
                             onClick={() => handleSelectGoalSuggestion(g)}
-                            className="text-[10px] px-2 py-0.5 bg-gray-100 hover:bg-[#696cff]/10 hover:text-[#696cff] text-[#697a8d] rounded-md transition-colors cursor-pointer"
+                            className="text-[10px] px-2 py-0.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 rounded transition-colors cursor-pointer"
                           >
                             + {g}
                           </button>
@@ -977,9 +775,9 @@ export default function MyChildren() {
                       </div>
                     </div>
 
-                    {/* Đặc điểm tính cách / Tâm lý + Gợi ý */}
+                    {/* Đặc điểm tính cách */}
                     <div>
-                      <label className="block text-xs font-semibold text-[#566a7f] mb-1">
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
                         Đặc điểm tính cách & Tâm lý của con
                       </label>
                       <input
@@ -988,16 +786,16 @@ export default function MyChildren() {
                         placeholder="Ví dụ: Nhút nhát ngại hỏi, Hiếu động, Cần gia sư kiên nhẫn..."
                         value={form.personalityTraits}
                         onChange={(e) => setForm({ ...form, personalityTraits: e.target.value })}
-                        className="w-full px-3.5 py-2.5 bg-white border border-[#d9dee3] rounded-xl text-sm text-[#566a7f] focus:outline-none focus:border-[#696cff]"
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
                       />
                       <div className="mt-1.5 flex flex-wrap gap-1">
-                        <span className="text-[10px] text-[#a1acb8] mr-1 self-center">Gợi ý:</span>
+                        <span className="text-[10px] text-slate-400 mr-1 self-center">Gợi ý 1 chạm:</span>
                         {PERSONALITY_SUGGESTIONS.map((p) => (
                           <button
                             key={p}
                             type="button"
                             onClick={() => handleSelectPersonalitySuggestion(p)}
-                            className="text-[10px] px-2 py-0.5 bg-gray-100 hover:bg-[#696cff]/10 hover:text-[#696cff] text-[#697a8d] rounded-md transition-colors cursor-pointer"
+                            className="text-[10px] px-2 py-0.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 rounded transition-colors cursor-pointer"
                           >
                             + {p}
                           </button>
@@ -1007,7 +805,7 @@ export default function MyChildren() {
 
                     {/* Ghi chú thêm cho Giáo vụ */}
                     <div>
-                      <label className="block text-xs font-semibold text-[#566a7f] mb-1">
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
                         Ghi chú thêm cho Giáo vụ / Tư vấn viên
                       </label>
                       <textarea
@@ -1016,54 +814,257 @@ export default function MyChildren() {
                         placeholder="Yêu cầu riêng về phong cách dạy, thời gian rảnh, dặn dò khác..."
                         value={form.notes}
                         onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                        className="w-full px-3.5 py-2.5 bg-white border border-[#d9dee3] rounded-xl text-sm text-[#566a7f] focus:outline-none focus:border-[#696cff] resize-none"
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 resize-none"
                       />
                     </div>
                   </div>
                 </div>
+              </div>
 
-                {/* Form Buttons */}
-                <div className="flex gap-3 pt-3 border-t border-gray-100">
-                  <button
-                    type="button"
-                    onClick={handleRequestClose}
-                    className="flex-1 py-2.5 bg-[#f5f5f9] hover:bg-gray-200 text-[#697a8d] rounded-xl text-sm font-semibold cursor-pointer transition-colors"
-                  >
-                    Hủy bỏ
-                  </button>
+              {/* ACTION FOOTER */}
+              <div className="bg-white border border-slate-200/80 rounded-xl px-5 py-3.5 flex items-center justify-between shadow-2xs">
+                <button
+                  type="button"
+                  onClick={handleRequestClose}
+                  className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-medium rounded-lg transition-colors cursor-pointer"
+                >
+                  Hủy bỏ / Quay lại
+                </button>
 
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="flex-1 py-2.5 bg-[#696cff] hover:bg-[#5f61e6] active:bg-[#595cd9] disabled:opacity-50 text-white font-bold rounded-xl text-sm cursor-pointer shadow-[0_2px_4px_0_rgba(105,108,255,0.4)] transition-all flex items-center justify-center gap-2"
-                  >
-                    {submitting ? (
-                      <>
-                        <Loader size={16} className="animate-spin" />
-                        <span>Đang lưu hồ sơ...</span>
-                      </>
-                    ) : editingId ? (
-                      'Cập nhật hồ sơ'
-                    ) : (
-                      'Lưu hồ sơ con mới'
-                    )}
-                  </button>
-                </div>
-              </form>
-            </div>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-50 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer inline-flex items-center gap-2"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader size={14} className="animate-spin" />
+                      <span>Đang lưu hồ sơ...</span>
+                    </>
+                  ) : editingId ? (
+                    'Cập nhật hồ sơ'
+                  ) : (
+                    'Lưu hồ sơ con mới'
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
+        ) : (
+          /* DANH SÁCH CON (LIST VIEW) */
+          <>
+            {/* Simple Clean Header Action Bar */}
+            <div className="flex justify-between items-center bg-white rounded-xl border border-slate-200/80 px-4 py-3 shadow-2xs">
+              <div>
+                <h2 className="text-sm font-semibold text-slate-800">
+                  Danh Sách Học Sinh ({students.length})
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Thông tin chi tiết về lực học, môn cần kèm và lịch học của từng con
+                </p>
+              </div>
+
+              <button
+                onClick={openAddModal}
+                className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-medium rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-2xs"
+              >
+                <Plus size={14} /> Thêm Hồ Sơ Con
+              </button>
+            </div>
+
+            {globalError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-medium text-rose-700 flex items-center gap-2">
+                <AlertCircle size={15} className="shrink-0" />
+                <span>{globalError}</span>
+              </div>
+            )}
+
+            {loading ? (
+              <div className="text-center py-16 text-slate-400 text-xs flex flex-col items-center gap-2 bg-white rounded-xl border border-slate-200/80">
+                <Loader size={20} className="animate-spin text-indigo-600" />
+                <span>Đang tải danh sách học sinh...</span>
+              </div>
+            ) : students.length === 0 ? (
+              <div className="py-14 text-center bg-white border border-slate-200/80 rounded-xl shadow-2xs space-y-2.5">
+                <Users size={40} className="mx-auto text-slate-300" />
+                <p className="text-sm font-semibold text-slate-700">Chưa có hồ sơ học sinh nào</p>
+                <p className="text-xs text-slate-400 max-w-xs mx-auto">
+                  Thêm thông tin con cái để bắt đầu đăng ký tìm gia sư dạy kèm phù hợp nhất.
+                </p>
+                <button
+                  onClick={openAddModal}
+                  className="mt-2 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg shadow-2xs cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <Plus size={14} /> Thêm con ngay
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {students.map((s) => {
+                  const classCount = s.classes?.length || 0;
+                  const requestCount = s.tutorRequests?.length || 0;
+                  const hasClasses = classCount > 0;
+                  const hasRequests = requestCount > 0;
+                  const age = calculateAge(s.dateOfBirth);
+                  const displayName = s.fullName.trim().replace(/\b\w/g, (c: string) => c.toUpperCase());
+                  const subjectsList = s.subjectsNeeded ? s.subjectsNeeded.split(/[,;]+/).map((item: string) => item.trim()).filter(Boolean) : [];
+
+                  return (
+                    <div
+                      key={s.id}
+                      className="bg-white border border-slate-200/80 hover:border-slate-300 rounded-xl p-4 shadow-2xs flex flex-col justify-between space-y-3 transition-all"
+                    >
+                      <div className="space-y-2.5">
+                        {/* Card Header: Name, Grade & Status */}
+                        <div className="flex items-start justify-between gap-2.5">
+                          <div className="flex items-start gap-2.5">
+                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
+                              s.gender === 'MALE' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-rose-50 text-rose-700 border border-rose-100'
+                            }`}>
+                              {displayName.slice(0, 2).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-semibold text-slate-800 text-sm">
+                                  {displayName}
+                                </h3>
+                                <span className="text-[10px] text-slate-500 font-medium px-1.5 py-0.2 rounded bg-slate-100">
+                                  {genderLabel(s.gender)} {age !== null ? `• ${age} tuổi` : ''}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-400 mt-0.5">
+                                {s.school ? `${s.school}` : 'Trường chưa cập nhật'} {s.grade ? `• ${s.grade}` : ''}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Status Badge */}
+                          <span className="shrink-0">
+                            {hasClasses ? (
+                              <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                Đang học {classCount} lớp
+                              </span>
+                            ) : hasRequests ? (
+                              <span className="text-[11px] font-medium text-amber-700 bg-amber-50 border border-amber-200/60 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                Đang tìm {requestCount} lớp
+                              </span>
+                            ) : (
+                              <span className="text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                                Chưa có lớp học
+                              </span>
+                            )}
+                          </span>
+                        </div>
+
+                        {/* Compact Details Box */}
+                        <div className="p-2.5 bg-slate-50/80 rounded-lg border border-slate-100 text-xs text-slate-600 space-y-1.5">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-slate-400 font-medium">Học lực:</span>
+                            {s.academicLevel === 'WEAK' ? (
+                              <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-rose-50 text-rose-700 border border-rose-200/60">
+                                Yếu / Cần lấy lại gốc
+                              </span>
+                            ) : s.academicLevel === 'GOOD' ? (
+                              <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                                Học lực Khá
+                              </span>
+                            ) : s.academicLevel === 'EXCELLENT' ? (
+                              <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-indigo-50 text-indigo-700 border border-indigo-200/60">
+                                Giỏi / Xuất sắc
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-amber-50 text-amber-700 border border-amber-200/60">
+                                Học lực Trung bình
+                              </span>
+                            )}
+                          </div>
+
+                          {subjectsList.length > 0 && (
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-slate-400 font-medium">Môn cần kèm:</span>
+                              {subjectsList.map((sub: string, idx: number) => (
+                                <span key={idx} className="px-2 py-0.5 bg-white border border-slate-200 text-indigo-600 font-medium rounded text-[11px]">
+                                  {sub}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          {s.targetGoal && (
+                            <div className="text-slate-600">
+                              <span className="text-slate-400 font-medium">Mục tiêu: </span>
+                              <span>{s.targetGoal}</span>
+                            </div>
+                          )}
+
+                          {(s.personalityTraits || s.learningStyle) && (
+                            <div className="text-slate-600">
+                              <span className="text-slate-400 font-medium">Tính cách: </span>
+                              <span>{s.personalityTraits || s.learningStyle}</span>
+                            </div>
+                          )}
+
+                          {s.notes && (
+                            <div className="text-[11px] text-slate-500 italic pt-0.5">
+                              Lưu ý: {s.notes}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Card Actions */}
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => openEditModal(s)}
+                            className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                            title="Chỉnh sửa hồ sơ"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(s.id, s.fullName)}
+                            disabled={deletingId === s.id}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            title="Xóa hồ sơ"
+                          >
+                            {deletingId === s.id ? (
+                              <Loader size={14} className="animate-spin" />
+                            ) : (
+                              <Trash2 size={14} />
+                            )}
+                          </button>
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            navigate(`/client/request-tutor?studentId=${s.id}`);
+                          }}
+                          className="px-3 py-1.5 text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 font-medium text-xs rounded-lg transition-colors cursor-pointer flex items-center gap-1 border border-indigo-100"
+                        >
+                          <Plus size={13} /> Tìm gia sư cho con
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
 
         {/* POPUP 1: XÁC NHẬN THOÁT KHI CHƯA LƯU */}
         {showUnsavedExitModal && (
-          <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
-            <div className="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-gray-100 space-y-4">
-              <div className="w-12 h-12 rounded-full bg-[#ffab00]/15 text-[#ffab00] mx-auto flex items-center justify-center">
+          <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+            <div className="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-100 space-y-4">
+              <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 mx-auto flex items-center justify-center border border-amber-100">
                 <AlertTriangle size={24} />
               </div>
               <div>
-                <h4 className="text-base font-bold text-[#566a7f]">Bạn có chắc muốn thoát?</h4>
-                <p className="text-xs text-[#a1acb8] mt-2 leading-relaxed">
+                <h4 className="text-base font-bold text-slate-800">Bạn có chắc muốn thoát?</h4>
+                <p className="text-xs text-slate-500 mt-2 leading-relaxed">
                   Thông tin bạn vừa nhập chưa được lưu. Nếu thoát ngay, các thay đổi sẽ bị mất.
                 </p>
               </div>
@@ -1071,7 +1072,7 @@ export default function MyChildren() {
                 <button
                   type="button"
                   onClick={() => setShowUnsavedExitModal(false)}
-                  className="py-2.5 px-3 rounded-xl border border-gray-200 text-[#566a7f] hover:bg-gray-50 text-xs font-bold transition-all cursor-pointer"
+                  className="py-2 px-3 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-medium transition-colors cursor-pointer"
                 >
                   Tiếp tục chỉnh sửa
                 </button>
@@ -1081,7 +1082,7 @@ export default function MyChildren() {
                     setShowUnsavedExitModal(false);
                     setModalOpen(false);
                   }}
-                  className="py-2.5 px-3 rounded-xl bg-[#ff3e1d] hover:bg-[#e6381a] text-white text-xs font-bold transition-all cursor-pointer shadow-sm"
+                  className="py-2 px-3 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
                 >
                   Thoát không lưu
                 </button>
@@ -1090,18 +1091,18 @@ export default function MyChildren() {
           </div>
         )}
 
-        {/* POPUP 3: XÁC NHẬN LƯU HỒ SƠ THÀNH CÔNG & ĐĂNG KÝ GIA SƯ */}
+        {/* POPUP 2: XÁC NHẬN LƯU HỒ SƠ THÀNH CÔNG & ĐĂNG KÝ GIA SƯ */}
         {showSuccessModal && createdStudentInfo && (
-          <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
-            <div className="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-gray-100 space-y-4">
-              <div className="w-14 h-14 rounded-full bg-[#71dd37]/15 text-[#71dd37] mx-auto flex items-center justify-center shadow-sm">
-                <CheckCircle2 size={32} />
+          <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+            <div className="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-100 space-y-4">
+              <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center border border-emerald-100">
+                <CheckCircle2 size={26} />
               </div>
               <div>
-                <h4 className="text-lg font-bold text-[#566a7f]">Thêm hồ sơ thành công! 🎉</h4>
-                <p className="text-xs text-[#697a8d] mt-2 leading-relaxed">
-                  Hồ sơ của bé <strong className="text-[#696cff]">{createdStudentInfo.fullName}</strong> đã được lưu.
-                  Bạn có muốn đăng ký gia sư cho bé ngay bây giờ không?
+                <h4 className="text-base font-bold text-slate-800">Thêm hồ sơ thành công! 🎉</h4>
+                <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                  Hồ sơ của bé <strong className="text-indigo-600">{createdStudentInfo.fullName}</strong> đã được lưu thành công.
+                  Bạn có muốn đăng ký tìm gia sư cho con ngay bây giờ không?
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3 pt-2">
@@ -1111,7 +1112,7 @@ export default function MyChildren() {
                     setShowSuccessModal(false);
                     setCreatedStudentInfo(null);
                   }}
-                  className="py-2.5 px-3 rounded-xl border border-gray-200 text-[#697a8d] hover:bg-gray-50 text-xs font-bold transition-all cursor-pointer"
+                  className="py-2 px-3 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-medium transition-colors cursor-pointer"
                 >
                   Để sau
                 </button>
@@ -1123,9 +1124,9 @@ export default function MyChildren() {
                     setCreatedStudentInfo(null);
                     navigate(`/client/request-tutor?studentId=${id}`);
                   }}
-                  className="py-2.5 px-3 rounded-xl bg-[#696cff] hover:bg-[#5f61e6] text-white text-xs font-bold transition-all cursor-pointer shadow-[0_2px_4px_0_rgba(105,108,255,0.4)] flex items-center justify-center gap-1.5"
+                  className="py-2 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-2xs flex items-center justify-center gap-1.5"
                 >
-                  <Sparkles size={14} /> Đăng ký gia sư
+                  <Sparkles size={13} /> Đăng ký gia sư
                 </button>
               </div>
             </div>
