@@ -71,7 +71,7 @@ export default function Register() {
             <div className="relative z-10 space-y-6">
               <div className="inline-flex items-center gap-2.5 bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20">
                 <Sparkles size={15} className="text-amber-300" />
-                <span className="text-xs font-semibold tracking-wide text-white uppercase">Hệ Thống CRM Gia Sư Toàn Diện</span>
+                <span className="text-xs font-semibold tracking-wide text-white uppercase">Nền Tảng Gia Sư Chất Lượng Cao</span>
               </div>
 
               <div>
@@ -150,7 +150,7 @@ export default function Register() {
                   <div className="w-8 h-8 rounded-lg bg-[#696cff] flex items-center justify-center text-white font-extrabold text-sm shadow-[0_2px_4px_0_rgba(105,108,255,0.4)]">
                     S
                   </div>
-                  <span className="text-xl font-bold text-[#566a7f] tracking-tight">Sneat CRM</span>
+                  <span className="text-xl font-bold text-[#566a7f] tracking-tight">Sneat Tutor</span>
                 </div>
                 <h2 className="text-xl font-bold text-[#566a7f]">Tạo tài khoản mới 👋</h2>
                 <p className="text-xs text-[#a1acb8] mt-1">

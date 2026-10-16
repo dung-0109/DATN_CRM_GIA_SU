@@ -85,7 +85,7 @@ export default function Login() {
             <div className="relative z-10 space-y-6">
               <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20">
                 <Sparkles size={15} className="text-amber-300" />
-                <span className="text-xs font-semibold tracking-wide text-white uppercase">Cổng Đăng Nhập Hệ Thống</span>
+                <span className="text-xs font-semibold tracking-wide text-white uppercase">Nền Tảng Gia Sư Chất Lượng Cao</span>
               </div>
 
               <div>
@@ -93,7 +93,7 @@ export default function Login() {
                   Chào mừng bạn quay trở lại!
                 </h1>
                 <p className="text-white/80 text-xs lg:text-sm mt-3 leading-relaxed">
-                  Truy cập bảng điều khiển vận hành CRM, Cổng Phụ huynh hoặc Cổng Gia sư để tiếp tục công việc.
+                  Đăng nhập để theo dõi lịch học, kết nối gia sư và quản lý lớp học hiệu quả.
                 </p>
               </div>
 
@@ -103,7 +103,7 @@ export default function Login() {
                     <GraduationCap size={18} className="text-white" />
                   </div>
                   <div className="text-xs text-white">
-                    <span className="font-bold">Quản trị tập trung 3 Cổng:</span> Client, Tutor & Admin CRM.
+                    <span className="font-bold">Học tập hiệu quả & Tiến bộ:</span> Theo dõi sát sao từng buổi học và nhật ký giảng dạy minh bạch.
                   </div>
                 </div>
 
@@ -112,7 +112,7 @@ export default function Login() {
                     <ShieldCheck size={18} className="text-emerald-300" />
                   </div>
                   <div className="text-xs text-white">
-                    <span className="font-bold">Bảo mật mã hóa JWT & PIN:</span> An toàn dữ liệu tuyệt đối.
+                    <span className="font-bold">Bảo hành 30 ngày an tâm:</span> Đổi gia sư miễn phí và bảo lưu số buổi nếu chưa phù hợp.
                   </div>
                 </div>
 
@@ -121,15 +121,15 @@ export default function Login() {
                     <Award size={18} className="text-amber-300" />
                   </div>
                   <div className="text-xs text-white">
-                    <span className="font-bold">Đối soát thông minh 24/7:</span> Tự động hóa quy trình nghiệp vụ.
+                    <span className="font-bold">Gia sư kiểm định sư phạm:</span> Đội ngũ giáo viên và sinh viên giỏi được xác minh bằng cấp kỹ lưỡng.
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="relative z-10 pt-6 mt-6 border-t border-white/15 text-xs text-white/75 flex items-center justify-between">
-              <span>Phiên bản Sneat 2.0</span>
-              <span>© 2026 CRM Gia Sư</span>
+              <span>Sneat Tutor v2.0</span>
+              <span>© 2026 Sneat Education</span>
             </div>
           </div>
 
@@ -142,7 +142,7 @@ export default function Login() {
                   <div className="w-8 h-8 rounded-lg bg-[#696cff] flex items-center justify-center text-white font-extrabold text-sm shadow-[0_2px_4px_0_rgba(105,108,255,0.4)]">
                     S
                   </div>
-                  <span className="text-xl font-bold text-[#566a7f] tracking-tight">Sneat CRM</span>
+                  <span className="text-xl font-bold text-[#566a7f] tracking-tight">Sneat Tutor</span>
                 </div>
                 <h2 className="text-xl font-bold text-[#566a7f]">Đăng nhập tài khoản 👋</h2>
                 <p className="text-xs text-[#a1acb8] mt-1">

@@ -77,7 +77,7 @@ export default function ForgotPassword() {
               <div className="w-10 h-10 rounded-xl bg-[#696cff] flex items-center justify-center text-white font-extrabold text-lg shadow-[0_2px_4px_0_rgba(105,108,255,0.4)]">
                 S
               </div>
-              <span className="text-2xl font-bold text-[#566a7f] tracking-tight">Sneat CRM</span>
+              <span className="text-2xl font-bold text-[#566a7f] tracking-tight">Sneat Tutor</span>
             </div>
             <h2 className="text-xl font-bold text-[#566a7f]">Quên mật khẩu? 🔒</h2>
             <p className="text-xs text-[#a1acb8]">
