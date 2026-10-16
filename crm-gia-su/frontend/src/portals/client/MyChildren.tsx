@@ -16,6 +16,9 @@ import {
   Tag,
   Check,
   AlertCircle,
+  Award,
+  BookOpen,
+  GraduationCap,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageTemplate from '../../components/PageTemplate';
@@ -71,6 +74,40 @@ const PERSONALITY_TAGS = [
   'Cần kiên nhẫn & động viên',
   'Cần kỷ luật, nghiêm khắc',
 ];
+
+const getTextbookDisplay = (val: string | null | undefined): string | null => {
+  if (!val) return null;
+  const match = TEXTBOOK_OPTIONS.find((tb) => val.includes(tb) || tb.includes(val));
+  if (match) return match;
+  if (
+    val.toLowerCase().includes('sách') ||
+    val.toLowerCase().includes('chân trời') ||
+    val.toLowerCase().includes('cánh diều') ||
+    val.toLowerCase().includes('tri thức') ||
+    val.toLowerCase().includes('quốc tế')
+  ) {
+    return val;
+  }
+  return null;
+};
+
+const getPersonalityList = (s: Student): string[] => {
+  const list: string[] = [];
+  if (s.personalityTraits) {
+    s.personalityTraits.split(/[,;]+/).forEach((item) => {
+      const trimmed = item.trim();
+      if (trimmed && !list.includes(trimmed)) list.push(trimmed);
+    });
+  }
+  // If legacy learningStyle contained personality traits instead of a textbook
+  if (s.learningStyle && !getTextbookDisplay(s.learningStyle)) {
+    s.learningStyle.split(/[,;]+/).forEach((item) => {
+      const trimmed = item.trim();
+      if (trimmed && !list.includes(trimmed)) list.push(trimmed);
+    });
+  }
+  return list;
+};
 
 const EMPTY_FORM = {
   fullName: '',
@@ -318,6 +355,10 @@ export default function MyChildren() {
 
   const openEditModal = (s: Student) => {
     setEditingId(s.id);
+    const textbook = getTextbookDisplay(s.learningStyle);
+    const legacyPersonalities = !textbook ? s.learningStyle : '';
+    const initialTraits = s.personalityTraits || legacyPersonalities || '';
+
     const initialF = {
       fullName: s.fullName,
       gender: s.gender,
@@ -325,8 +366,8 @@ export default function MyChildren() {
       school: s.school || '',
       grade: s.grade || 'Lớp 6',
       academicLevel: s.academicLevel || 'AVERAGE',
-      learningStyle: s.learningStyle || 'Kết nối tri thức với cuộc sống',
-      personalityTraits: s.personalityTraits || '',
+      learningStyle: textbook || 'Kết nối tri thức với cuộc sống',
+      personalityTraits: initialTraits,
       notes: s.notes || '',
       targetGoal: s.targetGoal || '',
     };
@@ -811,22 +852,27 @@ export default function MyChildren() {
         ) : (
           /* DANH SÁCH CON (LIST VIEW) */
           <>
-            {/* Simple Clean Header Action Bar */}
-            <div className="flex justify-between items-center bg-white rounded-xl border border-slate-200/80 px-4 py-3 shadow-2xs">
+            {/* Header Action Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white rounded-2xl border border-slate-200/90 px-5 py-4 shadow-2xs">
               <div>
-                <h2 className="text-sm font-semibold text-slate-800">
-                  Danh Sách Các Con ({students.length})
-                </h2>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Quản lý hồ sơ học tập cố định và kết nối gia sư dạy kèm
+                <div className="flex items-center gap-2.5">
+                  <h2 className="text-base font-bold text-slate-800">
+                    Danh Sách Các Con
+                  </h2>
+                  <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-bold text-xs border border-indigo-100/80">
+                    {students.length} bé
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Quản lý hồ sơ học tập cố định, theo dõi tiến độ và đăng ký gia sư dạy kèm
                 </p>
               </div>
 
               <button
                 onClick={openAddModal}
-                className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-medium rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-2xs"
+                className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white text-xs font-semibold rounded-xl transition-all cursor-pointer inline-flex items-center justify-center gap-2 shadow-sm hover:shadow active:scale-98"
               >
-                <Plus size={14} /> Thêm Hồ Sơ Con
+                <Plus size={15} /> Thêm Hồ Sơ Con
               </button>
             </div>
 
@@ -838,26 +884,30 @@ export default function MyChildren() {
             )}
 
             {loading ? (
-              <div className="text-center py-16 text-slate-400 text-xs flex flex-col items-center gap-2 bg-white rounded-xl border border-slate-200/80">
-                <Loader size={20} className="animate-spin text-indigo-600" />
+              <div className="text-center py-16 text-slate-400 text-xs flex flex-col items-center gap-2 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
+                <Loader size={22} className="animate-spin text-indigo-600" />
                 <span>Đang tải danh sách học sinh...</span>
               </div>
             ) : students.length === 0 ? (
-              <div className="py-14 text-center bg-white border border-slate-200/80 rounded-xl shadow-2xs space-y-2.5">
-                <Users size={40} className="mx-auto text-slate-300" />
-                <p className="text-sm font-semibold text-slate-700">Chưa có hồ sơ học sinh nào</p>
-                <p className="text-xs text-slate-400 max-w-xs mx-auto">
-                  Thêm thông tin con cái để bắt đầu đăng ký tìm gia sư dạy kèm phù hợp nhất.
-                </p>
+              <div className="py-14 text-center bg-white border border-slate-200/90 rounded-2xl shadow-2xs space-y-3">
+                <div className="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-500 mx-auto flex items-center justify-center">
+                  <Users size={32} />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-slate-800">Chưa có hồ sơ học sinh nào</p>
+                  <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+                    Thêm thông tin các con để dễ dàng theo dõi việc học và đăng ký tìm gia sư dạy kèm bám sát chương trình.
+                  </p>
+                </div>
                 <button
                   onClick={openAddModal}
-                  className="mt-2 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg shadow-2xs cursor-pointer inline-flex items-center gap-1.5"
+                  className="mt-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-sm cursor-pointer inline-flex items-center gap-1.5"
                 >
                   <Plus size={14} /> Thêm con ngay
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {students.map((s) => {
                   const classCount = s.classes?.length || 0;
                   const requestCount = s.tutorRequests?.length || 0;
@@ -865,143 +915,198 @@ export default function MyChildren() {
                   const hasRequests = requestCount > 0;
                   const age = calculateAge(s.dateOfBirth);
                   const displayName = s.fullName.trim().replace(/\b\w/g, (c: string) => c.toUpperCase());
-                  const traitsList = s.personalityTraits
-                    ? s.personalityTraits.split(/[,;]+/).map((item: string) => item.trim()).filter(Boolean)
-                    : [];
+                  const textbook = getTextbookDisplay(s.learningStyle);
+                  const traitsList = getPersonalityList(s);
 
                   return (
                     <div
                       key={s.id}
-                      className="bg-white border border-slate-200/80 hover:border-slate-300 rounded-xl p-4 shadow-2xs flex flex-col justify-between space-y-3 transition-all"
+                      className="group relative bg-white border border-slate-200/90 hover:border-indigo-300 rounded-2xl shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col justify-between overflow-hidden"
                     >
-                      <div className="space-y-3">
-                        {/* Card Header: Avatar Emoji, Name, Grade & Status */}
-                        <div className="flex items-start justify-between gap-2.5">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 border ${
+                      {/* Top decorative gradient bar */}
+                      <div className={`h-1.5 w-full bg-gradient-to-r ${
+                        s.gender === 'MALE'
+                          ? 'from-blue-500 via-indigo-500 to-cyan-400'
+                          : 'from-pink-500 via-rose-500 to-amber-400'
+                      }`} />
+
+                      <div className="p-5 space-y-4">
+                        {/* Header: Avatar, Name, Grade & Status */}
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3.5">
+                            {/* Avatar with subtle glow & hover animation */}
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-inner border transition-transform group-hover:scale-105 duration-200 ${
                               s.gender === 'MALE'
-                                ? 'bg-blue-50/70 border-blue-100 text-blue-600'
-                                : 'bg-pink-50/70 border-pink-100 text-pink-600'
+                                ? 'bg-gradient-to-br from-blue-50 to-indigo-100/60 border-blue-200/60 text-blue-600'
+                                : 'bg-gradient-to-br from-pink-50 to-rose-100/60 border-rose-200/60 text-rose-600'
                             }`}>
                               {s.gender === 'MALE' ? '👦' : '👧'}
                             </div>
+
                             <div>
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-semibold text-slate-800 text-sm">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h3 className="font-bold text-slate-800 text-base group-hover:text-indigo-600 transition-colors">
                                   {displayName}
                                 </h3>
-                                <span className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100/80 px-2 py-0.2 rounded-md">
+                                <span className="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200/80 px-2.5 py-0.5 rounded-full shadow-2xs">
                                   {s.grade || 'Chưa cập nhật lớp'}
                                 </span>
                               </div>
-                              <p className="text-xs text-slate-400 mt-0.5">
-                                {genderLabel(s.gender)} {age !== null ? `• ${age} tuổi` : ''}
-                                {s.school ? ` • ${s.school}` : ''}
-                              </p>
+
+                              <div className="flex items-center gap-2 text-xs text-slate-500 mt-1 flex-wrap">
+                                <span className="font-medium text-slate-600">
+                                  {genderLabel(s.gender)} {age !== null ? `• ${age} tuổi` : ''}
+                                </span>
+                                {s.school && (
+                                  <>
+                                    <span className="text-slate-300">•</span>
+                                    <span className="inline-flex items-center gap-1 text-slate-500 truncate max-w-[190px]" title={s.school}>
+                                      <GraduationCap size={13} className="text-indigo-500 shrink-0" />
+                                      {s.school}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
                             </div>
                           </div>
 
                           {/* Status Badge */}
-                          <span className="shrink-0">
+                          <div className="shrink-0">
                             {hasClasses ? (
-                              <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                              <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-3 py-1 rounded-full inline-flex items-center gap-1.5 shadow-2xs">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                                 Đang học {classCount} lớp
                               </span>
                             ) : hasRequests ? (
-                              <span className="text-[11px] font-medium text-amber-700 bg-amber-50 border border-amber-200/60 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                              <span className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200/80 px-3 py-1 rounded-full inline-flex items-center gap-1.5 shadow-2xs">
+                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
                                 Đang tìm {requestCount} lớp
                               </span>
                             ) : (
-                              <span className="text-[11px] font-medium text-slate-500 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                                Chưa có lớp
+                              <span className="text-xs font-medium text-slate-500 bg-slate-100 border border-slate-200/80 px-2.5 py-1 rounded-full inline-flex items-center gap-1">
+                                Chưa có lớp học
                               </span>
                             )}
-                          </span>
+                          </div>
                         </div>
 
-                        {/* Compact Details Box */}
-                        <div className="p-3 bg-slate-50/80 rounded-lg border border-slate-100 text-xs text-slate-600 space-y-2">
-                          <div className="flex items-center justify-between gap-2 flex-wrap">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-slate-400 font-medium">Học lực:</span>
-                              {s.academicLevel === 'WEAK' ? (
-                                <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-rose-50 text-rose-700 border border-rose-200/60">
-                                  Yếu / Cần lấy lại gốc
-                                </span>
-                              ) : s.academicLevel === 'GOOD' ? (
-                                <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                                  Học lực Khá
-                                </span>
-                              ) : s.academicLevel === 'EXCELLENT' ? (
-                                <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-indigo-50 text-indigo-700 border border-indigo-200/60">
-                                  Giỏi / Xuất sắc
-                                </span>
-                              ) : (
-                                <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-amber-50 text-amber-700 border border-amber-200/60">
-                                  Học lực Trung bình
-                                </span>
-                              )}
-                            </div>
-
-                            {s.learningStyle && (
-                              <div className="flex items-center gap-1 text-[11px] text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
-                                <span>📚 {s.learningStyle}</span>
+                        {/* Section: 2 Key Metric Cards (Học lực & Bộ sách) */}
+                        <div className="grid grid-cols-2 gap-2.5">
+                          {/* Box 1: Học lực */}
+                          <div className="p-2.5 rounded-xl bg-slate-50/80 border border-slate-100 flex items-center justify-between">
+                            <div className="flex items-center gap-2 overflow-hidden">
+                              <div className="w-7 h-7 rounded-lg bg-white shadow-2xs border border-slate-200/60 flex items-center justify-center text-indigo-600 shrink-0">
+                                <Award size={14} />
                               </div>
-                            )}
+                              <div className="overflow-hidden">
+                                <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Học lực</div>
+                                <div className="text-xs font-semibold truncate">
+                                  {s.academicLevel === 'EXCELLENT' ? (
+                                    <span className="text-indigo-600">Giỏi / Xuất sắc</span>
+                                  ) : s.academicLevel === 'GOOD' ? (
+                                    <span className="text-emerald-600">Học lực Khá</span>
+                                  ) : s.academicLevel === 'WEAK' ? (
+                                    <span className="text-rose-600">Cần lấy lại gốc</span>
+                                  ) : (
+                                    <span className="text-amber-600">Trung bình</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
                           </div>
 
-                          {traitsList.length > 0 && (
-                            <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                              <span className="text-slate-400 font-medium">Tính cách:</span>
+                          {/* Box 2: Bộ sách */}
+                          <div className="p-2.5 rounded-xl bg-slate-50/80 border border-slate-100 flex items-center justify-between">
+                            <div className="flex items-center gap-2 overflow-hidden">
+                              <div className="w-7 h-7 rounded-lg bg-white shadow-2xs border border-slate-200/60 flex items-center justify-center text-amber-600 shrink-0">
+                                <BookOpen size={14} />
+                              </div>
+                              <div className="overflow-hidden">
+                                <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Bộ sách</div>
+                                <div className="text-xs font-semibold text-slate-700 truncate" title={textbook || 'Chưa cập nhật'}>
+                                  {textbook || <span className="text-slate-400 font-normal italic">Chưa chọn</span>}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Section: Personality & Learning Characteristics */}
+                        <div className="space-y-1.5">
+                          <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <Sparkles size={12} className="text-indigo-500" />
+                            <span>Tính cách & Thói quen học tập</span>
+                          </div>
+
+                          {traitsList.length > 0 ? (
+                            <div className="flex items-center gap-1.5 flex-wrap">
                               {traitsList.map((tr: string, idx: number) => (
-                                <span key={idx} className="px-2 py-0.5 bg-white border border-slate-200 text-slate-700 font-medium rounded text-[11px]">
+                                <span
+                                  key={idx}
+                                  className="text-xs font-medium px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 border border-slate-200/70 inline-flex items-center gap-1 shadow-2xs"
+                                >
+                                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
                                   {tr}
                                 </span>
                               ))}
                             </div>
-                          )}
-
-                          {s.notes && (
-                            <div className="text-[11px] text-slate-500 italic pt-0.5 border-t border-slate-100">
-                              Lưu ý: {s.notes}
+                          ) : (
+                            <div className="text-xs text-slate-400 italic bg-slate-50/60 border border-dashed border-slate-200 rounded-lg p-2 flex items-center justify-between">
+                              <span>Chưa thiết lập tính cách của bé</span>
+                              <button
+                                onClick={() => openEditModal(s)}
+                                className="text-indigo-600 hover:text-indigo-700 font-medium text-[11px] cursor-pointer"
+                              >
+                                + Bổ sung
+                              </button>
                             </div>
                           )}
                         </div>
+
+                        {/* Notes callout (if any) */}
+                        {s.notes && (
+                          <div className="p-2.5 bg-amber-50/60 border border-amber-200/60 rounded-xl text-xs text-amber-900 leading-relaxed flex items-start gap-2">
+                            <span className="text-sm shrink-0">💡</span>
+                            <div className="text-[11px]">
+                              <strong className="font-semibold">Lưu ý: </strong>
+                              <span>{s.notes}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
-                      {/* Card Actions */}
-                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                        <div className="flex items-center gap-1">
+                      {/* Card Footer: Action Bar */}
+                      <div className="px-5 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => openEditModal(s)}
-                            className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                            className="px-3 py-1.5 text-xs font-medium text-slate-700 hover:text-indigo-600 bg-white hover:bg-indigo-50/60 border border-slate-200 hover:border-indigo-200 rounded-lg transition-all cursor-pointer shadow-2xs inline-flex items-center gap-1.5"
                             title="Chỉnh sửa hồ sơ"
                           >
-                            <Pencil size={14} />
+                            <Pencil size={13} />
+                            <span>Sửa hồ sơ</span>
                           </button>
+
                           <button
                             onClick={() => handleDelete(s.id, s.fullName)}
                             disabled={deletingId === s.id}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 rounded-lg transition-all cursor-pointer"
                             title="Xóa hồ sơ"
                           >
                             {deletingId === s.id ? (
-                              <Loader size={14} className="animate-spin" />
+                              <Loader size={13} className="animate-spin text-rose-500" />
                             ) : (
-                              <Trash2 size={14} />
+                              <Trash2 size={13} />
                             )}
                           </button>
                         </div>
 
                         <button
-                          onClick={() => {
-                            navigate(`/client/request-tutor?studentId=${s.id}`);
-                          }}
-                          className="px-3.5 py-1.5 text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 font-medium text-xs rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                          onClick={() => navigate(`/client/request-tutor?studentId=${s.id}`)}
+                          className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold text-xs rounded-xl transition-all shadow-sm hover:shadow cursor-pointer inline-flex items-center gap-1.5 active:scale-98"
                         >
-                          <Sparkles size={13} /> Tìm gia sư cho con
+                          <Sparkles size={13} />
+                          <span>Tìm gia sư cho con</span>
                         </button>
                       </div>
                     </div>
