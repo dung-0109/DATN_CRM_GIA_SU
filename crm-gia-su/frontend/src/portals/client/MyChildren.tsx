@@ -413,174 +413,192 @@ export default function MyChildren() {
 
   return (
     <PageTemplate
-      title="Con Của Tôi"
-      subtitle="Quản lý thông tin hồ sơ học sinh của gia đình"
-      badge="Client Portal"
+      title="Hồ Sơ Các Con"
+      subtitle="Quản lý danh sách con cái và tiến độ học kèm cùng gia sư"
+      badge="Phụ Huynh"
     >
-      <div className="w-full space-y-6 text-left font-sans text-[#566a7f]">
-        {/* Navigation & Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <Link
-            to="/client"
-            className="text-xs font-semibold text-[#697a8d] hover:text-[#696cff] bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
-          >
-            <ArrowLeft size={14} /> Quay lại Client Portal
-          </Link>
+      <div className="w-full space-y-4 text-left font-sans text-slate-700">
+        {/* Simple Clean Header Action Bar */}
+        <div className="flex justify-between items-center bg-white rounded-xl border border-slate-200/80 px-4 py-3 shadow-2xs">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-800">
+              Danh Sách Học Sinh ({students.length})
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Thông tin chi tiết về lực học, môn cần kèm và lịch học của từng con
+            </p>
+          </div>
 
           <button
             onClick={openAddModal}
-            className="px-4 py-2 bg-[#696cff] hover:bg-[#5f61e6] active:bg-[#595cd9] text-white text-xs font-bold rounded-lg transition-all cursor-pointer inline-flex items-center gap-2 shadow-[0_2px_4px_0_rgba(105,108,255,0.4)]"
+            className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-medium rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-2xs"
           >
-            <Plus size={16} /> Thêm con
+            <Plus size={14} /> Thêm Hồ Sơ Con
           </button>
         </div>
 
         {globalError && !modalOpen && (
-          <div className="p-4 bg-[#ffe0db] border border-[#ff3e1d]/40 rounded-xl text-xs font-semibold text-[#ff3e1d] flex items-center gap-2">
-            <AlertCircle size={16} className="shrink-0" />
+          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-medium text-rose-700 flex items-center gap-2">
+            <AlertCircle size={15} className="shrink-0" />
             <span>{globalError}</span>
           </div>
         )}
 
         {loading ? (
-          <div className="text-center py-16 text-[#a1acb8] text-sm flex flex-col items-center gap-3">
-            <Loader size={28} className="animate-spin text-[#696cff]" />
-            Đang tải danh sách học sinh...
+          <div className="text-center py-16 text-slate-400 text-xs flex flex-col items-center gap-2 bg-white rounded-xl border border-slate-200/80">
+            <Loader size={20} className="animate-spin text-indigo-600" />
+            <span>Đang tải danh sách học sinh...</span>
           </div>
         ) : students.length === 0 ? (
-          <div className="py-16 text-center bg-white border border-gray-100 rounded-xl shadow-sm space-y-3">
-            <Users size={48} className="mx-auto text-[#a1acb8]" />
-            <p className="text-base font-bold text-[#566a7f]">Chưa có hồ sơ học sinh nào</p>
-            <p className="text-xs text-[#a1acb8] max-w-xs mx-auto">
-              Thêm thông tin con để bắt đầu đăng ký tìm Gia sư phù hợp.
+          <div className="py-14 text-center bg-white border border-slate-200/80 rounded-xl shadow-2xs space-y-2.5">
+            <Users size={40} className="mx-auto text-slate-300" />
+            <p className="text-sm font-semibold text-slate-700">Chưa có hồ sơ học sinh nào</p>
+            <p className="text-xs text-slate-400 max-w-xs mx-auto">
+              Thêm thông tin con cái để bắt đầu đăng ký tìm gia sư dạy kèm phù hợp nhất.
             </p>
             <button
               onClick={openAddModal}
-              className="mt-2 px-5 py-2.5 bg-[#696cff] hover:bg-[#5f61e6] text-white text-xs font-bold rounded-lg shadow-[0_2px_4px_0_rgba(105,108,255,0.4)] cursor-pointer inline-flex items-center gap-2"
+              className="mt-2 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg shadow-2xs cursor-pointer inline-flex items-center gap-1.5"
             >
-              <Plus size={15} /> Thêm con ngay
+              <Plus size={14} /> Thêm con ngay
             </button>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {students.map((s) => {
               const classCount = s.classes?.length || 0;
               const requestCount = s.tutorRequests?.length || 0;
               const hasClasses = classCount > 0;
               const hasRequests = requestCount > 0;
               const age = calculateAge(s.dateOfBirth);
+              const displayName = s.fullName.trim().replace(/\b\w/g, (c: string) => c.toUpperCase());
+              const subjectsList = s.subjectsNeeded ? s.subjectsNeeded.split(/[,;]+/).map((item: string) => item.trim()).filter(Boolean) : [];
 
               return (
                 <div
                   key={s.id}
-                  className="p-5 bg-white border border-gray-100 hover:border-[#696cff]/40 rounded-xl shadow-sm flex flex-col justify-between space-y-4 transition-all"
+                  className="bg-white border border-slate-200/80 hover:border-slate-300 rounded-xl p-4 shadow-2xs flex flex-col justify-between space-y-3 transition-all"
                 >
-                  <div>
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h3 className="font-bold text-[#566a7f] text-base uppercase">{s.fullName}</h3>
-                        <p className="text-xs text-[#a1acb8] mt-0.5">
-                          {genderLabel(s.gender)} · {age !== null ? `${age} tuổi` : ''} {s.grade ? `· ${s.grade}` : ''}{' '}
-                          {s.school ? `- ${s.school}` : ''}
-                        </p>
-
-                        {/* Status Badge */}
-                        <div className="mt-2">
-                          {hasClasses ? (
-                            <span className="text-[11px] font-bold text-[#71dd37] bg-[#e8fadf] px-2 py-1 rounded shadow-sm inline-flex items-center">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#71dd37] mr-1.5 animate-pulse"></span>
-                              Đang học {classCount} lớp
+                  <div className="space-y-2.5">
+                    {/* Card Header: Name, Grade & Status */}
+                    <div className="flex items-start justify-between gap-2.5">
+                      <div className="flex items-start gap-2.5">
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
+                          s.gender === 'MALE' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-rose-50 text-rose-700 border border-rose-100'
+                        }`}>
+                          {displayName.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-slate-800 text-sm">
+                              {displayName}
+                            </h3>
+                            <span className="text-[10px] text-slate-500 font-medium px-1.5 py-0.2 rounded bg-slate-100">
+                              {genderLabel(s.gender)} {age !== null ? `• ${age} tuổi` : ''}
                             </span>
-                          ) : hasRequests ? (
-                            <span className="text-[11px] font-bold text-[#ffab00] bg-[#fff2d6] px-2 py-1 rounded shadow-sm inline-flex items-center">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#ffab00] mr-1.5"></span>
-                              Đang chờ ghép {requestCount} yêu cầu
-                            </span>
-                          ) : (
-                            <span className="text-[11px] font-bold text-[#8592a3] bg-[#f8f9fa] px-2 py-1 rounded shadow-sm inline-flex items-center border border-gray-200">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#8592a3] mr-1.5"></span>
-                              Chưa đăng ký gia sư
-                            </span>
-                          )}
+                          </div>
+                          <p className="text-xs text-slate-400 mt-0.5">
+                            {s.school ? `${s.school}` : 'Trường chưa cập nhật'} {s.grade ? `• ${s.grade}` : ''}
+                          </p>
                         </div>
                       </div>
-                      <span className="text-4xl shrink-0 drop-shadow-sm">
-                        {s.gender === 'MALE' ? '👦' : s.gender === 'FEMALE' ? '👧' : '🧑'}
+
+                      {/* Status Badge */}
+                      <span className="shrink-0">
+                        {hasClasses ? (
+                          <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            Đang học {classCount} lớp
+                          </span>
+                        ) : hasRequests ? (
+                          <span className="text-[11px] font-medium text-amber-700 bg-amber-50 border border-amber-200/60 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                            Đang tìm {requestCount} lớp
+                          </span>
+                        ) : (
+                          <span className="text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                            Chưa có lớp học
+                          </span>
+                        )}
                       </span>
                     </div>
 
-                    <div className="mt-4 text-xs text-[#566a7f] space-y-1.5">
-                      <p className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-semibold text-[#697a8d]">Học lực: </span>
+                    {/* Compact Details Box */}
+                    <div className="p-2.5 bg-slate-50/80 rounded-lg border border-slate-100 text-xs text-slate-600 space-y-1.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-slate-400 font-medium">Học lực:</span>
                         {s.academicLevel === 'WEAK' ? (
-                          <span className="px-2 py-0.5 rounded font-bold text-[11px] bg-[#ffe0db] text-[#ff3e1d]">
-                            Mất gốc / Yếu
+                          <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-rose-50 text-rose-700 border border-rose-200/60">
+                            Yếu / Cần lấy lại gốc
                           </span>
                         ) : s.academicLevel === 'GOOD' ? (
-                          <span className="px-2 py-0.5 rounded font-bold text-[11px] bg-[#e8fadf] text-[#71dd37]">
+                          <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200/60">
                             Học lực Khá
                           </span>
                         ) : s.academicLevel === 'EXCELLENT' ? (
-                          <span className="px-2 py-0.5 rounded font-bold text-[11px] bg-[#e7e7ff] text-[#696cff]">
+                          <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-indigo-50 text-indigo-700 border border-indigo-200/60">
                             Giỏi / Xuất sắc
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded font-bold text-[11px] bg-[#fff8e1] text-[#ffab00]">
+                          <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-amber-50 text-amber-700 border border-amber-200/60">
                             Học lực Trung bình
                           </span>
                         )}
-                      </p>
+                      </div>
 
-                      <p>
-                        <span className="font-semibold text-[#697a8d]">Môn cần kèm: </span>
-                        {s.subjectsNeeded ? (
-                          <span className="font-bold text-[#696cff]">{s.subjectsNeeded}</span>
-                        ) : (
-                          <span className="text-[#a1acb8] italic">Chưa cập nhật</span>
-                        )}
-                      </p>
+                      {subjectsList.length > 0 && (
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-slate-400 font-medium">Môn cần kèm:</span>
+                          {subjectsList.map((sub: string, idx: number) => (
+                            <span key={idx} className="px-2 py-0.5 bg-white border border-slate-200 text-indigo-600 font-medium rounded text-[11px]">
+                              {sub}
+                            </span>
+                          ))}
+                        </div>
+                      )}
 
                       {s.targetGoal && (
-                        <p>
-                          <span className="font-semibold text-[#697a8d]">Mục tiêu: </span>
-                          <span className="font-medium text-[#566a7f]">{s.targetGoal}</span>
-                        </p>
+                        <div className="text-slate-600">
+                          <span className="text-slate-400 font-medium">Mục tiêu: </span>
+                          <span>{s.targetGoal}</span>
+                        </div>
                       )}
 
                       {(s.personalityTraits || s.learningStyle) && (
-                        <p>
-                          <span className="font-semibold text-[#697a8d]">Tính cách: </span>
+                        <div className="text-slate-600">
+                          <span className="text-slate-400 font-medium">Tính cách: </span>
                           <span>{s.personalityTraits || s.learningStyle}</span>
-                        </p>
+                        </div>
+                      )}
+
+                      {s.notes && (
+                        <div className="text-[11px] text-slate-500 italic pt-0.5">
+                          Lưu ý: {s.notes}
+                        </div>
                       )}
                     </div>
-
-                    {s.notes && (
-                      <p className="mt-3 text-xs text-[#697a8d] italic bg-[#f5f5f9] p-2.5 rounded-lg border-l-2 border-[#8592a3]">
-                        {s.notes}
-                      </p>
-                    )}
                   </div>
 
-                  <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
+                  {/* Card Actions */}
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => openEditModal(s)}
-                        className="p-1.5 text-[#697a8d] hover:text-[#696cff] hover:bg-[#f5f5f9] rounded-lg transition-colors cursor-pointer"
+                        className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                         title="Chỉnh sửa hồ sơ"
                       >
-                        <Pencil size={15} />
+                        <Pencil size={14} />
                       </button>
                       <button
                         onClick={() => handleDelete(s.id, s.fullName)}
                         disabled={deletingId === s.id}
-                        className="p-1.5 text-[#a1acb8] hover:text-[#ff3e1d] hover:bg-[#ffe0db]/40 rounded-lg transition-colors cursor-pointer"
+                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                         title="Xóa hồ sơ"
                       >
                         {deletingId === s.id ? (
-                          <Loader size={15} className="animate-spin" />
+                          <Loader size={14} className="animate-spin" />
                         ) : (
-                          <Trash2 size={15} />
+                          <Trash2 size={14} />
                         )}
                       </button>
                     </div>
@@ -589,9 +607,9 @@ export default function MyChildren() {
                       onClick={() => {
                         navigate(`/client/request-tutor?studentId=${s.id}`);
                       }}
-                      className="px-3 py-1.5 text-[#696cff] bg-[#e7e7ff] hover:bg-[#d9d9ff] font-bold text-xs rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                      className="px-3 py-1.5 text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 font-medium text-xs rounded-lg transition-colors cursor-pointer flex items-center gap-1 border border-indigo-100"
                     >
-                      <Plus size={14} strokeWidth={3} /> Đăng ký gia sư
+                      <Plus size={13} /> Tìm gia sư cho con
                     </button>
                   </div>
                 </div>
