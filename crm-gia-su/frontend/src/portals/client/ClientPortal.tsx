@@ -413,18 +413,18 @@ export default function ClientPortal() {
           </div>
         )}
 
-        {/* 2. Structured Tab Navigation & Controls */}
-        <div className="bg-white rounded-xl border border-slate-200/80 p-4 space-y-3.5 shadow-xs">
+        {/* 2. Segmented Navigation Controls */}
+        <div className="space-y-3">
           
-          {/* Main 4 Function Tabs */}
-          <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-100 pb-3">
-            <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto">
+          {/* Main 4 Function Tabs (Modern Segmented Controls) */}
+          <div className="flex flex-wrap items-center justify-between gap-2.5">
+            <div className="bg-slate-200/60 p-1 rounded-xl inline-flex items-center gap-1 overflow-x-auto w-full sm:w-auto">
               <button
                 onClick={() => { setActiveMainTab('CLASSES'); setCurrentPage(1); }}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                   activeMainTab === 'CLASSES'
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-white text-slate-800 font-semibold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <BookOpen size={14} />
@@ -433,10 +433,10 @@ export default function ClientPortal() {
 
               <button
                 onClick={() => { setActiveMainTab('REQUESTS'); setCurrentPage(1); }}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                   activeMainTab === 'REQUESTS'
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-white text-slate-800 font-semibold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <ClipboardList size={14} />
@@ -445,10 +445,10 @@ export default function ClientPortal() {
 
               <button
                 onClick={() => { setActiveMainTab('STUDENTS'); setCurrentPage(1); }}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                   activeMainTab === 'STUDENTS'
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-white text-slate-800 font-semibold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <Users size={14} />
@@ -457,10 +457,10 @@ export default function ClientPortal() {
 
               <button
                 onClick={() => { setActiveMainTab('WARRANTY'); setCurrentPage(1); }}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                   activeMainTab === 'WARRANTY'
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-white text-slate-800 font-semibold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <ShieldCheck size={14} />
@@ -472,14 +472,14 @@ export default function ClientPortal() {
             <div className="flex items-center gap-2 text-xs">
               <Link
                 to="/client/attendance"
-                className="px-2.5 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 text-slate-600 rounded-md transition-colors flex items-center gap-1 font-medium"
+                className="px-2.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200/80 text-slate-600 rounded-lg transition-colors flex items-center gap-1 font-medium shadow-2xs"
               >
                 <UserCheck size={13} />
                 <span>Duyệt Điểm Danh</span>
               </Link>
               <Link
                 to="/client/leaves"
-                className="px-2.5 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 text-slate-600 rounded-md transition-colors flex items-center gap-1 font-medium"
+                className="px-2.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200/80 text-slate-600 rounded-lg transition-colors flex items-center gap-1 font-medium shadow-2xs"
               >
                 <Calendar size={13} />
                 <span>Báo Nghỉ</span>
@@ -488,7 +488,8 @@ export default function ClientPortal() {
           </div>
 
           {/* Search Bar & Multidimensional Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
+          <div className="bg-white rounded-xl border border-slate-200/80 p-3 shadow-2xs">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
             {/* Search Input */}
             <div className="sm:col-span-6 relative">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
@@ -573,6 +574,7 @@ export default function ClientPortal() {
             </div>
           </div>
         </div>
+      </div>
 
         {/* 3. Main Workspace Display Area */}
         <div className="space-y-4">
