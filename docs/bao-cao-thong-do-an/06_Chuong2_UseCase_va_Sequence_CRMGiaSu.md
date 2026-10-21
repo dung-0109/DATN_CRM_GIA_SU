@@ -52,32 +52,32 @@ flowchart LR
     Client["Phụ huynh (Client)"]
     Tutor["Gia sư (Tutor)"]
 
-    subgraph System ["Hệ thống CRM Gia sư (System)"]
+    subgraph System ["HỆ THỐNG CRM GIA SƯ (SYSTEM)"]
         %% Dùng chung
-        UC_REG(["Đăng ký tài khoản (Account Registration)"])
-        UC_LOG(["Đăng nhập hệ thống (Log In to System)"])
+        UC_REG(["Đăng ký (Register)"])
+        UC_LOG(["Đăng nhập (Login)"])
 
         %% Client
-        UC_C1(["Quản lý hồ sơ học sinh (Manage Student Profiles)"])
-        UC_C2(["Đăng yêu cầu tìm gia sư (Post Tutor Requests)"])
-        UC_C3(["Theo dõi tiến độ & Nhật ký học tập (Track Classes & Session Diaries)"])
-        UC_C4(["Đánh giá dạy thử & Xác nhận lớp (Evaluate Trial Session & Confirm)"])
-        UC_C5(["Gửi khiếu nại & Yêu cầu đổi gia sư (Submit Complaints & Disputes)"])
+        UC_C1(["Quản lý hồ sơ con (Manage Child Profiles)"])
+        UC_C2(["Đăng tin tìm gia sư (Post Tutor Request)"])
+        UC_C3(["Xem nhật ký buổi học (View Session Diaries)"])
+        UC_C4(["Đánh giá dạy thử (Evaluate Trial Session)"])
+        UC_C5(["Khiếu nại & Đổi gia sư (Submit Complaint)"])
 
         %% Tutor
-        UC_T1(["Cập nhật hồ sơ năng lực & KYC (Manage Tutor Profile & KYC)"])
-        UC_T2(["Tìm kiếm & Đăng ký nhận lớp dạy (Search & Apply for Classes)"])
-        UC_T3(["Quản lý lịch dạy & Ghi nhật ký buổi học (Manage Schedule & Submit Diaries)"])
-        UC_T4(["Quản lý ký quỹ & Rút tiền hoàn cọc (Manage Escrow Deposits & Refunds)"])
+        UC_T1(["Hồ sơ năng lực & KYC (Tutor Profile & KYC)"])
+        UC_T2(["Tìm & Nhận lớp (Find & Claim Class)"])
+        UC_T3(["Lịch dạy & Điểm danh (Schedule & Attendance)"])
+        UC_T4(["Quản lý tiền cọc (Manage Escrow Deposits)"])
 
         %% Admin
-        UC_A1(["Quản lý tài khoản & Phân quyền (Manage User Accounts & Roles)"])
-        UC_A2(["Thẩm định & Phê duyệt hồ sơ gia sư (Verify & Approve Tutor Profiles)"])
-        UC_A3(["Quản lý vòng đời lớp học (Manage Class Lifecycles)"])
-        UC_A4(["Ghép lớp thông minh (Smart Tutor Matching Engine)"])
-        UC_A5(["Kiểm toán cọc & Giao dịch thanh toán (Audit Escrow Deposits & Payments)"])
-        UC_A6(["Trọng tài tranh chấp & Xử lý khiếu nại (Arbitrate Disputes & Complaints)"])
-        UC_A7(["Báo cáo thống kê & Phân tích KPI (Generate KPI Reports & Analytics)"])
+        UC_A1(["Quản lý người dùng (Manage Users)"])
+        UC_A2(["Duyệt hồ sơ gia sư (Approve Tutor Profiles)"])
+        UC_A3(["Quản lý lớp học (Manage Classes)"])
+        UC_A4(["Ghép lớp tự động (Smart Matching)"])
+        UC_A5(["Quản lý thanh toán (Manage Payments)"])
+        UC_A6(["Xử lý tranh chấp (Resolve Disputes)"])
+        UC_A7(["Báo cáo thống kê (Reports & Analytics)"])
     end
 
     %% Nối Actor với Use Cases
