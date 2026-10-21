@@ -58,26 +58,26 @@ flowchart LR
         UC_LOG(["Đăng nhập (Login)"])
 
         %% Client
-        UC_C1(["Quản lý hồ sơ con (Manage Child Profiles)"])
+        UC_C1(["Quản lý học sinh (Manage Students)"])
         UC_C2(["Đăng tin tìm gia sư (Post Tutor Request)"])
-        UC_C3(["Xem nhật ký buổi học (View Session Diaries)"])
+        UC_C3(["Theo dõi tiến độ học (Track Learning Progress)"])
         UC_C4(["Đánh giá dạy thử (Evaluate Trial Session)"])
-        UC_C5(["Khiếu nại & Đổi gia sư (Submit Complaint)"])
+        UC_C5(["Khiếu nại dịch vụ (File Complaints)"])
 
         %% Tutor
-        UC_T1(["Hồ sơ năng lực & KYC (Tutor Profile & KYC)"])
-        UC_T2(["Tìm & Nhận lớp (Find & Claim Class)"])
-        UC_T3(["Lịch dạy & Điểm danh (Schedule & Attendance)"])
-        UC_T4(["Quản lý tiền cọc (Manage Escrow Deposits)"])
+        UC_T1(["Hồ sơ gia sư (Tutor Profile)"])
+        UC_T2(["Nhận lớp dạy (Claim Classes)"])
+        UC_T3(["Nhật ký giảng dạy (Teaching Diaries)"])
+        UC_T4(["Quản lý tiền cọc (Manage Escrow)"])
 
         %% Admin
         UC_A1(["Quản lý người dùng (Manage Users)"])
-        UC_A2(["Duyệt hồ sơ gia sư (Approve Tutor Profiles)"])
+        UC_A2(["Duyệt hồ sơ gia sư (Approve Tutors)"])
         UC_A3(["Quản lý lớp học (Manage Classes)"])
         UC_A4(["Ghép lớp tự động (Smart Matching)"])
         UC_A5(["Quản lý thanh toán (Manage Payments)"])
-        UC_A6(["Xử lý tranh chấp (Resolve Disputes)"])
-        UC_A7(["Báo cáo thống kê (Reports & Analytics)"])
+        UC_A6(["Giải quyết tranh chấp (Resolve Disputes)"])
+        UC_A7(["Báo cáo hệ thống (System Reports)"])
     end
 
     %% Nối Actor với Use Cases
